@@ -1,7 +1,8 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Registro from './Registro';
-import RegistroCorreo from './Registrocorreo'; 
+import RegistroCorreo from './Registrocorreo';
+import RegistroCorreoFinal from './Registrofinal'; 
 import { useState } from 'react';
 
 function App() {
@@ -50,6 +51,7 @@ function MainApp() {
         <Route path="/" element={<App />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
+        <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} /> 
       </Routes>
     </Router>
   );
