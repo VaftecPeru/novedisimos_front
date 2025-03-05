@@ -87,7 +87,7 @@ function Registro() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{ borderColor: camposCompletos ? 'initial' : 'red' }}
-          className={camposError ? 'placeholder-error' : ''} // Agregar clase condicional
+          className={camposError ? 'placeholder-error' : ''} 
         />
         <p style={{ color: camposError ? '#991b1b' : 'inherit' }}>Numero de teléfono</p>
         <input
@@ -96,7 +96,7 @@ function Registro() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           style={{ borderColor: camposCompletos ? 'initial' : 'red' }}
-          className={camposError ? 'placeholder-error' : ''} // Agregar clase condicional
+          className={camposError ? 'placeholder-error' : ''} 
         />
         <p style={{ color: camposError ? '#991b1b' : 'inherit' }}>Contraseña</p>
         <div style={{ position: 'relative' }}>
@@ -106,7 +106,7 @@ function Registro() {
             placeholder="Ingresa tu contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={camposError ? 'placeholder-error' : ''} // Agregar clase condicional
+            className={camposError ? 'placeholder-error' : ''} 
           />
           <span
             className="password-toggle"
@@ -124,7 +124,7 @@ function Registro() {
             placeholder="Ingresa tu contraseña nuevamente"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className={camposError ? 'placeholder-error' : ''} // Agregar clase condicional
+            className={camposError ? 'placeholder-error' : ''} 
           />
           <span
             className="password-toggle-2"

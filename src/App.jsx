@@ -1,17 +1,23 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Registro from './Registro';
 import RegistroCorreo from './Registrocorreo';
-import RegistroCorreoFinal from './Registrofinal'; 
+import RegistroCorreoFinal from './Registrofinal';
+import Dashboard from './Dashboard'; 
 import { useState } from 'react';
 
 function App() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [eyeIcon, setEyeIcon] = useState("../images/eye-off.png");
+  const navigate = useNavigate(); 
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
     setEyeIcon(passwordVisible ? "../images/eye-off.png" : "../images/eye.png");
+  };
+
+  const handleLogin = () => {
+    navigate('/dashboard');
   };
 
   return (
@@ -37,7 +43,7 @@ function App() {
           </span>
         </div>
         <h3 className='login-comentario'>¿Olvidaste tu contraseña?</h3>
-        <button>Acceder ➜</button>
+        <button type="button" onClick={handleLogin}>Acceder ➜</button> 
         <h3 className='login-comentario'>¿No tienes una cuenta? <Link to="/registro" className='registro-link'>Crear cuenta</Link></h3>
       </form>
     </div>
@@ -51,7 +57,8 @@ function MainApp() {
         <Route path="/" element={<App />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
-        <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} /> 
+        <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
+        <Route path="/dashboard" element={<Dashboard />} /> 
       </Routes>
     </Router>
   );
