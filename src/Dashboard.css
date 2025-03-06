@@ -13,11 +13,11 @@ body {
 .dashboard-sidebar {
     background-color: #141e58; 
     color: #fff;
-    width: 250px;
+    width: 240px;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    z-index: 1000; 
+    z-index: 1; 
     position: fixed; 
     top: 0; 
     left: 0; 
@@ -57,9 +57,8 @@ body {
   
 .menu-item-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 12px;
+    padding: 10px;
     cursor: pointer;
     background-color: #4256d0; 
     margin-bottom: 10px;
@@ -73,19 +72,23 @@ body {
 .submenu {
     list-style: none;
     padding: 0;
-    margin-left: 20px;
-    
+    padding-left: 10px;
+    padding-right: 10px;
 }
   
 .submenu li {
-    padding: 8px 20px;
-    
+    padding: 10px;
+    font-weight: 100;
+    font-size: 18px;
+    padding-left: 40px;
 }
 
 .submenu li:hover{
-    padding: 8px 20px;
+    padding: 10px;
     background-color: #4256d0; 
     border-radius: 10px;
+    padding-left: 40px;
+    cursor: pointer;
 }
 
 .imagen-header{
@@ -98,5 +101,10 @@ body {
 
 .imagen-header img {
     width: 100%; 
-    height: 100%; 
+    height: 100%;
+}
+
+.report-image {
+    width: 25px; /* Ajusta el tamaño según tus necesidades */
+    height: 25px; /* Ajusta el tamaño según tus necesidades */
   }
