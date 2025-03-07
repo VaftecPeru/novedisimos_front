@@ -8,8 +8,8 @@ function RegistroCorreo() {
   };
 
   return (
-    <div className='registro-content'>
-      <img src="../images/img.png" alt="Imagen de login" />
+    <div className='correo-content'>
+      <img src="../images/img.png" alt="Imagen de registro" />
       <form className='correo-form'>
       <p>Dirección de correo electrónico</p>
       <input type="text" placeholder="Ingresa tu correo electrónico" />
