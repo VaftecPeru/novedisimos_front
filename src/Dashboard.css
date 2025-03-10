@@ -54,19 +54,19 @@ body {
 .panel-control-header h2 {
     margin-left: 340px;
     color: #71717a;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 400;
   }
 
 .panel-control-header h3 {
     margin-left: 10px;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 400;
 }
 
 .header-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     margin-right: 35px; 
   }
 
@@ -163,5 +163,5 @@ body {
 
 .formulario-dashboard h1{
     margin-left: 350px;
-    font-size: 36px;
+    font-size: 32px;
 }  
