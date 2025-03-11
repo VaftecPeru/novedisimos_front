@@ -20,7 +20,15 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
+      <div className="panel-control-header">
+          <h2>Panel Control</h2>
+          <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
+          <h3>Orden de Pedido</h3>
+        </div>
+      <img src="/images/bell.png" alt="Reportes" className="header-icon"/>
       </header>
+      <div className="formulario-dashboard">
+        <h1>Listado de Pedidos (FORMULARIO COD)</h1>
       <div className="dashboard-sidebar">
         <div className="sidebar-header">
           <div className="imagen-header">
@@ -35,6 +43,7 @@ function Dashboard() {
                 <i className="fas fa-shopping-cart"></i>
                 <span style={{ fontWeight: 400, fontSize: 18 }}>Panel Control</span>
                 <i className={`fas fa-chevron-${expanded.panel ? 'down' : 'right'}`}></i>
+                <img src="/images/down arrow.png" alt="Reportes" className="menu-icon"/>
               </div>
               {expanded.panel && (
                 <ul className="submenu">
@@ -55,6 +64,7 @@ function Dashboard() {
                 <i className="fas fa-users"></i> 
                 <span style={{ fontWeight: 400, fontSize: 18 }}>Clientes</span>
                 <i className={`fas fa-chevron-${expanded.clientes ? 'down' : 'right'}`}></i>
+                <img src="/images/down arrow.png" alt="Reportes" className="menu-icon"/>
               </div>
               {expanded.clientes && <ul className="submenu">
                 <li>Cliente 1</li>
@@ -67,6 +77,7 @@ function Dashboard() {
                 <i className="fas fa-motorcycle"></i> 
                 <span style={{ fontWeight: 400, fontSize: 18 }}>Motorizados</span>
                 <i className={`fas fa-chevron-${expanded.motorizados ? 'down' : 'right'}`}></i>
+                <img src="/images/down arrow.png" alt="Reportes" className="menu-icon"/>
               </div>
               {expanded.motorizados && <ul className="submenu">
                 <li>Motorizado 1</li>
@@ -79,6 +90,7 @@ function Dashboard() {
                 <i className="fas fa-user-tie"></i> 
                 <span style={{ fontWeight: 400, fontSize: 18 }}>Asesores</span>
                 <i className={`fas fa-chevron-${expanded.asesores ? 'down' : 'right'}`}></i>
+                <img src="/images/down arrow.png" alt="Reportes" className="menu-icon"/>
               </div>
               {expanded.asesores && <ul className="submenu">
                 <li>Asesor 1</li>
@@ -91,6 +103,7 @@ function Dashboard() {
             <i className="fas fa-user-tie"></i> 
               <span style={{ fontWeight: 400, fontSize: 18 }}>Reportes</span>
               <i className={`fas fa-chevron-${expanded.reportes ? 'down' : 'right'}`}></i>
+              <img src="/images/down arrow.png" alt="Reportes" className="menu-icon"/>
               </div>
               {expanded.reportes && <ul className="submenu">
                 <li>Reporte 1</li>
@@ -99,6 +112,7 @@ function Dashboard() {
             </li>
           </ul>
         </nav>
+      </div>
       </div>
     </div>
   );

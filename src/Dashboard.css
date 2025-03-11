@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #fafafa;
+    background-color: #fff;
   }
 
 .dashboard-container {
@@ -32,9 +32,43 @@ body {
 .dashboard-header {
     background-color: #fff;
     color: #4763e4;
-    padding: 60px;
+    padding: 12px;
     text-align: center;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
 }
+
+.panel-control-header {
+  display: flex;
+  align-items: center;
+}
+
+.panel-control-icon {
+  width: 32px; 
+  height: 32px; 
+  margin-left: 10px; 
+  margin-top: 0px;
+}
+
+.panel-control-header h2 {
+    margin-left: 340px;
+    color: #71717a;
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+.panel-control-header h3 {
+    margin-left: 10px;
+    font-size: 22px;
+    font-weight: 400;
+}
+
+.header-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 35px; 
+  }
 
 .sidebar-header {
     display: flex;
@@ -60,11 +94,28 @@ body {
     align-items: center;
     padding: 10px;
     cursor: pointer;
-    background-color: #4256d0; 
+    background-color: #4256d0;
     margin-bottom: 10px;
     border-radius: 10px;
-}
-  
+    justify-content: flex-start;
+  }
+
+  .menu-icon {
+    margin-left: auto;
+  }
+
+  .menu-item-header img {
+    margin-right: 5px;
+    height: 24px;
+    width: 24px;
+  }
+
+  .menu-item-header span {
+    margin: 0;
+    padding-right: 10px; 
+  }
+
+
 .menu-item-header i {
     margin-right: 20px;
 }
@@ -104,7 +155,13 @@ body {
     height: 100%;
 }
 
-.report-image {
-    width: 25px; /* Ajusta el tamaño según tus necesidades */
-    height: 25px; /* Ajusta el tamaño según tus necesidades */
+.formulario-dashboard {
+    background-color: #f4f4f4; 
+    padding: 0px;
+    height: 1000px;
   }
+
+.formulario-dashboard h1{
+    margin-left: 350px;
+    font-size: 32px;
+}  
