@@ -32,7 +32,7 @@ body {
 .dashboard-header {
     background-color: #fff;
     color: #4763e4;
-    padding: 12px;
+    padding: 5px;
     text-align: center;
     display: flex; 
     justify-content: space-between; 
@@ -52,20 +52,20 @@ body {
 }
 
 .panel-control-header h2 {
-    margin-left: 340px;
+    margin-left: 345px;
     color: #71717a;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 400;
   }
 
 .panel-control-header h3 {
     margin-left: 10px;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 400;
 }
 
 .header-icon {
-    width: 32px;
+    width: 30px;
     height: 32px;
     margin-right: 35px; 
   }
@@ -94,7 +94,6 @@ body {
     align-items: center;
     padding: 10px;
     cursor: pointer;
-    background-color: #4256d0;
     margin-bottom: 10px;
     border-radius: 10px;
     justify-content: flex-start;
@@ -128,17 +127,21 @@ body {
 }
   
 .submenu li {
-    padding: 10px;
-    font-weight: 100;
+    padding: 8px;
+    margin-bottom: 5px;
     font-size: 18px;
-    padding-left: 40px;
+    padding-left: 50px;
 }
 
+.submenu li.pedidos {
+    background-color: #4256d0;
+    border-radius: 12px;
+  }
+
 .submenu li:hover{
-    padding: 10px;
     background-color: #4256d0; 
-    border-radius: 10px;
-    padding-left: 40px;
+    border-radius: 12px;
+    padding-left: 50px;
     cursor: pointer;
 }
 
@@ -155,13 +158,70 @@ body {
     height: 100%;
 }
 
-.formulario-dashboard {
+.div-dashboard {
     background-color: #f4f4f4; 
     padding: 0px;
     height: 1000px;
   }
 
-.formulario-dashboard h1{
+.div-dashboard h1{
+    margin-top: 30px;
     margin-left: 350px;
-    font-size: 32px;
+    font-size: 36px;
+    margin-bottom: 10px;
 }  
+
+.search-input {
+  margin-left: 350px; 
+  margin-top: 10px;
+  padding: 6px;
+  border: 2px solid #f4f4f4;
+  border-color: #a3b1f1; 
+  border-radius: 15px;
+  width: 1440px; 
+  height: 40px;
+  font-size: 16px;
+  padding-left: 45px; 
+  font-weight: 300;
+}
+
+.search-input-container {
+  position: relative;
+  display: inline-block;
+}
+
+.search-input:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(71, 99, 228, 0.5); 
+}
+
+.search-icon {
+    position: absolute;
+    left: 365px; 
+    top: 57%;
+    transform: translateY(-50%);
+    width: 25px; 
+    height: 25px;
+  }
+
+.my-button {
+  margin-left: 350px;
+  margin-top: 20px;
+  margin-bottom: 25px;
+  padding: 14px 16px;
+  background-color: #4763e4;
+  color: #fff;
+  border: 1px solid #4c67e4;
+  border-radius:15px;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.lista-clientes {
+    margin-left: 350px; 
+    background-color: #fff; 
+    width: 1480px; 
+    height: 700px; 
+    padding: 10px; 
+    border-radius: 12px;
+  }
