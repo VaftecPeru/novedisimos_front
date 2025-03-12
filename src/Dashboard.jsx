@@ -1,88 +1,101 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Modal from 'react-modal';
 import './Dashboard.css';
 
+Modal.setAppElement('#root');
+
 function Dashboard() {
-  const [expanded, setExpanded] = useState({
-    panel: true,
-    clientes: false,
-    motorizados: false,
-    asesores: false,
-    reportes: false,
-  });
+    const [expanded, setExpanded] = useState({
+        panel: true,
+        clientes: false,
+        motorizados: false,
+        asesores: false,
+        reportes: false,
+    });
 
-  const [arrowImages, setArrowImages] = useState({
-    panel: '/images/down arrow.png',
-    clientes: '/images/shadow arrow.png',
-    motorizados: '/images/shadow arrow.png',
-    asesores: '/images/shadow arrow.png',
-    reportes: '/images/shadow arrow.png',
-  });
+    const [arrowImages, setArrowImages] = useState({
+        panel: '/images/down arrow.png',
+        clientes: '/images/shadow arrow.png',
+        motorizados: '/images/shadow arrow.png',
+        asesores: '/images/shadow arrow.png',
+        reportes: '/images/shadow arrow.png',
+    });
 
-  const [gearImages, setGearImages] = useState({
-    panel: '/images/gear.png',
-    clientes: '/images/shadow folder.png',
-    motorizados: '/images/shadow file.png',
-    asesores: '/images/shadow tv.png',
-    reportes: '/images/shadow report.png',
-  });
+    const [gearImages, setGearImages] = useState({
+        panel: '/images/gear.png',
+        clientes: '/images/shadow folder.png',
+        motorizados: '/images/shadow file.png',
+        asesores: '/images/shadow tv.png',
+        reportes: '/images/shadow report.png',
+    });
 
     const [spanColors, setSpanColors] = useState({
-      panel: 'white', 
-      clientes: '#555d8b',
-      motorizados: '#555d8b',
-      asesores: '#555d8b',
-      reportes: '#555d8b',
+        panel: 'white',
+        clientes: '#555d8b',
+        motorizados: '#555d8b',
+        asesores: '#555d8b',
+        reportes: '#555d8b',
     });
 
-  const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
-  const toggleSection = (section) => {
-    setExpanded({
-      ...expanded,
-      [section]: !expanded[section],
-    });
-  
-    setArrowImages((prevArrowImages) => ({
-      ...prevArrowImages,
-      [section]: !expanded[section]
-        ? '/images/down arrow.png'
-        : '/images/shadow arrow.png',
-    }));
-  
-    if (section === 'panel') {
-      setGearImages((prevGearImages) => ({
-        ...prevGearImages,
-        panel: !expanded.panel ? '/images/gear.png' : '/images/shadow gear.png',
-      }));
-    } else {
-      setGearImages((prevGearImages) => {
-        let newGearImages = { ...prevGearImages };
-        switch (section) {
-          case 'clientes':
-            newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
-            break;
-          case 'motorizados':
-            newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
-            break;
-          case 'asesores':
-            newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
-            break;
-          case 'reportes':
-            newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
-            break;
-          default:
-            break;
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+
+    const openModal = () => {
+        setModalIsOpen(true);
+    };
+
+    const closeModal = () => {
+        setModalIsOpen(false);
+    };
+
+    const toggleSection = (section) => {
+        setExpanded({
+            ...expanded,
+            [section]: !expanded[section],
+        });
+
+        setArrowImages((prevArrowImages) => ({
+            ...prevArrowImages,
+            [section]: !expanded[section]
+                ? '/images/down arrow.png'
+                : '/images/shadow arrow.png',
+        }));
+
+        if (section === 'panel') {
+            setGearImages((prevGearImages) => ({
+                ...prevGearImages,
+                panel: !expanded.panel ? '/images/gear.png' : '/images/shadow gear.png',
+            }));
+        } else {
+            setGearImages((prevGearImages) => {
+                let newGearImages = { ...prevGearImages };
+                switch (section) {
+                    case 'clientes':
+                        newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
+                        break;
+                    case 'motorizados':
+                        newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
+                        break;
+                    case 'asesores':
+                        newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
+                        break;
+                    case 'reportes':
+                        newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
+                        break;
+                    default:
+                        break;
+                }
+                return newGearImages;
+            });
         }
-        return newGearImages;
-      });
-    }
 
-  setSpanColors((prevSpanColors) => ({
-    ...prevSpanColors,
-    [section]: !expanded[section] ? 'white' : '#555d8b', 
-  }));
-};
+        setSpanColors((prevSpanColors) => ({
+            ...prevSpanColors,
+            [section]: !expanded[section] ? 'white' : '#555d8b',
+        }));
+    };
 
   return (
     <div className="dashboard-container">
@@ -106,7 +119,58 @@ function Dashboard() {
         />
       <img src="/images/search.png" alt="Buscar" className="search-icon" />
       </div>
-        <button className="my-button">Agregar un Cliente +</button>
+      <button className="my-button" onClick={openModal}>Agregar un Cliente +</button>
+      <Modal
+    isOpen={modalIsOpen}
+    onRequestClose={closeModal}
+    contentLabel="Registro de Cliente"
+    className="modal"
+    overlayClassName="overlay"
+>
+    <h2>Registro de clientes que se tiene cobertura</h2>
+    <form>
+        <div className="modal-content"> {/* Nuevo div contenedor */}
+            <div className="modal-left">
+                <label>Buscar</label>
+                <input type="text" />
+                <label>Asesor</label>
+                <select name="asesor">
+                    <option value="asesor1">Rocio</option>
+                    </select>
+                <label>Estado</label>
+                <input type="text" />
+                <label>Nombre de Cliente</label>
+                <input type="text" />
+                <label>Numero Celular</label>
+                <input type="text" />
+                <label>Direccion</label>
+                <input type="text" />
+                <label>Producto</label>
+                <input type="text" />
+            </div>
+            <div className="modal-right">
+                <label>Los usuarios que permite ese cambio de asesor para las comisiones son: Asesoras de 1era Linea y Asesoras de Recontacto(Las administrativas y supervisores son de apoyo, que pueden realizar cambios en el pedido por so r solicitud del cliente(añadir productos, cambio de dirección, entre otros, pero no comisionan))</label>
+                <input type="text" />
+                <label>Buscar</label>
+                <input type="text" />
+                <label>Asesor</label>
+                <input type="text" />
+                <label>Estado</label>
+                <input type="text" />
+                <label>Nombre de Cliente</label>
+                <input type="text" />
+                <label>Numero Celular</label>
+                <input type="text" />
+                <label>Direccion</label>
+                <input type="text" />
+            </div>
+        </div>
+        <div className="modal-buttons">
+            <button type="submit">Registrar</button>
+            <button onClick={closeModal}>Cancelar</button>
+        </div>
+    </form>
+</Modal>
         <div className="lista-clientes"></div>
         <div className="dashboard-sidebar">
         <div className="sidebar-header">
