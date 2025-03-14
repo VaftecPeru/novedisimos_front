@@ -226,56 +226,88 @@ body {
     border-radius: 12px;
   }
 
-  .modal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-40%, -50%);
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 1400px;
-    height: 870px;
-    display: flex;
-    flex-direction: column;
+.lista-clientes-header {
+  list-style: none;
+  margin-left: -50px;
+  display: flex; 
+  justify-content: space-around; 
+  font-size: 20px;
+  padding: 12px;
+  color: #a1a1aa;
+}
+
+.lista-clientes-header li {
+  padding-left: 0px;
+}
+
+.cliente-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.cliente-item p {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.cliente-item p:first-child {
+  font-weight: bold;
+}
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-40%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 1400px;
+  height: 880px;
+  display: flex;
+  flex-direction: column;
 }
 
 .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal h2 {
-    margin-bottom: 40px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 300;
-    margin-left: 20px;
+  margin-bottom: 40px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 300;
+  margin-left: 20px;
 }
 
 .modal form {
-    flex: 1;
-    display: flex;
-    flex-direction: column; /* Cambiamos a columna */
+  flex: 1;
+  display: flex;
+  flex-direction: column; 
 }
 
 .modal-content {
-    display: flex;
-    flex: 1; /* Ocupa el espacio disponible */
+  display: flex;
+  flex: 1; 
 }
 
 .modal-left,
 .modal-right {
-    flex: 1;
-    padding: 0px;
-    display: flex;
-    flex-direction: column;
+  flex: 1;
+  padding: 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-right {
@@ -297,12 +329,13 @@ body {
     border: 1px solid #f4f4f5;
     border-radius: 10px;
     margin-left: 20px;
+    font-family: Arial, sans-serif; 
+  font-size: 16px;
 }
 
 .modal input:focus {
     outline: none;
     border: 1px solid #5c73db;
-    box-shadow: 0 0 5px rgba(92, 115, 219, 0.5);
 }
 
 .modal-buttons {
@@ -337,7 +370,7 @@ body {
 select {
   background-color: #fff;
     color: black;
-    padding: 12px;
+    padding: 13px;
     font-size: 16px;
     border: 1px solid #e9e9eb;
     border-radius: 10px;
@@ -345,12 +378,20 @@ select {
     margin-left: 20px;
     cursor: pointer;
     margin-bottom: 15px;
+    appearance: none; 
+    -webkit-appearance: none; 
+    -moz-appearance: none; 
+    background-image: url('../images/select arrow.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 28px 28px;
+    padding-right: 30px; 
 }
 
 select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  border-color: #5c73db;
 }
 
 option {
@@ -358,8 +399,74 @@ option {
   font-size: 16px;
   color: #333;
   background-color: #fff;
+  font-family: Arial, sans-serif; 
+  font-size: 16px; 
 }
 
 option:hover {
   background-color: #f0f0f0;
+}
+
+.labels-row {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.labels-row label {
+  margin-right: 200px;
+}
+
+.inputs-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.inputs-row input {
+  width: 307px;
+  padding: 15px;
+  border: 1px solid #f4f4f5;
+  border-radius: 10px;
+  box-sizing: border-box;
+  margin-right: 15px;
+  margin-bottom: 5px;
+  padding-left: 37px;
+}
+
+.inputs-row-2 input {
+  width: 648px;
+  padding: 15px;
+  border: 1px solid #f4f4f5;
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding-left: 0px;
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.calendar-icon {
+  width: 22px; 
+  height: 22px; 
+  margin-left: -310px; 
+  margin-right: 285px;
+  margin-bottom: 6px;
+}
+
+.calendar-icon2 {
+  width: 22px; 
+  height: 22px; 
+  margin-left: -310px; 
+  margin-right: 285px;
+  margin-top: 14px;
+}
+
+.calendar-icon3 {
+  width: 22px; 
+  height: 22px; 
+  margin-left: -635px; 
+  margin-right: 275px;
+  margin-bottom: 15px;
 }

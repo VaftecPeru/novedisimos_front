@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
+import MiSelect from './MiSelect'; 
 
 Modal.setAppElement('#root');
 
@@ -41,14 +42,34 @@ function Dashboard() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [processingModalIsOpen, setProcessingModalIsOpen] = useState(false);
+    const [completedModalIsOpen, setCompletedModalIsOpen] = useState(false);
 
     const openModal = () => {
         setModalIsOpen(true);
     };
 
     const closeModal = () => {
-        setModalIsOpen(false);
+      setModalIsOpen(false);
+      setProcessingModalIsOpen(false);
+      setCompletedModalIsOpen(false);
     };
+
+    const handleRegister = (e) => {
+      e.preventDefault(); 
+      setModalIsOpen(false); 
+      setProcessingModalIsOpen(true); 
+
+      setTimeout(() => {
+          setProcessingModalIsOpen(false); 
+          setCompletedModalIsOpen(true); 
+
+          setTimeout(() => {
+              setCompletedModalIsOpen(false); 
+              console.log("Registro completado y proceso continuado.");
+          }, 1000);
+      }, 3000); 
+  };
 
     const toggleSection = (section) => {
         setExpanded({
@@ -97,6 +118,57 @@ function Dashboard() {
         }));
     };
 
+    const distritos = [
+      { value: 'distrito1', texto: 'Ancón' },
+      { value: 'distrito2', texto: 'Ate' },
+      { value: 'distrito3', texto: 'Barranco' },
+      { value: 'distrito4', texto: 'Breña' },
+      { value: 'distrito5', texto: 'Carabayllo' },
+      { value: 'distrito6', texto: 'Cercado de Lima' },
+      { value: 'distrito7', texto: 'Chaclacayo' },
+      { value: 'distrito8', texto: 'Chorrillos' },
+      { value: 'distrito9', texto: 'Cieneguilla' },
+      { value: 'distrito10', texto: 'Comas' },
+      { value: 'distrito11', texto: 'El Agustino' },
+      { value: 'distrito12', texto: 'Independencia' },
+      { value: 'distrito13', texto: 'Jesús María' },
+      { value: 'distrito14', texto: 'La Molina' },
+      { value: 'distrito15', texto: 'La Victoria' },
+      { value: 'distrito16', texto: 'Lince' },
+      { value: 'distrito17', texto: 'Los Olivos' },
+      { value: 'distrito18', texto: 'Lurigancho-Chosica' },
+      { value: 'distrito19', texto: 'Lurín' },
+      { value: 'distrito20', texto: 'Magdalena del Mar' },
+      { value: 'distrito21', texto: 'Miraflores' },
+      { value: 'distrito22', texto: 'Pachacámac' },
+      { value: 'distrito23', texto: 'Pucusana' },
+      { value: 'distrito24', texto: 'Pueblo Libre' },
+      { value: 'distrito25', texto: 'Puente Piedra' },
+      { value: 'distrito26', texto: 'Punta Hermosa' },
+      { value: 'distrito27', texto: 'Punta Negra' },
+      { value: 'distrito28', texto: 'Rímac' },
+      { value: 'distrito29', texto: 'San Bartolo' },
+      { value: 'distrito30', texto: 'San Borja' },
+      { value: 'distrito31', texto: 'San Isidro' },
+      { value: 'distrito32', texto: 'San Juan de Lurigancho' },
+      { value: 'distrito33', texto: 'San Juan de Miraflores' },
+      { value: 'distrito34', texto: 'San Luis' },
+      { value: 'distrito35', texto: 'San Martín de Porres' },
+      { value: 'distrito36', texto: 'San Miguel' },
+      { value: 'distrito37', texto: 'Santa Anita' },
+      { value: 'distrito38', texto: 'Santa María del Mar' },
+      { value: 'distrito39', texto: 'Santa Rosa' },
+      { value: 'distrito40', texto: 'Santiago de Surco' },
+      { value: 'distrito41', texto: 'Surquillo' },
+      { value: 'distrito42', texto: 'Villa El Salvador' },
+      { value: 'distrito43', texto: 'Villa María del Triunfo' },
+  ]
+
+  const asesor = [
+    { value: 'asesor1', texto: 'Rocio' },
+  ]
+
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -121,22 +193,20 @@ function Dashboard() {
       </div>
       <button className="my-button" onClick={openModal}>Agregar un Cliente +</button>
       <Modal
-    isOpen={modalIsOpen}
-    onRequestClose={closeModal}
-    contentLabel="Registro de Cliente"
-    className="modal"
-    overlayClassName="overlay"
->
+                isOpen={modalIsOpen}
+                onRequestClose={closeModal}
+                contentLabel="Registro de Cliente"
+                className="modal"
+                overlayClassName="overlay"
+            >
     <h2>Registro de clientes que se tiene cobertura</h2>
-    <form>
-        <div className="modal-content"> {/* Nuevo div contenedor */}
+    <form onSubmit={handleRegister}> 
+        <div className="modal-content"> 
             <div className="modal-left">
                 <label>Buscar</label>
                 <input type="text" />
                 <label>Asesor</label>
-                <select name="asesor">
-                    <option value="asesor1">Rocio</option>
-                    </select>
+                <MiSelect opciones={asesor} />
                 <label>Estado</label>
                 <input type="text" />
                 <label>Nombre de Cliente</label>
@@ -151,27 +221,69 @@ function Dashboard() {
             <div className="modal-right">
                 <label>Los usuarios que permite ese cambio de asesor para las comisiones son: Asesoras de 1era Linea y Asesoras de Recontacto(Las administrativas y supervisores son de apoyo, que pueden realizar cambios en el pedido por so r solicitud del cliente(añadir productos, cambio de dirección, entre otros, pero no comisionan))</label>
                 <input type="text" />
-                <label>Buscar</label>
+                <div className="labels-row">
+                    <label>Dia de ingreso</label>
+                    <label>Dia de atencion</label>
+                </div>
+                <div className="inputs-row">
+                  <div className="input-with-icon">
+                    <input type="text" />
+                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon" />
+                </div>
+                    <input type="text" />
+                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon2" />
+                </div>
+                <div className="inputs-row2">
+                <label>Dia de programado</label>
+                <div className="input-with-icon">
+                    <input type="text" />
+                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon3" />
+                </div></div>
+                <label>Distrito</label>
+                <MiSelect opciones={distritos} />
+                <label>Referencia</label>
                 <input type="text" />
-                <label>Asesor</label>
+                <label>Rango de Hora</label>
                 <input type="text" />
-                <label>Estado</label>
-                <input type="text" />
-                <label>Nombre de Cliente</label>
-                <input type="text" />
-                <label>Numero Celular</label>
-                <input type="text" />
-                <label>Direccion</label>
+                <label>Notas de Asesor</label>
                 <input type="text" />
             </div>
         </div>
         <div className="modal-buttons">
-            <button type="submit">Registrar</button>
-            <button onClick={closeModal}>Cancelar</button>
-        </div>
-    </form>
-</Modal>
-        <div className="lista-clientes"></div>
+                        <button type="submit">Registrar</button>
+                        <button onClick={closeModal}>Cancelar</button>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal
+                isOpen={processingModalIsOpen}
+                contentLabel="Procesando..."
+                className="modal"
+                overlayClassName="overlay"
+            >
+                <h2>Procesando...</h2>
+            </Modal>
+
+            <Modal
+                isOpen={completedModalIsOpen}
+                contentLabel="Registro completado"
+                className="modal"
+                overlayClassName="overlay"
+            >
+                <h2>Registro completado</h2>
+            </Modal>
+        <div className="lista-clientes">
+                    <ul className="lista-clientes-header">
+                        <li>Nombre de Cliente</li>
+                        <li>Asesor</li>
+                        <li>Fecha ingreso</li>
+                        <li>Correos electrónicos</li>
+                        <li>Celular</li>
+                        <li>Estado</li>
+                        <li>Acción</li>
+                    </ul>
+                </div>
         <div className="dashboard-sidebar">
         <div className="sidebar-header">
           <div className="imagen-header">
