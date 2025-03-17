@@ -52,7 +52,7 @@ body {
 }
 
 .panel-control-header h2 {
-    margin-left: 345px;
+    margin-left: 330px;
     color: #71717a;
     font-size: 20px;
     font-weight: 400;
@@ -161,24 +161,24 @@ body {
 .div-dashboard {
     background-color: #f4f4f4; 
     padding: 0px;
-    height: 1000px;
+    height: 1100px;
   }
 
 .div-dashboard h1{
     margin-top: 30px;
-    margin-left: 350px;
+    margin-left: 335px;
     font-size: 36px;
     margin-bottom: 10px;
 }  
 
 .search-input {
-  margin-left: 350px; 
+  margin-left: 335px; 
   margin-top: 10px;
   padding: 6px;
   border: 2px solid #f4f4f4;
   border-color: #a3b1f1; 
   border-radius: 15px;
-  width: 1440px; 
+  width: 1467px; 
   height: 40px;
   font-size: 16px;
   padding-left: 45px; 
@@ -197,7 +197,7 @@ body {
 
 .search-icon {
     position: absolute;
-    left: 365px; 
+    left: 350px; 
     top: 57%;
     transform: translateY(-50%);
     width: 25px; 
@@ -205,7 +205,7 @@ body {
   }
 
 .my-button {
-  margin-left: 350px;
+  margin-left: 335px;
   margin-top: 20px;
   margin-bottom: 25px;
   padding: 14px 16px;
@@ -218,26 +218,85 @@ body {
 }
 
 .lista-clientes {
-    margin-left: 350px; 
-    background-color: #fff; 
-    width: 1480px; 
-    height: 700px; 
-    padding: 10px; 
-    border-radius: 12px;
-  }
-
-.lista-clientes-header {
-  list-style: none;
-  margin-left: -50px;
-  display: flex; 
-  justify-content: space-around; 
-  font-size: 20px;
-  padding: 12px;
+  margin-left: 335px;
+  background-color: #fff;
+  width: 1500px;
+  height: 800px;
+  padding: 10px;
+  border-radius: 12px;
+  overflow-y: auto; 
+  font-size: 22px;
   color: #a1a1aa;
 }
 
-.lista-clientes-header li {
-  padding-left: 0px;
+.lista-clientes table {
+  width: 100%;
+  border-collapse: collapse; 
+}
+
+.lista-clientes th,
+.lista-clientes td {
+  padding: 12px 8px; 
+  text-align: left;
+  border-bottom: 1px solid #ddd; 
+}
+
+.lista-clientes td {
+  font-size: 14px;
+  color: black;
+}
+
+.lista-clientes th {
+  background-color: #fff; 
+  font-weight: 400;
+}
+
+.lista-clientes tbody tr:hover {
+  background-color: #f9f9f9; 
+}
+
+.lista-clientes td button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lista-clientes td button:hover {
+  background-color: #f0f0f0;
+}
+
+.lista-clientes td button.btn-editar {
+  background-color: white;
+  color: #5c73db;
+  border: none;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid #4c67e4;
+  cursor: pointer;
+  margin-left: -10px;
+}
+
+.lista-clientes td button.btn-eliminar {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.lista-clientes td.lista-clientes-acciones {
+  border-bottom: none;
 }
 
 .cliente-item {
@@ -460,13 +519,46 @@ option:hover {
   height: 22px; 
   margin-left: -310px; 
   margin-right: 285px;
-  margin-top: 14px;
+  margin-top: -5px;
 }
 
 .calendar-icon3 {
   width: 22px; 
   height: 22px; 
-  margin-left: -635px; 
+  margin-left: -638px; 
   margin-right: 275px;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
+}
+
+.estado-div {
+  padding: 8px 14px;
+  border-radius: 20px;
+  display: inline-block; 
+}
+
+.estado-div.estado-enCamino {
+  background-color: #ffedd5;
+}
+
+.estado-div.estado-completado {
+  background-color: #dcfce7;
+}
+
+.estado-div.estado-cancelado {
+  background-color: #fee2e2;
+}
+
+table .estado-enCamino {
+  color: #9a3412;
+  font-weight: 400;
+}
+
+table .estado-completado {
+  color: #166534;
+  font-weight: 400;
+}
+
+table .estado-cancelado {
+  color: #991b1b;
+  font-weight: 400;
 }
