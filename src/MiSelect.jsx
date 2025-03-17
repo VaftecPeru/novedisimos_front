@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { getEstadoColor } from './data';
 
-function MiSelect({ opciones }) {
-    const [opcionSeleccionada, setOpcionSeleccionada] = useState('');
-
+function MiSelect({ opciones, value, onChange }) {
     const handleChange = (event) => {
-        setOpcionSeleccionada(event.target.value);
+        const selectedValue = event.target.value;
+        const selectedOption = opciones.find(opcion => opcion.value === selectedValue);
+        onChange(selectedOption);
     };
 
     return (
-        <select value={opcionSeleccionada} onChange={handleChange}>
+        <select value={value ? value.value : ''} onChange={handleChange}>
+            <option value=""></option>
             {opciones.map((opcion) => (
-                <option key={opcion.value} value={opcion.value}>
+                <option
+                    key={opcion.value}
+                    value={opcion.value}
+                    style={{ color: getEstadoColor(opcion.value) }}
+                >
                     {opcion.texto}
                 </option>
             ))}

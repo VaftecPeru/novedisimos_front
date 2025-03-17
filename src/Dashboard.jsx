@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
-import MiSelect from './MiSelect'; 
+import MiSelect from './MiSelect';
+import { distritos, asesor, estados, getEstadoColor } from './data';
 
 Modal.setAppElement('#root');
 
@@ -45,32 +46,88 @@ function Dashboard() {
     const [processingModalIsOpen, setProcessingModalIsOpen] = useState(false);
     const [completedModalIsOpen, setCompletedModalIsOpen] = useState(false);
 
+    const [clients, setClients] = useState(() => {
+      const storedClients = localStorage.getItem('clientsData');
+      return storedClients ? JSON.parse(storedClients) : [];
+  });
+    const [newClient, setNewClient] = useState({
+        nombre: '',
+        asesor: '',
+        estado: '',
+        correo: '',
+        celular: '',
+        direccion: '',
+        producto: '',
+        diaIngreso: '',
+        diaAtencion: '',
+        diaProgramado: '',
+        distrito: '',
+        referencia: '',
+        rangoHora: '',
+        notas: '',
+    });
+    const [editIndex, setEditIndex] = useState(-1);
+
     const openModal = () => {
         setModalIsOpen(true);
+        setEditIndex(-1);
+        setNewClient({
+            nombre: '',
+            asesor: '',
+            estado: '',
+            correo: '',
+            celular: '',
+            direccion: '',
+            producto: '',
+            diaIngreso: '',
+            diaAtencion: '',
+            diaProgramado: '',
+            distrito: '',
+            referencia: '',
+            rangoHora: '',
+            notas: '',
+        });
     };
 
     const closeModal = () => {
-      setModalIsOpen(false);
-      setProcessingModalIsOpen(false);
-      setCompletedModalIsOpen(false);
+        setModalIsOpen(false);
+        setProcessingModalIsOpen(false);
+        setCompletedModalIsOpen(false);
     };
 
-    const handleRegister = (e) => {
-      e.preventDefault(); 
-      setModalIsOpen(false); 
-      setProcessingModalIsOpen(true); 
-
-      setTimeout(() => {
-          setProcessingModalIsOpen(false); 
-          setCompletedModalIsOpen(true); 
-
-          setTimeout(() => {
-              setCompletedModalIsOpen(false); 
-              console.log("Registro completado y proceso continuado.");
-          }, 1000);
-      }, 3000); 
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setNewClient({ ...newClient, [name]: value });
+      setCamposVacios({ ...camposVacios, [name]: false }); 
   };
 
+  const handleRegister = (e) => {
+    e.preventDefault();
+    if (!validarCampos()) {
+        return;
+    }
+    setModalIsOpen(false);
+    setProcessingModalIsOpen(true);
+
+    setTimeout(() => {
+      setProcessingModalIsOpen(false);
+      setCompletedModalIsOpen(true);
+
+      setTimeout(() => {
+        setCompletedModalIsOpen(false);
+        let updatedClients;
+        if (editIndex === -1) {
+            updatedClients = [...clients, newClient];
+        } else {
+            updatedClients = [...clients];
+            updatedClients[editIndex] = newClient;
+        }
+        setClients(updatedClients);
+        localStorage.setItem('clientsData', JSON.stringify(updatedClients)); 
+        console.log('Registro completado y proceso continuado.');
+    }, 1000);
+}, 1000);
+};
     const toggleSection = (section) => {
         setExpanded({
             ...expanded,
@@ -118,56 +175,75 @@ function Dashboard() {
         }));
     };
 
-    const distritos = [
-      { value: 'distrito1', texto: 'Ancón' },
-      { value: 'distrito2', texto: 'Ate' },
-      { value: 'distrito3', texto: 'Barranco' },
-      { value: 'distrito4', texto: 'Breña' },
-      { value: 'distrito5', texto: 'Carabayllo' },
-      { value: 'distrito6', texto: 'Cercado de Lima' },
-      { value: 'distrito7', texto: 'Chaclacayo' },
-      { value: 'distrito8', texto: 'Chorrillos' },
-      { value: 'distrito9', texto: 'Cieneguilla' },
-      { value: 'distrito10', texto: 'Comas' },
-      { value: 'distrito11', texto: 'El Agustino' },
-      { value: 'distrito12', texto: 'Independencia' },
-      { value: 'distrito13', texto: 'Jesús María' },
-      { value: 'distrito14', texto: 'La Molina' },
-      { value: 'distrito15', texto: 'La Victoria' },
-      { value: 'distrito16', texto: 'Lince' },
-      { value: 'distrito17', texto: 'Los Olivos' },
-      { value: 'distrito18', texto: 'Lurigancho-Chosica' },
-      { value: 'distrito19', texto: 'Lurín' },
-      { value: 'distrito20', texto: 'Magdalena del Mar' },
-      { value: 'distrito21', texto: 'Miraflores' },
-      { value: 'distrito22', texto: 'Pachacámac' },
-      { value: 'distrito23', texto: 'Pucusana' },
-      { value: 'distrito24', texto: 'Pueblo Libre' },
-      { value: 'distrito25', texto: 'Puente Piedra' },
-      { value: 'distrito26', texto: 'Punta Hermosa' },
-      { value: 'distrito27', texto: 'Punta Negra' },
-      { value: 'distrito28', texto: 'Rímac' },
-      { value: 'distrito29', texto: 'San Bartolo' },
-      { value: 'distrito30', texto: 'San Borja' },
-      { value: 'distrito31', texto: 'San Isidro' },
-      { value: 'distrito32', texto: 'San Juan de Lurigancho' },
-      { value: 'distrito33', texto: 'San Juan de Miraflores' },
-      { value: 'distrito34', texto: 'San Luis' },
-      { value: 'distrito35', texto: 'San Martín de Porres' },
-      { value: 'distrito36', texto: 'San Miguel' },
-      { value: 'distrito37', texto: 'Santa Anita' },
-      { value: 'distrito38', texto: 'Santa María del Mar' },
-      { value: 'distrito39', texto: 'Santa Rosa' },
-      { value: 'distrito40', texto: 'Santiago de Surco' },
-      { value: 'distrito41', texto: 'Surquillo' },
-      { value: 'distrito42', texto: 'Villa El Salvador' },
-      { value: 'distrito43', texto: 'Villa María del Triunfo' },
-  ]
+    const handleEdit = (index) => {
+        setEditIndex(index);
+        setNewClient(clients[index]);
+        setModalIsOpen(true);
+    };
 
-  const asesor = [
-    { value: 'asesor1', texto: 'Rocio' },
-  ]
+    const handleDelete = (index) => {
+      const updatedClients = clients.filter((_, i) => i !== index);
+      setClients(updatedClients);
+      localStorage.setItem('clientsData', JSON.stringify(updatedClients));
+  };
 
+  const getEstadoClass = (estado) => {
+    switch (estado) {
+        case 'enCamino':
+            return 'estado-enCamino';
+        case 'completado':
+            return 'estado-completado';
+        case 'cancelado':
+            return 'estado-cancelado';
+        default:
+            return '';
+    }
+};
+
+const [camposVacios, setCamposVacios] = useState({});
+
+const validarCampos = () => {
+  const nuevosCamposVacios = {};
+  let hayCamposVacios = false;
+
+  if (!newClient.producto) {
+      nuevosCamposVacios.producto = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.nombre) {
+      nuevosCamposVacios.nombre = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.asesor) {
+      nuevosCamposVacios.asesor = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.diaIngreso) {
+      nuevosCamposVacios.diaIngreso = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.correo) {
+      nuevosCamposVacios.correo = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.celular) {
+      nuevosCamposVacios.celular = true;
+      hayCamposVacios = true;
+  }
+  if (!newClient.estado) {
+      nuevosCamposVacios.estado = true;
+      hayCamposVacios = true;
+  }
+
+  setCamposVacios(nuevosCamposVacios);
+
+  if (hayCamposVacios) {
+      alert('Por favor, completa todos los campos obligatorios.');
+      return false;
+  }
+
+  return true;
+};
 
   return (
     <div className="dashboard-container">
@@ -199,58 +275,63 @@ function Dashboard() {
                 className="modal"
                 overlayClassName="overlay"
             >
-    <h2>Registro de clientes que se tiene cobertura</h2>
-    <form onSubmit={handleRegister}> 
-        <div className="modal-content"> 
-            <div className="modal-left">
-                <label>Buscar</label>
-                <input type="text" />
-                <label>Asesor</label>
-                <MiSelect opciones={asesor} />
-                <label>Estado</label>
-                <input type="text" />
-                <label>Nombre de Cliente</label>
-                <input type="text" />
-                <label>Numero Celular</label>
-                <input type="text" />
-                <label>Direccion</label>
-                <input type="text" />
-                <label>Producto</label>
-                <input type="text" />
-            </div>
-            <div className="modal-right">
-                <label>Los usuarios que permite ese cambio de asesor para las comisiones son: Asesoras de 1era Linea y Asesoras de Recontacto(Las administrativas y supervisores son de apoyo, que pueden realizar cambios en el pedido por so r solicitud del cliente(añadir productos, cambio de dirección, entre otros, pero no comisionan))</label>
-                <input type="text" />
-                <div className="labels-row">
-                    <label>Dia de ingreso</label>
-                    <label>Dia de atencion</label>
-                </div>
-                <div className="inputs-row">
-                  <div className="input-with-icon">
-                    <input type="text" />
-                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon" />
-                </div>
-                    <input type="text" />
-                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon2" />
-                </div>
-                <div className="inputs-row2">
-                <label>Dia de programado</label>
-                <div className="input-with-icon">
-                    <input type="text" />
-                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon3" />
-                </div></div>
-                <label>Distrito</label>
-                <MiSelect opciones={distritos} />
-                <label>Referencia</label>
-                <input type="text" />
-                <label>Rango de Hora</label>
-                <input type="text" />
-                <label>Notas de Asesor</label>
-                <input type="text" />
-            </div>
-        </div>
-        <div className="modal-buttons">
-                        <button type="submit">Registrar</button>
+                <h2>{editIndex === -1 ? 'Registro de clientes que se tiene cobertura' : 'Editar Cliente'}</h2>
+                <form onSubmit={handleRegister}>
+                    <div className="modal-content">
+                        <div className="modal-left">
+                            <label>Buscar</label>
+                            <input type="text" name="buscar" value={newClient.buscar} onChange={handleInputChange}/>
+                            <label>Asesor</label>
+                            <MiSelect opciones={asesor} value={newClient.asesor} onChange={(selectedOption) => handleInputChange({ target: { name: 'asesor', value: selectedOption} })}/>
+                            <label>Estado</label>
+                            <MiSelect opciones={estados} value={newClient.estado} onChange={(selectedOption)=> handleInputChange({ target: { name: 'estado', value: selectedOption.value } })}/>
+                            <label>Nombre de Cliente</label>
+                            <input type="text" name="nombre" value={newClient.nombre} onChange={handleInputChange} />
+                            <label>Correo Electrónico</label>
+                            <input type="email" name="correo" value={newClient.correo} onChange={handleInputChange} />
+                            <label>Numero Celular</label>
+                            <input type="tel" name="celular" value={newClient.celular} onChange={handleInputChange} />
+                            <label>Direccion</label>
+                            <input type="text" name="direccion" value={newClient.direccion} onChange={handleInputChange} />
+                            <label>Producto</label>
+                            <input type="text" name="producto" value={newClient.producto} onChange={handleInputChange} />
+                        </div>
+                        <div className="modal-right">
+                            <label>Los usuarios que permite ese cambio de asesor para las comisiones son: Asesoras de 1era Linea y Asesoras de Recontacto(Las administrativas y supervisores son de apoyo, que pueden realizar cambios en el pedido por so r solicitud del cliente(añadir productos, cambio de dirección, entre otros, pero no comisionan))</label>
+                            <input type="text" />
+                            <div className="labels-row">
+                                <label>Dia de ingreso</label>
+                                <label>Dia de atencion</label>
+                            </div>
+                            <div className="inputs-row">
+                                <div className="input-with-icon">
+                                    <input type="date" name="diaIngreso" value={newClient.diaIngreso} onChange={handleInputChange} />
+                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon" />
+                                </div>
+                                <div className="input-with-icon">
+                                    <input type="date" name="diaAtencion" value={newClient.diaAtencion} onChange={handleInputChange} />
+                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon2" />
+                                </div>
+                            </div>
+                            <div className="inputs-row2">
+                                <label>Dia de programado</label>
+                                <div className="input-with-icon">
+                                    <input type="date" name="diaProgramado" value={newClient.diaProgramado} onChange={handleInputChange} style={{ paddingLeft: '37px', width: '595px'}} />
+                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon3" />
+                                </div>
+                            </div>
+                            <label>Distrito</label>
+                            <MiSelect opciones={distritos} value={newClient.distrito} onChange={(e) => handleInputChange({ target: { name: 'distrito', value: e } })}/>
+                            <label>Referencia</label>
+                            <input type="text" name="referencia" value={newClient.referencia} onChange={handleInputChange} />
+                            <label>Rango de Hora</label>
+                            <input type="text" name="rangoHora" value={newClient.rangoHora} onChange={handleInputChange} />
+                            <label>Notas de Asesor</label>
+                            <input type="text" name="notas" value={newClient.notas} onChange={handleInputChange} />
+                        </div>
+                    </div>
+                    <div className="modal-buttons">
+                        <button type="submit">{editIndex === -1 ? 'Registrar' : 'Guardar Cambios'}</button>
                         <button onClick={closeModal}>Cancelar</button>
                     </div>
                 </form>
@@ -273,17 +354,44 @@ function Dashboard() {
             >
                 <h2>Registro completado</h2>
             </Modal>
-        <div className="lista-clientes">
-                    <ul className="lista-clientes-header">
-                        <li>Nombre de Cliente</li>
-                        <li>Asesor</li>
-                        <li>Fecha ingreso</li>
-                        <li>Correos electrónicos</li>
-                        <li>Celular</li>
-                        <li>Estado</li>
-                        <li>Acción</li>
-                    </ul>
-                </div>
+            <div className="lista-clientes">
+              <table>
+                <thead>
+                  <tr>
+                  <th>Producto</th>
+                  <th>Nombre de Cliente</th>
+                  <th>Asesor</th>
+                  <th>Fecha ingreso</th>
+                  <th>Correos electrónicos</th>
+                  <th>Celular</th>
+                  <th>Estado</th>
+                  <th>Accion</th>
+                  </tr>
+                </thead>
+    <tbody>
+      {clients.map((client, index) => (
+        <tr key={index}>
+          <td>{client.producto}</td>
+          <td>{client.nombre}</td>
+          <td>{client.asesor?.texto}</td>
+          <td>{client.diaIngreso}</td>
+          <td>{client.correo}</td>
+          <td>{client.celular}</td>
+          <td className={getEstadoClass(client.estado)}>
+          <div className={`estado-div ${getEstadoClass(client.estado)}`}>
+            {estados.find(estado => estado.value === client.estado)?.texto}
+            </div></td>
+          <td>
+          <td className="lista-clientes-acciones">
+  <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
+  <button className="btn-eliminar" onClick={() => handleDelete(index)}>Eliminar</button>
+</td>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
         <div className="dashboard-sidebar">
         <div className="sidebar-header">
           <div className="imagen-header">
