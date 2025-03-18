@@ -420,13 +420,20 @@ const validarCampos = () => {
                 <ul className="submenu">
                   <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <li className="pedidos">Pedidos</li></Link>
-                  <li>Productos</li>
-                  <li>Categorias</li>
-                  <li>Almacen</li>
-                  <li>Devolución</li>
-                  <li>Reparto</li>
-                  <li>Seguimiento</li>
-                  <li>Calendario</li>
+                  <Link to="/productos" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Productos</li></Link>
+                  <Link to="/categorias" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Categorias</li></Link>
+                  <Link to="/almacen" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Almacen</li></Link>
+                  <Link to="/devolucion" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Devolución</li></Link>
+                  <Link to="/reparto" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Reparto</li></Link>
+                  <Link to="/seguimiento" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Seguimiento</li></Link>
+                  <Link to="/calendario" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Calendario</li></Link>
                 </ul>
               )}
             </li>

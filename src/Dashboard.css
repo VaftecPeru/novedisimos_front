@@ -293,6 +293,7 @@ body {
   font-size: 14px;
   border-radius: 10px;
   cursor: pointer;
+  margin-left: 10px;
 }
 
 .lista-clientes td.lista-clientes-acciones {
