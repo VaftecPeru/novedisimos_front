@@ -47,7 +47,7 @@ body {
 .panel-control-icon {
   width: 32px; 
   height: 32px; 
-  margin-left: 10px; 
+  margin-left: 15px; 
   margin-top: 0px;
 }
 
@@ -133,7 +133,7 @@ body {
     padding-left: 50px;
 }
 
-.submenu li.pedidos {
+.submenu li.activo {
     background-color: #4256d0;
     border-radius: 12px;
   }
@@ -279,7 +279,7 @@ body {
   border-radius: 10px;
   border: 1px solid #4c67e4;
   cursor: pointer;
-  margin-left: -10px;
+  margin-left: 50px;
 }
 
 .lista-clientes td button.btn-eliminar {
@@ -293,11 +293,17 @@ body {
   font-size: 14px;
   border-radius: 10px;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 5px;
+}
+
+.lista-clientes th.text-center,
+.lista-clientes td.text-center {
+  text-align: center;
 }
 
 .lista-clientes td.lista-clientes-acciones {
   border-bottom: none;
+  text-align: left;
 }
 
 .cliente-item {

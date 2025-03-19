@@ -358,29 +358,29 @@ const validarCampos = () => {
               <table>
                 <thead>
                   <tr>
-                  <th>Producto</th>
-                  <th>Nombre de Cliente</th>
-                  <th>Asesor</th>
-                  <th>Fecha ingreso</th>
-                  <th>Correos electrónicos</th>
-                  <th>Celular</th>
-                  <th>Estado</th>
-                  <th>Accion</th>
+                  <th className="text-center">Producto</th>
+                  <th className="text-center">Nombre de Cliente</th>
+                  <th className="text-center">Asesor</th>
+                  <th className="text-center">Fecha ingreso</th>
+                  <th className="text-center">Correos electrónicos</th>
+                  <th className="text-center">Celular</th>
+                  <th className="text-center">Estado</th>
+                  <th className="text-center">Accion</th>
                   </tr>
                 </thead>
     <tbody>
       {clients.map((client, index) => (
         <tr key={index}>
-          <td>{client.producto}</td>
-          <td>{client.nombre}</td>
-          <td>{client.asesor?.texto}</td>
-          <td>{client.diaIngreso}</td>
-          <td>{client.correo}</td>
-          <td>{client.celular}</td>
-          <td className={getEstadoClass(client.estado)}>
+          <td className="text-center">{client.producto}</td>
+          <td className="text-center">{client.nombre}</td>
+          <td className="text-center">{client.asesor?.texto}</td>
+          <td className="text-center">{client.diaIngreso}</td>
+          <td className="text-center">{client.correo}</td>
+          <td className="text-center">{client.celular}</td>
+          <td className={`text-center ${getEstadoClass(client.estado)}`}>
           <div className={`estado-div ${getEstadoClass(client.estado)}`}>
-            {estados.find(estado => estado.value === client.estado)?.texto}
-            </div></td>
+          {estados.find(estado => estado.value === client.estado)?.texto}</div>
+          </td>
           <td>
           <td className="lista-clientes-acciones">
   <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
@@ -419,7 +419,7 @@ const validarCampos = () => {
               {expanded.panel && (
                 <ul className="submenu">
                   <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <li className="pedidos">Pedidos</li></Link>
+                  <li className="activo">Pedidos</li></Link>
                   <Link to="/productos" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <li>Productos</li></Link>
                   <Link to="/categorias" style={{ textDecoration: 'none', color: 'inherit' }}>
