@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
+import './Modal.css';
 import MiSelect from './MiSelect';
 import { distritos, asesor, estados, getEstadoColor } from './data';
 

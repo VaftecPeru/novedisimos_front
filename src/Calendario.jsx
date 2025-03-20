@@ -1,85 +1,93 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Dashboard.css';
+import Calendar from 'react-calendar'; 
+import './Calendario.css';
 
 function Calendario() {
+
   const [expanded, setExpanded] = useState({
-      panel: true,
-      clientes: false,
-      motorizados: false,
-      asesores: false,
-      reportes: false,
+    panel: true,
+    clientes: false,
+    motorizados: false,
+    asesores: false,
+    reportes: false,
   });
 
   const [arrowImages, setArrowImages] = useState({
-      panel: '/images/down arrow.png',
-      clientes: '/images/shadow arrow.png',
-      motorizados: '/images/shadow arrow.png',
-      asesores: '/images/shadow arrow.png',
-      reportes: '/images/shadow arrow.png',
+    panel: '/images/down arrow.png',
+    clientes: '/images/shadow arrow.png',
+    motorizados: '/images/shadow arrow.png',
+    asesores: '/images/shadow arrow.png',
+    reportes: '/images/shadow arrow.png',
   });
 
   const [gearImages, setGearImages] = useState({
-      panel: '/images/gear.png',
-      clientes: '/images/shadow folder.png',
-      motorizados: '/images/shadow file.png',
-      asesores: '/images/shadow tv.png',
-      reportes: '/images/shadow report.png',
+    panel: '/images/gear.png',
+    clientes: '/images/shadow folder.png',
+    motorizados: '/images/shadow file.png',
+    asesores: '/images/shadow tv.png',
+    reportes: '/images/shadow report.png',
   });
 
   const [spanColors, setSpanColors] = useState({
-      panel: 'white',
-      clientes: '#555d8b',
-      motorizados: '#555d8b',
-      asesores: '#555d8b',
-      reportes: '#555d8b',
+    panel: 'white',
+    clientes: '#555d8b',
+    motorizados: '#555d8b',
+    asesores: '#555d8b',
+    reportes: '#555d8b',
   });
 
+  const [date, setDate] = useState(new Date()); 
+
   const toggleSection = (section) => {
-      setExpanded({
-          ...expanded,
-          [section]: !expanded[section],
+    setExpanded({
+      ...expanded,
+      [section]: !expanded[section],
+    });
+
+    setArrowImages((prevArrowImages) => ({
+      ...prevArrowImages,
+      [section]: !expanded[section]
+        ? '/images/down arrow.png'
+        : '/images/shadow arrow.png',
+    }));
+
+    if (section === 'panel') {
+      setGearImages((prevGearImages) => ({
+        ...prevGearImages,
+        panel: !expanded.panel ? '/images/gear.png' : '/images/shadow gear.png',
+      }));
+    } else {
+      setGearImages((prevGearImages) => {
+        let newGearImages = { ...prevGearImages };
+        switch (section) {
+          case 'clientes':
+            newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
+            break;
+          case 'motorizados':
+            newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
+            break;
+          case 'asesores':
+            newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
+            break;
+          case 'reportes':
+            newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
+            break;
+          default:
+            break;
+        }
+        return newGearImages;
       });
+    }
 
-      setArrowImages((prevArrowImages) => ({
-          ...prevArrowImages,
-          [section]: !expanded[section]
-              ? '/images/down arrow.png'
-              : '/images/shadow arrow.png',
-      }));
+    setSpanColors((prevSpanColors) => ({
+      ...prevSpanColors,
+      [section]: !expanded[section] ? 'white' : '#555d8b',
+    }));
+  };
 
-      if (section === 'panel') {
-          setGearImages((prevGearImages) => ({
-              ...prevGearImages,
-              panel: !expanded.panel ? '/images/gear.png' : '/images/shadow gear.png',
-          }));
-      } else {
-          setGearImages((prevGearImages) => {
-              let newGearImages = { ...prevGearImages };
-              switch (section) {
-                  case 'clientes':
-                      newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
-                      break;
-                  case 'motorizados':
-                      newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
-                      break;
-                  case 'asesores':
-                      newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
-                      break;
-                  case 'reportes':
-                      newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
-                      break;
-                  default:
-                      break;
-              }
-              return newGearImages;
-          });
-      }
-
-      setSpanColors((prevSpanColors) => ({
-          ...prevSpanColors,
-          [section]: !expanded[section] ? 'white' : '#555d8b',
-      }));
+  const onChange = (date) => {
+    setDate(date);
   };
 
   return (
@@ -93,8 +101,15 @@ function Calendario() {
         <img src="/images/bell.png" alt="Reportes" className="header-icon" />
         </header>
         <div className="div-dashboard">
-        <h1>Calendario</h1>
-        </div>
+  <h1>Calendario</h1>
+  <div className="lista-clientes">
+    <Calendar
+      className="mi-calendario"
+      value={date}
+      onChange={setDate}
+    />
+  </div>
+</div>
         <div className="dashboard-sidebar">
             <div className="sidebar-header">
                 <div className="imagen-header">

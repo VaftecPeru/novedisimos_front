@@ -94,6 +94,10 @@ function Almacen() {
         </header>
         <div className="div-dashboard">
         <h1>Almacen</h1>
+        <button className="my-button">Añadir Producto</button>
+        <div className="lista-clientes">
+            
+        </div>
         </div>
         <div className="dashboard-sidebar">
             <div className="sidebar-header">
