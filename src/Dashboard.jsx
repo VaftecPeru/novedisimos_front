@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
+import './Modal.css';
 import MiSelect from './MiSelect';
 import { distritos, asesor, estados, getEstadoColor } from './data';
 
@@ -358,29 +359,29 @@ const validarCampos = () => {
               <table>
                 <thead>
                   <tr>
-                  <th>Producto</th>
-                  <th>Nombre de Cliente</th>
-                  <th>Asesor</th>
-                  <th>Fecha ingreso</th>
-                  <th>Correos electrónicos</th>
-                  <th>Celular</th>
-                  <th>Estado</th>
-                  <th>Accion</th>
+                  <th className="text-center">Producto</th>
+                  <th className="text-center">Nombre de Cliente</th>
+                  <th className="text-center">Asesor</th>
+                  <th className="text-center">Fecha ingreso</th>
+                  <th className="text-center">Correos electrónicos</th>
+                  <th className="text-center">Celular</th>
+                  <th className="text-center">Estado</th>
+                  <th className="text-center">Accion</th>
                   </tr>
                 </thead>
     <tbody>
       {clients.map((client, index) => (
         <tr key={index}>
-          <td>{client.producto}</td>
-          <td>{client.nombre}</td>
-          <td>{client.asesor?.texto}</td>
-          <td>{client.diaIngreso}</td>
-          <td>{client.correo}</td>
-          <td>{client.celular}</td>
-          <td className={getEstadoClass(client.estado)}>
+          <td className="text-center">{client.producto}</td>
+          <td className="text-center">{client.nombre}</td>
+          <td className="text-center">{client.asesor?.texto}</td>
+          <td className="text-center">{client.diaIngreso}</td>
+          <td className="text-center">{client.correo}</td>
+          <td className="text-center">{client.celular}</td>
+          <td className={`text-center ${getEstadoClass(client.estado)}`}>
           <div className={`estado-div ${getEstadoClass(client.estado)}`}>
-            {estados.find(estado => estado.value === client.estado)?.texto}
-            </div></td>
+          {estados.find(estado => estado.value === client.estado)?.texto}</div>
+          </td>
           <td>
           <td className="lista-clientes-acciones">
   <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
@@ -419,14 +420,21 @@ const validarCampos = () => {
               {expanded.panel && (
                 <ul className="submenu">
                   <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <li className="pedidos">Pedidos</li></Link>
-                  <li>Productos</li>
-                  <li>Categorias</li>
-                  <li>Almacen</li>
-                  <li>Devolución</li>
-                  <li>Reparto</li>
-                  <li>Seguimiento</li>
-                  <li>Calendario</li>
+                  <li className="activo">Pedidos</li></Link>
+                  <Link to="/productos" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Productos</li></Link>
+                  <Link to="/categorias" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Categorias</li></Link>
+                  <Link to="/almacen" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Almacen</li></Link>
+                  <Link to="/devolucion" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Devolución</li></Link>
+                  <Link to="/reparto" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Reparto</li></Link>
+                  <Link to="/seguimiento" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Seguimiento</li></Link>
+                  <Link to="/calendario" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <li>Calendario</li></Link>
                 </ul>
               )}
             </li>
