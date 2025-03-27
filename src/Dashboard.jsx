@@ -258,17 +258,19 @@ const validarCampos = () => {
       </header>
       <div className="div-dashboard">
         <h1>Listado de Pedidos (FORMULARIO COD)</h1>
+        <div className="search-button-container">
+        <button className="my-button" onClick={openModal}>+ Nuevo Pedido</button>
         <div className="search-input-container">
-        <input
-          type="text"
-          placeholder="¿Qué usuarios estás buscando?"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-      <img src="/images/search.png" alt="Buscar" className="search-icon" />
-      </div>
-      <button className="my-button" onClick={openModal}>Agregar un Cliente +</button>
+            <input
+                type="text"
+                placeholder="Busca tu orden"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+            />
+            <img src="/images/search.png" alt="Buscar" className="search-icon" />
+        </div>
+    </div>
       <Modal
                 isOpen={modalIsOpen}
                 onRequestClose={closeModal}

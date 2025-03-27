@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Registro from './Registro';
-import RegistroCorreo from './Registrocorreo';
+import RegistroCorreo from './RegistroCorreo';
 import RegistroCorreoFinal from './Registrofinal';
 import Dashboard from './Dashboard';
 import Productos from './Productos';
