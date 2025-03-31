@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
 import './Modal.css';
-import MiSelect from './MiSelect';
-import { distritos, asesor, estados, getEstadoColor } from './data';
 
 Modal.setAppElement('#root');
 
@@ -71,6 +69,7 @@ function Dashboard() {
 
     const openModal = () => {
         setModalIsOpen(true);
+        document.body.classList.add('modal-open');
         setEditIndex(-1);
         setNewClient({
             nombre: '',
@@ -92,6 +91,7 @@ function Dashboard() {
 
     const closeModal = () => {
         setModalIsOpen(false);
+        document.body.classList.remove('modal-open');
         setProcessingModalIsOpen(false);
         setCompletedModalIsOpen(false);
     };
@@ -201,51 +201,6 @@ function Dashboard() {
     }
 };
 
-const [camposVacios, setCamposVacios] = useState({});
-
-const validarCampos = () => {
-  const nuevosCamposVacios = {};
-  let hayCamposVacios = false;
-
-  if (!newClient.producto) {
-      nuevosCamposVacios.producto = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.nombre) {
-      nuevosCamposVacios.nombre = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.asesor) {
-      nuevosCamposVacios.asesor = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.diaIngreso) {
-      nuevosCamposVacios.diaIngreso = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.correo) {
-      nuevosCamposVacios.correo = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.celular) {
-      nuevosCamposVacios.celular = true;
-      hayCamposVacios = true;
-  }
-  if (!newClient.estado) {
-      nuevosCamposVacios.estado = true;
-      hayCamposVacios = true;
-  }
-
-  setCamposVacios(nuevosCamposVacios);
-
-  if (hayCamposVacios) {
-      alert('Por favor, completa todos los campos obligatorios.');
-      return false;
-  }
-
-  return true;
-};
-
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -271,128 +226,108 @@ const validarCampos = () => {
             <img src="/images/search.png" alt="Buscar" className="search-icon" />
         </div>
     </div>
-      <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={closeModal}
-                contentLabel="Registro de Cliente"
-                className="modal"
-                overlayClassName="overlay"
-            >
-                <h2>{editIndex === -1 ? 'Registro de clientes que se tiene cobertura' : 'Editar Cliente'}</h2>
-                <form onSubmit={handleRegister}>
-                    <div className="modal-content">
-                        <div className="modal-left">
-                            <label>Buscar</label>
-                            <input type="text" name="buscar" value={newClient.buscar} onChange={handleInputChange}/>
-                            <label>Asesor</label>
-                            <MiSelect opciones={asesor} value={newClient.asesor} onChange={(selectedOption) => handleInputChange({ target: { name: 'asesor', value: selectedOption} })}/>
-                            <label>Estado</label>
-                            <MiSelect opciones={estados} value={newClient.estado} onChange={(selectedOption)=> handleInputChange({ target: { name: 'estado', value: selectedOption.value } })}/>
-                            <label>Nombre de Cliente</label>
-                            <input type="text" name="nombre" value={newClient.nombre} onChange={handleInputChange} />
-                            <label>Correo Electrónico</label>
-                            <input type="email" name="correo" value={newClient.correo} onChange={handleInputChange} />
-                            <label>Numero Celular</label>
-                            <input type="tel" name="celular" value={newClient.celular} onChange={handleInputChange} />
-                            <label>Direccion</label>
-                            <input type="text" name="direccion" value={newClient.direccion} onChange={handleInputChange} />
-                            <label>Producto</label>
-                            <input type="text" name="producto" value={newClient.producto} onChange={handleInputChange} />
-                        </div>
-                        <div className="modal-right">
-                            <label>Los usuarios que permite ese cambio de asesor para las comisiones son: Asesoras de 1era Linea y Asesoras de Recontacto(Las administrativas y supervisores son de apoyo, que pueden realizar cambios en el pedido por so r solicitud del cliente(añadir productos, cambio de dirección, entre otros, pero no comisionan))</label>
-                            <input type="text" />
-                            <div className="labels-row">
-                                <label>Dia de ingreso</label>
-                                <label>Dia de atencion</label>
-                            </div>
-                            <div className="inputs-row">
-                                <div className="input-with-icon">
-                                    <input type="date" name="diaIngreso" value={newClient.diaIngreso} onChange={handleInputChange} />
-                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon" />
-                                </div>
-                                <div className="input-with-icon">
-                                    <input type="date" name="diaAtencion" value={newClient.diaAtencion} onChange={handleInputChange} />
-                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon2" />
-                                </div>
-                            </div>
-                            <div className="inputs-row2">
-                                <label>Dia de programado</label>
-                                <div className="input-with-icon">
-                                    <input type="date" name="diaProgramado" value={newClient.diaProgramado} onChange={handleInputChange} style={{ paddingLeft: '37px', width: '595px'}} />
-                                    <img src="/images/calendar.png" alt="Buscar" className="calendar-icon3" />
-                                </div>
-                            </div>
-                            <label>Distrito</label>
-                            <MiSelect opciones={distritos} value={newClient.distrito} onChange={(e) => handleInputChange({ target: { name: 'distrito', value: e } })}/>
-                            <label>Referencia</label>
-                            <input type="text" name="referencia" value={newClient.referencia} onChange={handleInputChange} />
-                            <label>Rango de Hora</label>
-                            <input type="text" name="rangoHora" value={newClient.rangoHora} onChange={handleInputChange} />
-                            <label>Notas de Asesor</label>
-                            <input type="text" name="notas" value={newClient.notas} onChange={handleInputChange} />
-                        </div>
-                    </div>
-                    <div className="modal-buttons">
-                        <button type="submit">{editIndex === -1 ? 'Registrar' : 'Guardar Cambios'}</button>
-                        <button onClick={closeModal}>Cancelar</button>
-                    </div>
-                </form>
-            </Modal>
+    <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          contentLabel="Nueva Orden"
+          className="modal"
+          overlayClassName="overlay"
+        >
+          <h2>Nueva orden</h2>
+          <form onSubmit={handleRegister}>
+            <div className="modal-content">
+              <label>Nota:</label>
+              <input type="text" name="nota" value={newClient.nota} onChange={handleInputChange} />
 
-            <Modal
-                isOpen={processingModalIsOpen}
-                contentLabel="Procesando..."
-                className="modal"
-                overlayClassName="overlay"
-            >
-                <h2>Procesando...</h2>
-            </Modal>
+              <label>Canal:</label>
+              <select name="canal" value={newClient.canal} onChange={handleInputChange}>
+                <option value="Shopify">Shopify</option>
+                {/* Agrega más opciones si es necesario */}
+              </select>
 
-            <Modal
-                isOpen={completedModalIsOpen}
-                contentLabel="Registro completado"
-                className="modal"
-                overlayClassName="overlay"
-            >
-                <h2>Registro completado</h2>
-            </Modal>
+              <h3>Cliente</h3>
+              <label>Nombres y Apellidos:</label>
+              <input type="text" name="nombresApellidos" value={newClient.nombresApellidos} onChange={handleInputChange} />
+
+              <label>Móvil:</label>
+              <input type="text" name="movil" value={newClient.movil} onChange={handleInputChange} />
+
+              <h3>Entrega</h3>
+              <label>Departamento:</label>
+              <select name="departamento" value={newClient.departamento} onChange={handleInputChange}>
+                {/* Agrega opciones de departamentos */}
+              </select>
+
+              <label>Provincia:</label>
+              <select name="provincia" value={newClient.provincia} onChange={handleInputChange}>
+                {/* Agrega opciones de provincias */}
+              </select>
+
+              <label>Distrito:</label>
+              <select name="distrito" value={newClient.distrito} onChange={handleInputChange}>
+                {/* Agrega opciones de distritos */}
+              </select>
+
+              <label>Dirección:</label>
+              <input type="text" name="direccion" value={newClient.direccion} onChange={handleInputChange} />
+
+              <label>Referencia:</label>
+              <input type="text" name="referencia" value={newClient.referencia} onChange={handleInputChange} />
+
+              <label>GPS: Latitud, Longitud</label>
+              <input type="text" name="gps" value={newClient.gps} onChange={handleInputChange} />
+
+              <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
+            </div>
+            <div className="modal-buttons">
+              <button type="submit">Guardar</button>
+              <button onClick={closeModal}>Cancelar</button>
+            </div>
+          </form>
+        </Modal>
             <div className="lista-clientes">
               <table>
                 <thead>
                   <tr>
-                  <th className="text-center">Producto</th>
-                  <th className="text-center">Nombre de Cliente</th>
-                  <th className="text-center">Asesor</th>
-                  <th className="text-center">Fecha ingreso</th>
-                  <th className="text-center">Correos electrónicos</th>
-                  <th className="text-center">Celular</th>
-                  <th className="text-center">Estado</th>
-                  <th className="text-center">Accion</th>
+                  <th className="text-center">Orden</th>
+                  <th className="text-center">Acciones</th>
+                  <th className="text-center">Delivery</th>
+                  <th className="text-center">Tranzabilidad</th>
+                  <th className="text-center">Importes</th>
+                  <th className="text-center">Pagos</th>
+                  <th className="text-center">Productos</th>
+                  <th className="text-center">Nota</th>
+                  <th className="text-center">Cliente</th>
+                  <th className="text-center">Ubicación</th>
+                  <th className="text-center">Fechas</th>
                   </tr>
                 </thead>
-    <tbody>
-      {clients.map((client, index) => (
-        <tr key={index}>
-          <td className="text-center">{client.producto}</td>
-          <td className="text-center">{client.nombre}</td>
-          <td className="text-center">{client.asesor?.texto}</td>
-          <td className="text-center">{client.diaIngreso}</td>
-          <td className="text-center">{client.correo}</td>
-          <td className="text-center">{client.celular}</td>
-          <td className={`text-center ${getEstadoClass(client.estado)}`}>
-          <div className={`estado-div ${getEstadoClass(client.estado)}`}>
-          {estados.find(estado => estado.value === client.estado)?.texto}</div>
-          </td>
-          <td>
-          <td className="lista-clientes-acciones">
-  <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
-  <button className="btn-eliminar" onClick={() => handleDelete(index)}>Eliminar</button>
-</td>
-          </td>
-        </tr>
-      ))}
-    </tbody>
+                <tbody>
+              {clients.map((client, index) => (
+                <tr key={index}>
+                  <td className="text-center"></td>
+                  <td className="text-center">
+                    <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
+                    <button className="btn-eliminar" onClick={() => handleDelete(index)}>Eliminar</button>
+                  </td>
+                  <td className="text-center"></td>
+                  <td className="text-center"></td>
+                  <td className="text-center"></td>
+                  <td className="text-center"></td>
+                  <td className="text-center">{client.producto}</td>
+                  <td className="text-center">{client.notas}</td>
+                  <td className="text-center">{client.nombre}</td>
+                  <td className="text-center">{client.distrito?.texto}</td>
+                  <td className="text-center">
+                    <div>
+                      Ingreso: {client.diaIngreso}<br />
+                      Atención: {client.diaAtencion}<br />
+                      Programado: {client.diaProgramado}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
   </table>
 </div>
         <div className="dashboard-sidebar">
