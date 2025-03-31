@@ -159,30 +159,37 @@ body {
 }
 
 .div-dashboard {
-    background-color: #f4f4f4; 
-    padding: 0px;
-    height: 1100px;
-  }
+  background-color: #f4f4f4; 
+  padding: 0px;
+  height: 1100px;
+}
 
 .div-dashboard h1{
-    margin-top: 30px;
-    margin-left: 335px;
-    font-size: 36px;
-    margin-bottom: 10px;
-}  
+  margin-top: 30px;
+  margin-left: 335px;
+  font-size: 36px;
+  margin-bottom: 30px;
+} 
+
+.search-button-container {
+  display: flex;
+  align-items: center;
+  margin-left: 335px;
+  margin-bottom: 25px;
+}
 
 .search-input {
-  margin-left: 335px; 
-  margin-top: 10px;
   padding: 6px;
   border: 2px solid #f4f4f4;
   border-color: #a3b1f1; 
-  border-radius: 15px;
-  width: 1467px; 
-  height: 40px;
-  font-size: 16px;
+  border-radius: 20px;
+  width: 217px; 
+  height: 20px;
+  font-size: 14px;
   padding-left: 45px; 
   font-weight: 300;
+  margin-right: 10px; 
+  margin-left: 15px;
 }
 
 .search-input-container {
@@ -196,25 +203,23 @@ body {
 }
 
 .search-icon {
-    position: absolute;
-    left: 350px; 
-    top: 57%;
-    transform: translateY(-50%);
-    width: 25px; 
-    height: 25px;
-  }
+  position: absolute;
+  left: 30px; 
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px; 
+  height: 20px;
+}
 
 .my-button {
-  margin-left: 335px;
-  margin-top: 20px;
-  margin-bottom: 25px;
-  padding: 14px 16px;
+  padding: 8px 16px;
   background-color: #4763e4;
   color: #fff;
   border: 1px solid #4c67e4;
-  border-radius:15px;
+  border-radius: 25px;
   cursor: pointer;
-  font-size: 22px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .lista-clientes {
