@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import './Dashboard.css';
 import './Modal.css';
+import closeIcon from '/images/close.png';
 
 Modal.setAppElement('#root');
 
@@ -227,13 +228,17 @@ function Dashboard() {
         </div>
     </div>
     <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={closeModal}
-          contentLabel="Nueva Orden"
-          className="modal"
-          overlayClassName="overlay"
-        >
-          <h2>Nueva orden</h2>
+    isOpen={modalIsOpen}
+    onRequestClose={closeModal}
+    contentLabel="Nueva Orden"
+    className="modal"
+    overlayClassName="overlay"
+>
+    <div className="modal-header">
+      <div className="modal-close" onClick={closeModal}><img src={closeIcon} alt="Cerrar" /></div>
+      <div className="modal-title">Agregar orden</div>
+    </div>
+    <h2>Nueva orden</h2>
           <form onSubmit={handleRegister}>
             <div className="modal-content">
               <label>Nota:</label>
@@ -245,14 +250,14 @@ function Dashboard() {
                 {/* Agrega más opciones si es necesario */}
               </select>
 
-              <h3>Cliente</h3>
+              <h2>Cliente</h2>
               <label>Nombres y Apellidos:</label>
               <input type="text" name="nombresApellidos" value={newClient.nombresApellidos} onChange={handleInputChange} />
 
               <label>Móvil:</label>
               <input type="text" name="movil" value={newClient.movil} onChange={handleInputChange} />
 
-              <h3>Entrega</h3>
+              <h2>Entrega</h2>
               <label>Departamento:</label>
               <select name="departamento" value={newClient.departamento} onChange={handleInputChange}>
                 {/* Agrega opciones de departamentos */}
