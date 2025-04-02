@@ -42,12 +42,14 @@ function Dashboard() {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [filterOptions, setFilterOptions] = useState({
-        orden: '',
-        delivery: '',
-        tranzabilidad: '',
-        importes: '',
-        pagos: '',
-        productos: '',
+      orden: '',
+      delivery: '',
+      tranzabilidad: '',
+      importes: '',
+      pagos: '',
+      productos: '',
+      fechaInicio: '',
+      fechaFin: '',
     });
 
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -216,20 +218,27 @@ function Dashboard() {
                 className="search-input"
             />
             <img src="/images/search.png" alt="Buscar" className="search-icon" />
-            <select className="filter-select" value={filterOptions.orden} onChange={(e) => setFilterOptions({...filterOptions, orden: e.target.value})}>
-                            <option value="">CONFIRMADO</option>
-                            <option value="">SEGUIMIENTO</option>
-                            <option value="">IMPORTADO</option>
-                            <option value="">ANULADO</option>
-                            <option value="">NO CONTESTA</option>
-                            <option value="">CONTACTADO</option>
-                            <option value="">REPETIDO</option>
-                            <option value="">SIN STOCK</option>
-                        </select>
-                        <select className="filter-select" value={filterOptions.delivery} onChange={(e) => setFilterOptions({...filterOptions, delivery: e.target.value})}>
-                            <option value="">Delivery</option>
-                            
-                        </select>
+                      <select className="filter-select" value={filterOptions.orden} onChange={(e) => setFilterOptions({...filterOptions, orden: e.target.value})}>
+                        <option value="">Confirmado</option>
+                        <option value="">Seguimiento</option>
+                        <option value="">Importado</option>
+                        <option value="">Anulado</option>
+                        <option value="">No contesta</option>
+                        <option value="">Contactado</option>
+                        <option value="">Repetido</option>
+                        <option value="">Sin stock</option>
+                      </select>
+                      <select className="filter-select" value={filterOptions.delivery} onChange={(e) => setFilterOptions({...filterOptions, delivery: e.target.value})}>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En proceso">En proceso</option>
+                        <option value="Listo para envío">Listo para envío</option>
+                        <option value="En tránsito">En tránsito</option>
+                        <option value="En reparto">En reparto</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="Intento de entrega fallido">Intento de entrega fallido</option>
+                        <option value="Devuelto">Devuelto</option>
+                        <option value="Cancelado">Cancelado</option>
+                      </select>
                         <select className="filter-select" value={filterOptions.tranzabilidad} onChange={(e) => setFilterOptions({...filterOptions, tranzabilidad: e.target.value})}>
                             <option value="">Tranzabilidad</option>
                             
@@ -238,14 +247,18 @@ function Dashboard() {
                             <option value="">Importes</option>
                             
                         </select>
-                        <select className="filter-select" value={filterOptions.pagos} onChange={(e) => setFilterOptions({...filterOptions, pagos: e.target.value})}>
-                            <option value="">Pagos</option>
-                            
-                        </select>
-                        <select className="filter-select" value={filterOptions.productos} onChange={(e) => setFilterOptions({...filterOptions, productos: e.target.value})}>
-                            <option value="">Productos</option>
-                            
-                        </select>
+                        <input
+                        type="date"
+                        className="filter-date"
+                        value={filterOptions.fechaInicio}
+                        onChange={(e) => setFilterOptions({ ...filterOptions, fechaInicio: e.target.value })}
+                      />
+                      <input
+                        type="date"
+                        className="filter-date"
+                        value={filterOptions.fechaFin}
+                        onChange={(e) => setFilterOptions({ ...filterOptions, fechaFin: e.target.value })}
+                      />
         </div>
     </div>
     <Modal
@@ -375,10 +388,10 @@ function Dashboard() {
                 <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.panel }}>Panel Control</span>
                 <i className={`fas fa-chevron-${expanded.panel ? 'down' : 'right'}`}></i>
                 <img
-                src={arrowImages.panel}
-                alt="Panel Control"
-                className="menu-icon"
-              />
+                  src={arrowImages.panel}
+                  alt="Panel Control"
+                  className="menu-icon"
+                />
               </div>
               {expanded.panel && (
                 <ul className="submenu">
