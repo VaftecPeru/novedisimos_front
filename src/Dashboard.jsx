@@ -41,15 +41,23 @@ function Dashboard() {
     });
 
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterOptions, setFilterOptions] = useState({
+        orden: '',
+        delivery: '',
+        tranzabilidad: '',
+        importes: '',
+        pagos: '',
+        productos: '',
+    });
 
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [processingModalIsOpen, setProcessingModalIsOpen] = useState(false);
     const [completedModalIsOpen, setCompletedModalIsOpen] = useState(false);
 
     const [clients, setClients] = useState(() => {
-      const storedClients = localStorage.getItem('clientsData');
-      return storedClients ? JSON.parse(storedClients) : [];
-  });
+        const storedClients = localStorage.getItem('clientsData');
+        return storedClients ? JSON.parse(storedClients) : [];
+    });
     const [newClient, setNewClient] = useState({
         nombre: '',
         asesor: '',
@@ -98,38 +106,34 @@ function Dashboard() {
     };
 
     const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setNewClient({ ...newClient, [name]: value });
-      setCamposVacios({ ...camposVacios, [name]: false }); 
-  };
+        const { name, value } = e.target;
+        setNewClient({ ...newClient, [name]: value });
+    };
 
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (!validarCampos()) {
-        return;
-    }
-    setModalIsOpen(false);
-    setProcessingModalIsOpen(true);
+    const handleRegister = (e) => {
+        e.preventDefault();
+        setModalIsOpen(false);
+        setProcessingModalIsOpen(true);
 
-    setTimeout(() => {
-      setProcessingModalIsOpen(false);
-      setCompletedModalIsOpen(true);
+        setTimeout(() => {
+            setProcessingModalIsOpen(false);
+            setCompletedModalIsOpen(true);
 
-      setTimeout(() => {
-        setCompletedModalIsOpen(false);
-        let updatedClients;
-        if (editIndex === -1) {
-            updatedClients = [...clients, newClient];
-        } else {
-            updatedClients = [...clients];
-            updatedClients[editIndex] = newClient;
-        }
-        setClients(updatedClients);
-        localStorage.setItem('clientsData', JSON.stringify(updatedClients)); 
-        console.log('Registro completado y proceso continuado.');
-    }, 1000);
-}, 1000);
-};
+            setTimeout(() => {
+                setCompletedModalIsOpen(false);
+                let updatedClients;
+                if (editIndex === -1) {
+                    updatedClients = [...clients, newClient];
+                } else {
+                    updatedClients = [...clients];
+                    updatedClients[editIndex] = newClient;
+                }
+                setClients(updatedClients);
+                localStorage.setItem('clientsData', JSON.stringify(updatedClients));
+                console.log('Registro completado y proceso continuado.');
+            }, 1000);
+        }, 1000);
+    };
     const toggleSection = (section) => {
         setExpanded({
             ...expanded,
@@ -184,23 +188,10 @@ function Dashboard() {
     };
 
     const handleDelete = (index) => {
-      const updatedClients = clients.filter((_, i) => i !== index);
-      setClients(updatedClients);
-      localStorage.setItem('clientsData', JSON.stringify(updatedClients));
-  };
-
-  const getEstadoClass = (estado) => {
-    switch (estado) {
-        case 'enCamino':
-            return 'estado-enCamino';
-        case 'completado':
-            return 'estado-completado';
-        case 'cancelado':
-            return 'estado-cancelado';
-        default:
-            return '';
-    }
-};
+        const updatedClients = clients.filter((_, i) => i !== index);
+        setClients(updatedClients);
+        localStorage.setItem('clientsData', JSON.stringify(updatedClients));
+    };
 
   return (
     <div className="dashboard-container">
@@ -225,6 +216,36 @@ function Dashboard() {
                 className="search-input"
             />
             <img src="/images/search.png" alt="Buscar" className="search-icon" />
+            <select className="filter-select" value={filterOptions.orden} onChange={(e) => setFilterOptions({...filterOptions, orden: e.target.value})}>
+                            <option value="">CONFIRMADO</option>
+                            <option value="">SEGUIMIENTO</option>
+                            <option value="">IMPORTADO</option>
+                            <option value="">ANULADO</option>
+                            <option value="">NO CONTESTA</option>
+                            <option value="">CONTACTADO</option>
+                            <option value="">REPETIDO</option>
+                            <option value="">SIN STOCK</option>
+                        </select>
+                        <select className="filter-select" value={filterOptions.delivery} onChange={(e) => setFilterOptions({...filterOptions, delivery: e.target.value})}>
+                            <option value="">Delivery</option>
+                            
+                        </select>
+                        <select className="filter-select" value={filterOptions.tranzabilidad} onChange={(e) => setFilterOptions({...filterOptions, tranzabilidad: e.target.value})}>
+                            <option value="">Tranzabilidad</option>
+                            
+                        </select>
+                        <select className="filter-select" value={filterOptions.importes} onChange={(e) => setFilterOptions({...filterOptions, importes: e.target.value})}>
+                            <option value="">Importes</option>
+                            
+                        </select>
+                        <select className="filter-select" value={filterOptions.pagos} onChange={(e) => setFilterOptions({...filterOptions, pagos: e.target.value})}>
+                            <option value="">Pagos</option>
+                            
+                        </select>
+                        <select className="filter-select" value={filterOptions.productos} onChange={(e) => setFilterOptions({...filterOptions, productos: e.target.value})}>
+                            <option value="">Productos</option>
+                            
+                        </select>
         </div>
     </div>
     <Modal

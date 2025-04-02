@@ -186,7 +186,7 @@ body {
   width: 217px; 
   height: 20px;
   font-size: 14px;
-  padding-left: 45px; 
+  padding-left: 35px; 
   font-weight: 300;
   margin-right: 10px; 
   margin-left: 15px;
@@ -204,11 +204,11 @@ body {
 
 .search-icon {
   position: absolute;
-  left: 30px; 
+  left: 28px; 
   top: 50%;
   transform: translateY(-50%);
-  width: 20px; 
-  height: 20px;
+  width: 18px; 
+  height: 18px;
 }
 
 .my-button {
@@ -220,6 +220,18 @@ body {
   cursor: pointer;
   font-size: 14px;
   white-space: nowrap;
+}
+
+.filter-select {
+  padding: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 30px;
+  margin-left: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  box-sizing: border-box;
+  width: 120px;
+  appearance: none;
 }
 
 .lista-clientes {
