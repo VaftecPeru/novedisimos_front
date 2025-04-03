@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import './Dashboard.css';
 import './Modal.css';
 import closeIcon from '/images/close.png';
+import menuIcon from '/images/move.png';
 
 Modal.setAppElement('#root');
 
@@ -195,6 +196,12 @@ function Dashboard() {
         localStorage.setItem('clientsData', JSON.stringify(updatedClients));
     };
 
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    const toggleSidebar = () => {
+        setSidebarCollapsed(!sidebarCollapsed);
+    };
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -369,11 +376,14 @@ function Dashboard() {
             </tbody>
   </table>
 </div>
-        <div className="dashboard-sidebar">
+<div className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-toggle-icon" onClick={toggleSidebar}>
+        <img src={menuIcon} alt="Menu" className="menu-icon-small" />
+        </div>
         <div className="sidebar-header">
-          <div className="imagen-header">
-            <img className="img-logo" src="../images/ovedisimos-dashboard.png" alt="Imagen de login" />
-          </div>
+            <div className="imagen-header">
+                <img className="img-logo" src="../images/ovedisimos-dashboard.png" alt="Imagen de login" />
+            </div>
         </div>
         <nav>
           <ul className="main-menu">
@@ -500,9 +510,11 @@ function Dashboard() {
             </li>
           </ul>
         </nav>
+        <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" />
       </div>
       </div>
-    </div>
+      </div>
+    
   );
 }
 

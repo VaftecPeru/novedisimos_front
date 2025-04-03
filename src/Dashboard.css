@@ -22,6 +22,29 @@ body {
     top: 0; 
     left: 0; 
     height: 100vh; 
+    transition: left 0.3s ease;
+}
+
+.dashboard-sidebar.collapsed {
+  left: -280px; 
+}
+
+.sidebar-toggle-icon {
+  position: absolute;
+  top: 90px;
+  right: -15px; 
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  background-color: #4763e4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-icon-small {
+  width: 40px;
+  height: 40px;
 }
 
 .dashboard-content {
@@ -147,7 +170,7 @@ body {
 }
 
 .imagen-header{
-    background-color: #0e1b6b; 
+    background-color: #141e58; 
     margin-left: -20px;
     padding: 20px;
     margin-top: -20px;
@@ -205,7 +228,7 @@ body {
 .search-icon {
   position: absolute;
   left: 28px; 
-  top: 50%;
+  top: 49%;
   transform: translateY(-50%);
   width: 18px; 
   height: 18px;
@@ -379,4 +402,14 @@ table .estado-completado {
 table .estado-cancelado {
   color: #991b1b;
   font-weight: 400;
+}
+
+.floating-idea-icon {
+  position: fixed;
+  bottom: 20px; 
+  right: 20px; 
+  width: 50px; 
+  height: 50px; 
+  z-index: 1;
+  cursor: pointer;
 }
