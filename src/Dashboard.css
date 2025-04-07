@@ -32,7 +32,7 @@ body {
 .sidebar-toggle-icon {
   position: absolute;
   top: 90px;
-  right: -15px; 
+  right: -13px; 
   width: 30px;
   height: 30px;
   cursor: pointer;
@@ -52,19 +52,25 @@ body {
     margin-left: 250px; 
   }
 
-.dashboard-header {
+  .dashboard-header {
     background-color: #021428;
     color: #4763e4;
     padding: 5px;
     text-align: center;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: padding-left 0.3s ease; 
 }
 
 .panel-control-header {
   display: flex;
   align-items: center;
+  transition: margin-left 0.3s ease; 
+}
+
+.panel-control-header.sidebar-collapsed {
+  margin-left: -290px; 
 }
 
 .panel-control-icon {
@@ -75,7 +81,7 @@ body {
 }
 
 .panel-control-header h2 {
-    margin-left: 330px;
+    margin-left: 380px;
     color: #eeeeee;
     font-size: 20px;
     font-weight: 400;
@@ -88,11 +94,57 @@ body {
     font-weight: 400;
 }
 
-.header-icon {
-    width: 30px;
-    height: 32px;
-    margin-right: 35px; 
-  }
+.sidebar-toggle-button {
+  background-color: #021428;
+  margin-left: 300px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease; 
+  position: absolute; 
+}
+
+.panel-control-header svg {
+  color: #eeeeee;
+  border-radius: 10px;
+}
+
+.dashboard-sidebar.collapsed {
+  left: -280px;
+}
+
+.sidebar-toggle-button:hover {
+  background-color: #05305f;
+}
+
+.bell-button {
+  background-color: #021428;
+  margin-right: 30px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  border:none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.bell-button:hover {
+  background-color: #05305f;
+}
+
+.bell-button svg {
+  width: 30px;
+  height: 30px;
+  color: #eeeeee;
+  cursor: pointer;
+}
 
 .sidebar-header {
     display: flex;
@@ -183,9 +235,14 @@ body {
 }
 
 .div-dashboard {
-  background-color: #fff; 
-  padding: 0px;
-  height: 1100px;
+    background-color: #fff;
+    padding: 0px;
+    height: 1100px;
+    transition: margin-left 0.3s ease; 
+}
+
+.div-dashboard.sidebar-collapsed {
+    margin-left: -300px;
 }
 
 .div-dashboard h1{
