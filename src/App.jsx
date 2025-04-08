@@ -9,17 +9,17 @@ import { useState } from 'react';
 function App() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [eyeIcon, setEyeIcon] = useState("../images/eye-off.png");
-  const navigate = useNavigate(); 
-
+  const navigate = useNavigate();
+  
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
     setEyeIcon(passwordVisible ? "../images/eye-off.png" : "../images/eye.png");
   };
-
+  
   const handleLogin = () => {
     navigate('/dashboard');
   };
-
+  
   return (
     <div className='login-content'>
       <img src="../images/img.png" alt="Imagen de login" />
@@ -43,7 +43,8 @@ function App() {
           </span>
         </div>
         <h3 className='login-comentario'>¿Olvidaste tu contraseña?</h3>
-        <button type="button" onClick={handleLogin}>Acceder ➜</button> 
+        <button type="button" onClick={handleLogin}>Acceder ➜</button>
+        
         <h3 className='login-comentario'>¿No tienes una cuenta? <Link to="/registro" className='registro-link'>Crear cuenta</Link></h3>
       </form>
     </div>
@@ -58,7 +59,7 @@ function MainApp() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
-        <Route path="/dashboard" element={<Dashboard />} /> 
+        <Route path="/dashboard/*" element={<Dashboard />} />
       </Routes>
     </Router>
   );
