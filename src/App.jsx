@@ -1,9 +1,16 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Registro from './Registro';
-import RegistroCorreo from './Registrocorreo';
+import RegistroCorreo from './RegistroCorreo';
 import RegistroCorreoFinal from './Registrofinal';
-import Dashboard from './Dashboard'; 
+import Dashboard from './Dashboard';
+import Productos from './Productos';
+import Categorias from './Categorias'; 
+import Almacen from './Almacen';
+import Devolucion from './Devolucion';
+import Reparto from './Reparto';
+import Seguimiento from './Seguimiento';
+import Calendario from './Calendario';
 import { useState } from 'react';
 
 function App() {
@@ -60,6 +67,13 @@ function MainApp() {
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
+        <Route path="/productos" element={<Productos />} />
+        <Route path="/categorias" element={<Categorias />} />
+        <Route path="/almacen" element={<Almacen />} />
+        <Route path="/devolucion" element={<Devolucion />} />
+        <Route path="/reparto" element={<Reparto />} />
+        <Route path="/seguimiento" element={<Seguimiento />} />
+        <Route path="/calendario" element={<Calendario />} />
       </Routes>
     </Router>
   );

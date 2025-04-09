@@ -116,7 +116,6 @@ function PedidosDashboard() {
   };
 
   const guardarPedido = () => {
-    // Código para guardar el pedido
     setDrawerOpen(false);
     setNuevoPedido(estadoInicial);
   };
@@ -159,7 +158,7 @@ function PedidosDashboard() {
           size="small"
           value={filtros.searchTerm}
           onChange={(e) => handleFiltroChange('searchTerm', e.target.value)}
-          sx={{ minWidth: 250, bgcolor: 'white' }} // Ajustado el ancho aquí
+          sx={{ minWidth: 250, bgcolor: 'white' }} 
           InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
         />
 
@@ -285,7 +284,6 @@ function PedidosDashboard() {
         </Table>
       </TableContainer>
 
-      {/* Drawer para Nuevo Pedido */}
       <Drawer
         anchor="right"
         open={drawerOpen}
