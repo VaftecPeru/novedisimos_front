@@ -84,6 +84,10 @@ function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
     
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(
+        window.innerWidth <= 768 
+    );
+    
     useEffect(() => {
         const path = location.pathname.split('/');
         const lastSegment = path[path.length - 1];
@@ -91,7 +95,42 @@ function Dashboard() {
         if (lastSegment !== 'dashboard') {
             setActiveSection(lastSegment);
         }
+        
+        if (window.innerWidth <= 768) {
+            setSidebarCollapsed(true);
+            document.body.classList.remove('sidebar-open');
+        }
+        
+        const handleResize = () => {
+            if (window.innerWidth <= 768) {
+                document.body.classList.remove('sidebar-open');
+            }
+        };
+        
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
     }, [location.pathname]);
+
+    const toggleSidebar = () => {
+        const newCollapsedState = !sidebarCollapsed;
+        setSidebarCollapsed(newCollapsedState);
+        
+        if (window.innerWidth <= 768) {
+            if (newCollapsedState) {
+                document.body.classList.remove('sidebar-open');
+            } else {
+                document.body.classList.add('sidebar-open');
+            }
+        }
+    };
+    
+    const handleOverlayClick = () => {
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
 
     const openModal = () => {
         setModalIsOpen(true);
@@ -202,6 +241,10 @@ function Dashboard() {
     const handleSectionClick = (section) => {
         setActiveSection(section);
         navigate(`/dashboard/${section}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
     };
 
     const handleEdit = (index) => {
@@ -214,12 +257,6 @@ function Dashboard() {
         const updatedClients = clients.filter((_, i) => i !== index);
         setClients(updatedClients);
         localStorage.setItem('clientsData', JSON.stringify(updatedClients));
-    };
-
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-    const toggleSidebar = () => {
-        setSidebarCollapsed(!sidebarCollapsed);
     };
 
     const openCloseIcon = (
@@ -358,12 +395,17 @@ function Dashboard() {
 
     return (
         <div className="dashboard-container">
-            <header className="dashboard-header">
+            <div 
+                className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? 'active' : ''}`} 
+                onClick={handleOverlayClick}
+            />
+            
+            <header className={`dashboard-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className={`panel-control-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                     <button onClick={toggleSidebar} className="sidebar-toggle-button">
                         {sidebarCollapsed ? openIcon : openCloseIcon}
                     </button>
-                    <h2>Panel Control</h2>
+                    <h2>Panel de control</h2>
                     <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
                     <h3>Orden de Pedido</h3>
                 </div>
@@ -372,7 +414,7 @@ function Dashboard() {
                 </button>
             </header>
             
-            <div className="dashboard-content">
+            <div className={`dashboard-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 {renderContent()}
             </div>
 
@@ -396,7 +438,6 @@ function Dashboard() {
                         <label>Canal:</label>
                         <select name="canal" value={newClient.canal} onChange={handleInputChange}>
                             <option value="Shopify">Shopify</option>
-                            {/* Agrega más opciones si es necesario */}
                         </select>
 
                         <h2>Cliente</h2>
@@ -409,17 +450,14 @@ function Dashboard() {
                         <h2>Entrega</h2>
                         <label>Departamento:</label>
                         <select name="departamento" value={newClient.departamento} onChange={handleInputChange}>
-                            {/* Agrega opciones de departamentos */}
                         </select>
 
                         <label>Provincia:</label>
                         <select name="provincia" value={newClient.provincia} onChange={handleInputChange}>
-                            {/* Agrega opciones de provincias */}
                         </select>
 
                         <label>Distrito:</label>
                         <select name="distrito" value={newClient.distrito} onChange={handleInputChange}>
-                            {/* Agrega opciones de distritos */}
                         </select>
 
                         <label>Dirección:</label>
