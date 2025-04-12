@@ -5,20 +5,25 @@ import './Dashboard.css';
 import './Modal.css';
 import closeIcon from '/images/close.png';
 import PedidosDashboard from './PedidosDashboard';
+import ProductosDashboard from './ProductosDashboard';
 
 Modal.setAppElement('#root');
 
 function Dashboard() {
     const [expanded, setExpanded] = useState({
         panel: true,
+        mantenimiento: false,
         clientes: false,
         motorizados: false,
         asesores: false,
         reportes: false,
     });
 
+    const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
+
     const [arrowImages, setArrowImages] = useState({
         panel: '/images/down arrow.png',
+        mantenimiento: '/images/shadow arrow.png',
         clientes: '/images/shadow arrow.png',
         motorizados: '/images/shadow arrow.png',
         asesores: '/images/shadow arrow.png',
@@ -27,6 +32,7 @@ function Dashboard() {
 
     const [gearImages, setGearImages] = useState({
         panel: '/images/gear.png',
+        mantenimiento: '/images/shadow file.png',
         clientes: '/images/shadow folder.png',
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
@@ -35,6 +41,7 @@ function Dashboard() {
 
     const [spanColors, setSpanColors] = useState({
         panel: 'white',
+        mantenimiento: '#555d8b',
         clientes: '#555d8b',
         motorizados: '#555d8b',
         asesores: '#555d8b',
@@ -94,6 +101,26 @@ function Dashboard() {
         
         if (lastSegment !== 'dashboard') {
             setActiveSection(lastSegment);
+            
+            if (lastSegment === 'productos' || lastSegment === 'usuarios') {
+                setExpanded(prev => ({ ...prev, mantenimiento: true }));
+                setMantenimientoSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    mantenimiento: 'white'
+                }));
+            }
         }
         
         if (window.innerWidth <= 768) {
@@ -213,6 +240,9 @@ function Dashboard() {
             setGearImages((prevGearImages) => {
                 let newGearImages = { ...prevGearImages };
                 switch (section) {
+                    case 'mantenimiento':
+                        newGearImages.mantenimiento = !expanded.mantenimiento ? '/images/file.png' : '/images/shadow file.png';
+                        break;
                     case 'clientes':
                         newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
                         break;
@@ -241,6 +271,16 @@ function Dashboard() {
     const handleSectionClick = (section) => {
         setActiveSection(section);
         navigate(`/dashboard/${section}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handleMantenimientoClick = (option) => {
+        setMantenimientoSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
         
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
@@ -357,7 +397,7 @@ function Dashboard() {
                                             <td className="text-center">{client.producto}</td>
                                             <td className="text-center">{client.notas}</td>
                                             <td className="text-center">{client.nombre}</td>
-                                            <td className="text-center">{client.distrito?.texto}</td>
+                                            <td className="text-center">{client.distrito}</td>
                                             <td className="text-center">
                                                 <div>
                                                     Ingreso: {client.diaIngreso}<br />
@@ -375,19 +415,23 @@ function Dashboard() {
             case 'pedidos2':
                 return <PedidosDashboard />;
             case 'productos':
-                return <div>Contenido de Productos</div>;
+                return <ProductosDashboard />;
+            case 'usuarios':
+                return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
+            case 'productos-lista':
+                return <div className="div-dashboard"><h1>Contenido de Productos</h1></div>;
             case 'categorias':
-                return <div>Contenido de Categorías</div>;
+                return <div className="div-dashboard"><h1>Contenido de Categorías</h1></div>;
             case 'almacen':
-                return <div>Contenido de Almacén</div>;
+                return <div className="div-dashboard"><h1>Contenido de Almacén</h1></div>;
             case 'devolucion':
-                return <div>Contenido de Devolución</div>;
+                return <div className="div-dashboard"><h1>Contenido de Devolución</h1></div>;
             case 'reparto':
-                return <div>Contenido de Reparto</div>;
+                return <div className="div-dashboard"><h1>Contenido de Reparto</h1></div>;
             case 'seguimiento':
-                return <div>Contenido de Seguimiento</div>;
+                return <div className="div-dashboard"><h1>Contenido de Seguimiento</h1></div>;
             case 'calendario':
-                return <div>Contenido de Calendario</div>;
+                return <div className="div-dashboard"><h1>Contenido de Calendario</h1></div>;
             default:
                 return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
         }
@@ -407,7 +451,7 @@ function Dashboard() {
                     </button>
                     <h2>Panel de control</h2>
                     <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
-                    <h3>Orden de Pedido</h3>
+                    <h3>{activeSection === 'productos' ? 'Productos' : activeSection === 'usuarios' ? 'Usuarios de Tienda' : activeSection}</h3>
                 </div>
                 <button className="bell-button">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="header-icon notificaciones-icon"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
@@ -433,47 +477,58 @@ function Dashboard() {
                 <form onSubmit={handleRegister}>
                     <div className="modal-content">
                         <label>Nota:</label>
-                        <input type="text" name="nota" value={newClient.nota} onChange={handleInputChange} />
+                        <input type="text" name="notas" value={newClient.notas || ''} onChange={handleInputChange} />
 
                         <label>Canal:</label>
-                        <select name="canal" value={newClient.canal} onChange={handleInputChange}>
+                        <select name="canal" value={newClient.canal || ''} onChange={handleInputChange}>
                             <option value="Shopify">Shopify</option>
                         </select>
 
                         <h2>Cliente</h2>
                         <label>Nombres y Apellidos:</label>
-                        <input type="text" name="nombresApellidos" value={newClient.nombresApellidos} onChange={handleInputChange} />
+                        <input type="text" name="nombre" value={newClient.nombre || ''} onChange={handleInputChange} />
 
                         <label>Móvil:</label>
-                        <input type="text" name="movil" value={newClient.movil} onChange={handleInputChange} />
+                        <input type="text" name="celular" value={newClient.celular || ''} onChange={handleInputChange} />
 
                         <h2>Entrega</h2>
                         <label>Departamento:</label>
-                        <select name="departamento" value={newClient.departamento} onChange={handleInputChange}>
+                        <select name="departamento" value={newClient.departamento || ''} onChange={handleInputChange}>
+                            <option value="">Seleccionar</option>
+                            <option value="Lima">Lima</option>
                         </select>
 
                         <label>Provincia:</label>
-                        <select name="provincia" value={newClient.provincia} onChange={handleInputChange}>
+                        <select name="provincia" value={newClient.provincia || ''} onChange={handleInputChange}>
+                            <option value="">Seleccionar</option>
+                            <option value="Lima">Lima</option>
                         </select>
 
                         <label>Distrito:</label>
-                        <select name="distrito" value={newClient.distrito} onChange={handleInputChange}>
+                        <select name="distrito" value={newClient.distrito || ''} onChange={handleInputChange}>
+                            <option value="">Seleccionar</option>
+                            <option value="Miraflores">Miraflores</option>
+                            <option value="San Isidro">San Isidro</option>
+                            <option value="Barranco">Barranco</option>
                         </select>
 
                         <label>Dirección:</label>
-                        <input type="text" name="direccion" value={newClient.direccion} onChange={handleInputChange} />
+                        <input type="text" name="direccion" value={newClient.direccion || ''} onChange={handleInputChange} />
 
                         <label>Referencia:</label>
-                        <input type="text" name="referencia" value={newClient.referencia} onChange={handleInputChange} />
+                        <input type="text" name="referencia" value={newClient.referencia || ''} onChange={handleInputChange} />
+
+                        <label>Producto:</label>
+                        <input type="text" name="producto" value={newClient.producto || ''} onChange={handleInputChange} />
 
                         <label>GPS: Latitud, Longitud</label>
-                        <input type="text" name="gps" value={newClient.gps} onChange={handleInputChange} />
+                        <input type="text" name="gps" value={newClient.gps || ''} onChange={handleInputChange} />
 
                         <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
                     </div>
                     <div className="modal-buttons">
                         <button type="submit">Guardar</button>
-                        <button onClick={closeModal}>Cancelar</button>
+                        <button type="button" onClick={closeModal}>Cancelar</button>
                     </div>
                 </form>
             </Modal>
@@ -517,8 +572,8 @@ function Dashboard() {
                                         Pedidos 2
                                     </li>
                                     <li 
-                                        onClick={() => handleSectionClick('productos')} 
-                                        className={activeSection === 'productos' ? 'active' : ''}
+                                        onClick={() => handleSectionClick('productos-lista')} 
+                                        className={activeSection === 'productos-lista' ? 'active' : ''}
                                     >
                                         Productos
                                     </li>
@@ -557,6 +612,39 @@ function Dashboard() {
                                         className={activeSection === 'calendario' ? 'active' : ''}
                                     >
                                         Calendario
+                                    </li>
+                                </ul>
+                            )}
+                        </li>
+                        <li className={`main-menu-item ${expanded.mantenimiento ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('mantenimiento')}>
+                                <img
+                                    src={gearImages.mantenimiento}
+                                    alt="Mantenimiento"
+                                    style={{ width: '22px', height: '22px' }}
+                                />
+                                <i className="fas fa-cogs"></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.mantenimiento }}>Mantenimiento</span>
+                                <i className={`fas fa-chevron-${expanded.mantenimiento ? 'down' : 'right'}`}></i>
+                                <img
+                                    src={arrowImages.mantenimiento}
+                                    alt="Mantenimiento"
+                                    className="menu-icon"
+                                />
+                            </div>
+                            {expanded.mantenimiento && (
+                                <ul className="submenu">
+                                    <li 
+                                        onClick={() => handleMantenimientoClick('productos')}
+                                        className={mantenimientoSeleccion === 'productos' ? 'active' : ''}
+                                    >
+                                        Productos
+                                    </li>
+                                    <li 
+                                        onClick={() => handleMantenimientoClick('usuarios')}
+                                        className={mantenimientoSeleccion === 'usuarios' ? 'active' : ''}
+                                    >
+                                        Usuarios de tienda
                                     </li>
                                 </ul>
                             )}

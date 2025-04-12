@@ -1,0 +1,223 @@
+.productos-dashboard {
+    width: 100%;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  
+  .productos-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .add-producto-btn {
+    background-color: #4763e4;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .add-producto-btn:hover {
+    background-color: #3951c6;
+  }
+  
+  .search-filters {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-input {
+    padding: 12px 15px;
+    padding-right: 40px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    width: 250px;
+    font-size: 14px;
+    height: 40px; 
+  }
+  
+  .search-button {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .category-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .category-filter span {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .category-select {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    background-color: white;
+    font-size: 14px;
+    min-width: 120px;
+    height: 40px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px; 
+  }
+  
+  .productos-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .productos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .productos-table th,
+  .productos-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .productos-table th {
+    background-color: #f9f9f9;
+    font-weight: 500;
+    color: #333;
+    text-align: left;
+  }
+  
+  .productos-table tr:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .expand-button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #555;
+    margin: 0 auto;
+  }
+  
+  .global-checkmark {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .edit-button {
+    background-color: transparent;
+    color: #4763e4;
+    border: 1px solid #4763e4;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  
+  .edit-button:hover {
+    background-color: #4763e4;
+    color: white;
+  }
+  
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  
+  .pagination-arrow,
+  .pagination-number {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e0e0;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .pagination-number.active {
+    background-color: #4763e4;
+    color: white;
+    border-color: #4763e4;
+  }
+  
+  .pagination-arrow:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .pagination-ellipsis {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .pagination-info {
+    margin-left: 15px;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .productos-controls {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .search-filters {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .search-input {
+      width: 100%;
+    }
+    
+    .pagination {
+      flex-wrap: wrap;
+    }
+  }
