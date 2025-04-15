@@ -131,7 +131,6 @@ function PedidosDashboard() {
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>
-      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Pedidos</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -141,7 +140,6 @@ function PedidosDashboard() {
         </Box>
       </Box>
 
-      {/* Filtros */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Button 
           variant="contained" 
@@ -232,7 +230,6 @@ function PedidosDashboard() {
         </Button>
       </Box>
 
-      {/* Tabla de Pedidos */}
       <TableContainer component={Paper} sx={{ mb: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>

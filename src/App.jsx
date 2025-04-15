@@ -4,7 +4,6 @@ import Registro from './Registro';
 import RegistroCorreo from './RegistroCorreo';
 import RegistroCorreoFinal from './Registrofinal';
 import Dashboard from './Dashboard';
-import Productos from './Productos';
 import Categorias from './Categorias'; 
 import Almacen from './Almacen';
 import Devolucion from './Devolucion';
@@ -67,7 +66,6 @@ function MainApp() {
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
-        <Route path="/productos" element={<Productos />} />
         <Route path="/categorias" element={<Categorias />} />
         <Route path="/almacen" element={<Almacen />} />
         <Route path="/devolucion" element={<Devolucion />} />
