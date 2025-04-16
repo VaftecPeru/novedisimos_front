@@ -52,16 +52,13 @@ function PedidosDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   
   const estadoInicial = {
-    // Nueva Orden
     numeroOrden: '',
     canal: 'Shopify',
     nota: '',
     
-    // Cliente
     cliente: '',
     telefono: '',
     
-    // Entrega
     departamento: '',
     provincia: '',
     distrito: '',
@@ -309,7 +306,6 @@ function PedidosDashboard() {
           <Divider sx={{ mb: 3 }} />
           
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Nueva Orden */}
             <Typography variant="subtitle1" fontWeight="bold">Nueva Orden</Typography>
             
             <TextField
@@ -340,7 +336,6 @@ function PedidosDashboard() {
               </Select>
             </FormControl>
             
-            {/* Cliente */}
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Cliente</Typography>
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -367,7 +362,6 @@ function PedidosDashboard() {
               size="small"
             />
             
-            {/* Entrega */}
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Entrega</Typography>
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
