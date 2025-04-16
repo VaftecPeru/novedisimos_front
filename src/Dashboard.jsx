@@ -112,7 +112,6 @@ function Dashboard() {
         if (lastSegment !== 'dashboard') {
             setActiveSection(lastSegment);
             
-            // Cerrar todos los menús expandidos primero
             const initialExpandedState = {
                 mantenimiento: false,
                 clientes: false,
@@ -123,7 +122,6 @@ function Dashboard() {
                 integraciones: false,
             };
             
-            // Resetear todos los estilos visuales
             setArrowImages({
                 mantenimiento: '/images/shadow arrow.png',
                 clientes: '/images/shadow arrow.png',
@@ -154,7 +152,6 @@ function Dashboard() {
                 integraciones: '#555d8b',
             });
             
-            // Determinar qué menú debe expandirse basado en el segmento actual
             if (lastSegment === 'productos' || lastSegment === 'usuarios') {
                 initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
@@ -215,7 +212,6 @@ function Dashboard() {
                 }));
             }
             
-            // Aplicar los cambios de estado de expansión
             setExpanded(initialExpandedState);
         }
         
@@ -315,23 +311,18 @@ function Dashboard() {
     };
 
     const toggleSection = (section) => {
-        // Crear una copia del estado actual de expanded
         const newExpandedState = { ...expanded };
         
-        // Si el usuario está abriendo una sección, cerrar todas las demás
         if (!newExpandedState[section]) {
             Object.keys(newExpandedState).forEach(key => {
                 newExpandedState[key] = false;
             });
         }
         
-        // Cambiar el estado de la sección seleccionada
         newExpandedState[section] = !newExpandedState[section];
         
-        // Actualizar el estado
         setExpanded(newExpandedState);
 
-        // Resetear todos los estilos visuales primero
         const newArrowImages = {
             mantenimiento: '/images/shadow arrow.png',
             clientes: '/images/shadow arrow.png',
@@ -362,7 +353,6 @@ function Dashboard() {
             integraciones: '#555d8b',
         };
         
-        // Establecer estilos solo para la sección abierta
         if (newExpandedState[section]) {
             newArrowImages[section] = '/images/down arrow.png';
             
@@ -459,11 +449,9 @@ function Dashboard() {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open h-5 w-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path><path d="m14 9 3 3-3 3"></path></svg>
     );
 
-    // Nueva función para renderizar el título del header con navegación de migas de pan
     const renderHeaderTitle = () => {
         if (activeSection === '') return null;
         
-        // Determinar sección padre basado en activeSection
         let parentSection = '';
         
         if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
@@ -474,7 +462,6 @@ function Dashboard() {
             parentSection = 'Integraciones';
         }
         
-        // Mapear activeSection a texto de visualización
         const sectionDisplayNames = {
             'productos': 'Productos',
             'usuarios': 'Usuarios de Tienda', 
@@ -486,7 +473,6 @@ function Dashboard() {
         
         const activeSectionName = sectionDisplayNames[activeSection] || activeSection;
         
-        // Si hay una sección padre, mostrar navegación de migas de pan
         if (parentSection) {
             return (
                 <>
@@ -497,7 +483,6 @@ function Dashboard() {
             );
         }
         
-        // De lo contrario, solo mostrar la sección activa
         return <h2>{activeSectionName}</h2>;
     };
 
