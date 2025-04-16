@@ -52,10 +52,23 @@ function PedidosDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   
   const estadoInicial = {
+    // Nueva Orden
+    numeroOrden: '',
+    canal: 'Shopify',
+    nota: '',
+    
+    // Cliente
     cliente: '',
     telefono: '',
-    direccion: '',
+    
+    // Entrega
+    departamento: '',
+    provincia: '',
     distrito: '',
+    direccion: '',
+    referencia: '',
+    gps: '',
+    
     productos: [],
     estado: 'CONFIRMADO',
     estadoAdicional: 'IN-WOW',
@@ -296,21 +309,158 @@ function PedidosDashboard() {
           <Divider sx={{ mb: 3 }} />
           
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Información del Cliente</Typography>
+            {/* Nueva Orden */}
+            <Typography variant="subtitle1" fontWeight="bold">Nueva Orden</Typography>
             
-            {['cliente', 'telefono', 'direccion', 'distrito'].map(field => (
-              <TextField
-                key={field}
-                label={field.charAt(0).toUpperCase() + field.slice(1)}
-                name={field}
-                value={nuevoPedido[field]}
+            <TextField
+              label="Nota"
+              name="nota"
+              value={nuevoPedido.nota}
+              onChange={handleFormChange}
+              fullWidth
+              multiline
+              rows={3}
+              size="small"
+            />
+            
+            <FormControl fullWidth size="small">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+                <Typography variant="body2">Canal:</Typography>
+              </Box>
+              <Select
+                name="canal"
+                value={nuevoPedido.canal}
                 onChange={handleFormChange}
-                fullWidth
-                size="small"
-              />
-            ))}
+              >
+                <MenuItem value="Shopify">Shopify</MenuItem>
+                <MenuItem value="Instagram">Instagram</MenuItem>
+                <MenuItem value="WhatsApp">WhatsApp</MenuItem>
+                <MenuItem value="Facebook">Facebook</MenuItem>
+              </Select>
+            </FormControl>
             
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 1 }}>Estado del Pedido</Typography>
+            {/* Cliente */}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Cliente</Typography>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Nombres y Apellidos:</Typography>
+            </Box>
+            <TextField
+              name="cliente"
+              value={nuevoPedido.cliente}
+              onChange={handleFormChange}
+              fullWidth
+              size="small"
+            />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Móvil:</Typography>
+            </Box>
+            <TextField
+              name="telefono"
+              value={nuevoPedido.telefono}
+              onChange={handleFormChange}
+              fullWidth
+              size="small"
+            />
+            
+            {/* Entrega */}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Entrega</Typography>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Departamento:</Typography>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                name="departamento"
+                value={nuevoPedido.departamento}
+                onChange={handleFormChange}
+              >
+                <MenuItem value="Lima">Lima</MenuItem>
+                <MenuItem value="Arequipa">Arequipa</MenuItem>
+                <MenuItem value="Cusco">Cusco</MenuItem>
+                <MenuItem value="Trujillo">Trujillo</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Provincia:</Typography>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                name="provincia"
+                value={nuevoPedido.provincia}
+                onChange={handleFormChange}
+              >
+                <MenuItem value="Lima">Lima</MenuItem>
+                <MenuItem value="Callao">Callao</MenuItem>
+                <MenuItem value="Cañete">Cañete</MenuItem>
+                <MenuItem value="Huaral">Huaral</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Distrito:</Typography>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                name="distrito"
+                value={nuevoPedido.distrito}
+                onChange={handleFormChange}
+              >
+                <MenuItem value="San Isidro">San Isidro</MenuItem>
+                <MenuItem value="Miraflores">Miraflores</MenuItem>
+                <MenuItem value="San Borja">San Borja</MenuItem>
+                <MenuItem value="Surco">Surco</MenuItem>
+                <MenuItem value="La Molina">La Molina</MenuItem>
+                <MenuItem value="Ate">Ate</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Dirección:</Typography>
+            </Box>
+            <TextField
+              name="direccion"
+              value={nuevoPedido.direccion}
+              onChange={handleFormChange}
+              fullWidth
+              size="small"
+            />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">Referencia:</Typography>
+            </Box>
+            <TextField
+              name="referencia"
+              value={nuevoPedido.referencia}
+              onChange={handleFormChange}
+              fullWidth
+              size="small"
+            />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Typography variant="body2">GPS:</Typography>
+            </Box>
+            <TextField
+              name="gps"
+              value={nuevoPedido.gps}
+              onChange={handleFormChange}
+              fullWidth
+              size="small"
+              placeholder="Latitud,Longitud"
+            />
+            
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Estado del Pedido</Typography>
             
             <FormControl component="fieldset">
               <RadioGroup row name="estado" value={nuevoPedido.estado} onChange={handleFormChange}>
@@ -332,7 +482,7 @@ function PedidosDashboard() {
               </Select>
             </FormControl>
             
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 1 }}>Productos</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Productos</Typography>
             
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField
@@ -398,7 +548,7 @@ function PedidosDashboard() {
               </Paper>
             )}
             
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 1 }}>Nota Adicional</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Nota Adicional</Typography>
             <TextField
               label="Nota adicional"
               name="notaAdicional"
@@ -409,7 +559,7 @@ function PedidosDashboard() {
               fullWidth
             />
             
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 1 }}>Medio de Pago</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Medio de Pago</Typography>
             <FormControl component="fieldset">
               <RadioGroup row name="medioPago" value={nuevoPedido.medioPago} onChange={handleFormChange}>
                 {['EFECTIVO', 'TRANSFERENCIA', 'YAPE', 'PLIN'].map(opt => (

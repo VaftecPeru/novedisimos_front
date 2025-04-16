@@ -6,6 +6,7 @@ import './Modal.css';
 import closeIcon from '/images/close.png';
 import PedidosDashboard from './PedidosDashboard';
 import ProductosDashboard from './ProductosDashboard';
+import SeguimientoContraentrega from './SeguimientoContraentrega';
 
 Modal.setAppElement('#root');
 
@@ -14,6 +15,7 @@ function Dashboard() {
         panel: true,
         mantenimiento: false,
         clientes: false,
+        ordenPedido:false,
         motorizados: false,
         asesores: false,
         reportes: false,
@@ -21,10 +23,13 @@ function Dashboard() {
 
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
 
+    const [ordenPedidoSeleccion, setOrdenPedidoSeleccion] = useState('pedidosContraentrega');
+
     const [arrowImages, setArrowImages] = useState({
         panel: '/images/down arrow.png',
         mantenimiento: '/images/shadow arrow.png',
         clientes: '/images/shadow arrow.png',
+        ordenPedido: '/images/shadow arrow.png',
         motorizados: '/images/shadow arrow.png',
         asesores: '/images/shadow arrow.png',
         reportes: '/images/shadow arrow.png',
@@ -33,6 +38,7 @@ function Dashboard() {
     const [gearImages, setGearImages] = useState({
         panel: '/images/gear.png',
         mantenimiento: '/images/shadow file.png',
+        ordenPedido: '/images/shadow file.png',
         clientes: '/images/shadow folder.png',
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
@@ -42,6 +48,7 @@ function Dashboard() {
     const [spanColors, setSpanColors] = useState({
         panel: 'white',
         mantenimiento: '#555d8b',
+        ordenPedido: '#555d8b',
         clientes: '#555d8b',
         motorizados: '#555d8b',
         asesores: '#555d8b',
@@ -121,6 +128,26 @@ function Dashboard() {
                     mantenimiento: 'white'
                 }));
             }
+        }
+
+        if (lastSegment === 'pedidosContraentrega' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
+            setExpanded(prev => ({ ...prev, ordenPedido: true }));
+            setOrdenPedidoSeleccion(lastSegment);
+            
+            setArrowImages(prev => ({
+                ...prev,
+                ordenPedido: '/images/down arrow.png'
+            }));
+            
+            setGearImages(prev => ({
+                ...prev,
+                ordenPedido: '/images/file.png'
+            }));
+            
+            setSpanColors(prev => ({
+                ...prev,
+                ordenPedido: 'white'
+            }));
         }
         
         if (window.innerWidth <= 768) {
@@ -287,6 +314,16 @@ function Dashboard() {
         }
     };
 
+    const handleOrdenPedidoClick = (option) => {
+        setOrdenPedidoSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
     const handleEdit = (index) => {
         setEditIndex(index);
         setNewClient(clients[index]);
@@ -412,8 +449,12 @@ function Dashboard() {
                         </div>
                     </div>
                 );
-            case 'pedidos2':
+            case 'pedidosContraentrega':
                 return <PedidosDashboard />;
+            case 'seguimientoContraentrega':  
+                return <SeguimientoContraentrega />;
+            case 'enviosAgencia': 
+                return <div className="div-dashboard"><h1>Envíos Agencia</h1></div>;
             case 'productos':
                 return <ProductosDashboard />;
             case 'usuarios':
@@ -566,12 +607,6 @@ function Dashboard() {
                                         Pedidos
                                     </li>
                                     <li 
-                                        onClick={() => handleSectionClick('pedidos2')} 
-                                        className={activeSection === 'pedidos2' ? 'active' : ''}
-                                    >
-                                        Pedidos 2
-                                    </li>
-                                    <li 
                                         onClick={() => handleSectionClick('productos-lista')} 
                                         className={activeSection === 'productos-lista' ? 'active' : ''}
                                     >
@@ -612,6 +647,46 @@ function Dashboard() {
                                         className={activeSection === 'calendario' ? 'active' : ''}
                                     >
                                         Calendario
+                                    </li>
+                                </ul>
+                            )}
+                        </li>
+
+                        <li className={`main-menu-item ${expanded.ordenPedido ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('ordenPedido')}>
+                                <img
+                                    src={gearImages.ordenPedido}
+                                    alt="Orden de Pedido"
+                                    style={{ width: '22px', height: '22px' }}
+                                />
+                                <i className="fas fa-clipboard-list"></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.ordenPedido }}>Orden de Pedido</span>
+                                <i className={`fas fa-chevron-${expanded.ordenPedido ? 'down' : 'right'}`}></i>
+                                <img
+                                    src={arrowImages.ordenPedido}
+                                    alt="Orden de Pedido"
+                                    className="menu-icon"
+                                />
+                            </div>
+                            {expanded.ordenPedido && (
+                                <ul className="submenu">
+                                    <li 
+                                        onClick={() => handleOrdenPedidoClick('pedidosContraentrega')}
+                                        className={ordenPedidoSeleccion === 'pedidosContraentrega' ? 'active' : ''}
+                                    >
+                                        Pedidos Contraentrega
+                                    </li>
+                                    <li 
+                                        onClick={() => handleOrdenPedidoClick('seguimientoContraentrega')}
+                                        className={ordenPedidoSeleccion === 'seguimientoContraentrega' ? 'active' : ''}
+                                    >
+                                        Seguimiento Contraentrega
+                                    </li>
+                                    <li 
+                                        onClick={() => handleOrdenPedidoClick('enviosAgencia')}
+                                        className={ordenPedidoSeleccion === 'enviosAgencia' ? 'active' : ''}
+                                    >
+                                        Envíos Agencia
                                     </li>
                                 </ul>
                             )}
