@@ -1,5 +1,4 @@
-/* SeguimientoContraentrega.css - Versión actualizada */
-/* Contenedor principal */
+
 .seguimiento-container {
   font-family: 'Roboto', Arial, sans-serif;
   width: 100%;
@@ -9,7 +8,6 @@
   transition: all 0.3s ease;
 }
 
-/* Panel de filtros */
 .filtros-panel {
   background-color: white;
   padding: 16px;
@@ -18,13 +16,11 @@
   margin-bottom: 16px;
 }
 
-/* Sección de búsqueda */
 .search-bar {
   width: 100%;
   min-width: 160px !important;
 }
 
-/* Sección de estadísticas */
 .stats-container {
   display: flex;
   align-items: center;
@@ -40,7 +36,6 @@
   font-weight: bold;
 }
 
-/* Sección de estado de entrega */
 .estado-entrega-container {
   display: flex;
   align-items: center;
@@ -57,13 +52,11 @@
   min-width: 170px !important;
 }
 
-/* Todos los selectores */
 .MuiSelect-select,
 .MuiSelect-root {
   min-width: 170px !important;
 }
 
-/* Sección de fechas - ACTUALIZADO al formato simplificado */
 .fechas-container {
   display: flex;
   align-items: center;
@@ -78,14 +71,13 @@
 }
 
 .date-picker {
-  width: 150px !important; /* Aumentado para mostrar la fecha completa */
+  width: 150px !important;
 }
 
 .date-separator {
   margin: 0 4px;
 }
 
-/* Sección de filtros */
 .filtros-container {
   display: flex;
   flex-wrap: wrap;
@@ -97,12 +89,10 @@
   min-width: 170px !important;
 }
 
-/* Formularios y controles */
 .MuiFormControl-root {
   min-width: 170px;
 }
 
-/* Tabla de pedidos */
 .tabla-pedidos {
   background-color: white;
   border-radius: 8px;
@@ -135,7 +125,6 @@
   min-width: 32px;
 }
 
-/* Media queries para responsividad */
 @media (max-width: 1200px) {
   .estado-entrega-container {
     flex-direction: column;
@@ -147,7 +136,7 @@
   }
  
   .date-picker {
-    width: 130px !important; /* Ajustado para mantener visibilidad en pantallas más pequeñas */
+    width: 130px !important;
   }
 }
 
