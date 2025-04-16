@@ -35,7 +35,6 @@ const SeguimientoContraentrega = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isSidebarOpen = useMediaQuery(theme.breakpoints.up('lg'));
 
-  // Datos de ejemplo para los pedidos
   const pedidosData = [
     { fecha: '15/04/2025', pedidos: 21, total: 'S/ 2029' },
     { fecha: '14/04/2025', pedidos: 33, total: 'S/ 3711 - S/ 2375 - S/ 2375' },
@@ -54,18 +53,15 @@ const SeguimientoContraentrega = () => {
     { fecha: '29/03/2025', pedidos: 33, total: 'S/ 3318 - S/ 2963 - S/ 2963' },
   ];
 
-  // Estado para filtros
   const [filtroDE, setFiltroDE] = useState('TODOS');
   const [departamento, setDepartamento] = useState('TODOS');
   const [pedidosFiltro, setPedidosFiltro] = useState('TODOS');
   const [transportadora, setTransportadora] = useState('TODOS');
   const [estadoEntrega, setEstadoEntrega] = useState('PENDIENTE');
 
-  // Estado para fechas
   const [fechaInicio, setFechaInicio] = useState(new Date('2025-03-14'));
   const [fechaFin, setFechaFin] = useState(new Date('2025-04-13'));
 
-  // Estado para búsqueda
   const [busqueda, setBusqueda] = useState('');
 
   return (
@@ -80,7 +76,6 @@ const SeguimientoContraentrega = () => {
           marginLeft: { xs: 0, lg: isSidebarOpen ? '0' : '0' },
         }}
       >
-        {/* Primer div: Búsqueda, Cant Total, Seleccione, Fechas */}
         <Paper 
           elevation={0} 
           sx={{ 
@@ -91,7 +86,6 @@ const SeguimientoContraentrega = () => {
           }}
         >
           <Grid container spacing={2} alignItems="center">
-            {/* Campo de búsqueda */}
             <Grid item xs={12} sm={2.5} md={2.5}>
               <TextField
                 fullWidth
@@ -113,7 +107,6 @@ const SeguimientoContraentrega = () => {
               />
             </Grid>
             
-            {/* Estadísticas */}
             <Grid item xs={12} sm={2.5} md={2.5}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} className="stats-container">
                 <Typography variant="body2" className="stat-label">
@@ -125,7 +118,6 @@ const SeguimientoContraentrega = () => {
               </Box>
             </Grid>
             
-            {/* Estado de entrega */}
             <Grid item xs={12} sm={3} md={3}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} className="estado-entrega-container">
                 <Typography variant="body2" sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }} className="estado-entrega-label">
@@ -153,15 +145,12 @@ const SeguimientoContraentrega = () => {
               </Box>
             </Grid>
             
-            {/* Fechas - Simplificado según la imagen */}
             <Grid item xs={12} sm={4} md={4}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} className="fechas-container">
-                {/* Etiqueta de "Fechas" */}
                 <Typography variant="body2" sx={{ fontWeight: 'normal', mr: 1 }} className="fechas-label">
                   Fechas
                 </Typography>
                 
-                {/* Selector de fecha inicial (más ancho) */}
                 <DatePicker
                   value={fechaInicio}
                   onChange={(newValue) => setFechaInicio(newValue)}
@@ -169,7 +158,7 @@ const SeguimientoContraentrega = () => {
                   slotProps={{
                     textField: {
                       size: "small",
-                      sx: { width: '150px' }, // Aumentado para mostrar fecha completa
+                      sx: { width: '150px' }, 
                       className: "date-picker"
                     }
                   }}
@@ -177,7 +166,6 @@ const SeguimientoContraentrega = () => {
                 
                 <Typography variant="body2" className="date-separator">—</Typography>
                 
-                {/* Selector de fecha final (más ancho) */}
                 <DatePicker
                   value={fechaFin}
                   onChange={(newValue) => setFechaFin(newValue)}
@@ -185,7 +173,7 @@ const SeguimientoContraentrega = () => {
                   slotProps={{
                     textField: {
                       size: "small",
-                      sx: { width: '150px' }, // Aumentado para mostrar fecha completa
+                      sx: { width: '150px' }, 
                       className: "date-picker"
                     }
                   }}
@@ -195,7 +183,6 @@ const SeguimientoContraentrega = () => {
           </Grid>
         </Paper>
 
-        {/* Segundo div: Filtros (sin las fechas) */}
         <Paper 
           elevation={0} 
           sx={{ 
@@ -207,7 +194,6 @@ const SeguimientoContraentrega = () => {
           className="filtros-panel"
         >
           <Grid container spacing={2}>
-            {/* Filtros con ancho reducido */}
             <Grid item xs={12}>
               <Grid container spacing={2} className="filtros-container">
                 <Grid item xs={12} sm={3} className="filtro-item">
@@ -278,7 +264,6 @@ const SeguimientoContraentrega = () => {
           </Grid>
         </Paper>
 
-        {/* Tabla de pedidos con borde sutil */}
         <TableContainer 
           sx={{ 
             backgroundColor: 'white', 
@@ -299,9 +284,7 @@ const SeguimientoContraentrega = () => {
             </TableHead>
             <TableBody>
               {pedidosData.map((item, index) => {
-                // Extraer el primer número del total (el total principal)
                 const mainTotal = item.total.split('-')[0].trim();
-                // El resto son rangos
                 const ranges = item.total.includes('-') ? 
                   item.total.substring(mainTotal.length).trim() : '';
                 
@@ -360,3 +343,6 @@ const SeguimientoContraentrega = () => {
 };
 
 export default SeguimientoContraentrega;
+
+
+
