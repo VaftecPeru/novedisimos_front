@@ -1,0 +1,386 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+.shopify-container {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.shopify-top-section {
+    background-color: #ebf9f4;
+    padding: 25px;
+    max-width: 90%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.shopify-logo {
+    width: 180px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.shopify-logo-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.shopify-top-section h2 {
+    color: #32A852;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+}
+
+.shopify-top-section h3 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.shopify-top-section .shopify-description {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.guide-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.guide-button {
+    background-color: #32A852;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(50, 168, 82, 0.3);
+}
+
+.guide-button:hover {
+    background-color: #2a8a44;
+    box-shadow: 0 6px 12px rgba(50, 168, 82, 0.4);
+}
+
+.guide-button i {
+    font-size: 16px;
+}
+
+.shine-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.shine-button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite ease-in-out;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+        opacity: 0;
+    }
+    20% {
+        left: 100%;
+        opacity: 0.8;
+    }
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+.connected-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #e4f6e8;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 90%;
+    box-sizing: border-box;
+}
+
+.connected-notice i {
+    font-size: 18px;
+    color: #32A852;
+}
+
+.connected-notice p {
+    color: #333;
+    font-size: 14px;
+    margin: 0;
+}
+
+.form-group {
+    margin: 0 auto 20px auto;
+    width: 90%;
+    box-sizing: border-box;
+}
+
+.form-group label {
+    display: block;
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 18px;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: #32A852;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(50, 168, 82, 0.2);
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 30px;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #888;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    width: 90%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.test-connection {
+    background-color: #f1f1f1;
+    border: 2px solid #ddd;
+    color: #333;
+}
+
+.test-connection:hover {
+    background-color: #e5e5e5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.save-connection {
+    background-color: #5d5fe4;
+    border: 2px solid #5d5fe4;
+    color: white;
+    box-shadow: 0 2px 4px rgba(93, 95, 228, 0.3);
+}
+
+.save-connection:hover {
+    background-color: #4b4dc3;
+    border-color: #4b4dc3;
+    box-shadow: 0 4px 8px rgba(93, 95, 228, 0.4);
+}
+
+.shopify-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.guide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background-color: #f9fafb;
+    border-radius: 12px 12px 0 0;
+}
+
+.guide-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.close-guide {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.3s;
+}
+
+.close-guide:hover {
+    color: #333;
+}
+
+.guide-content {
+    padding: 20px;
+}
+
+.guide-content h4 {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.guide-content ol {
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+
+.guide-content li {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.guide-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+}
+
+.guide-images img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+small {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .shopify-container {
+        width: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+    
+    .shopify-top-section {
+        width: 90%;
+        max-width: none;
+        padding: 20px 15px;
+    }
+    
+    .form-group,
+    .connected-notice,
+    .form-buttons {
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .shopify-container {
+        padding: 0 5px 15px 5px;
+    }
+    
+    .form-buttons {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+}
