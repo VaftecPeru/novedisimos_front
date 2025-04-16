@@ -6,14 +6,15 @@ import './Modal.css';
 import closeIcon from '/images/close.png';
 import PedidosDashboard from './PedidosDashboard';
 import ProductosDashboard from './ProductosDashboard';
+import SeguimientoContraentrega from './SeguimientoContraentrega';
 
 Modal.setAppElement('#root');
 
 function Dashboard() {
     const [expanded, setExpanded] = useState({
-        panel: true,
         mantenimiento: false,
         clientes: false,
+        pedidos: false,
         motorizados: false,
         asesores: false,
         reportes: false,
@@ -21,18 +22,20 @@ function Dashboard() {
 
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
 
+    const [pedidosSeleccion, setPedidosSeleccion] = useState('ordenDePedido');
+
     const [arrowImages, setArrowImages] = useState({
-        panel: '/images/down arrow.png',
         mantenimiento: '/images/shadow arrow.png',
         clientes: '/images/shadow arrow.png',
+        pedidos: '/images/shadow arrow.png',
         motorizados: '/images/shadow arrow.png',
         asesores: '/images/shadow arrow.png',
         reportes: '/images/shadow arrow.png',
     });
 
     const [gearImages, setGearImages] = useState({
-        panel: '/images/gear.png',
         mantenimiento: '/images/shadow file.png',
+        pedidos: '/images/shadow file.png',
         clientes: '/images/shadow folder.png',
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
@@ -40,8 +43,8 @@ function Dashboard() {
     });
 
     const [spanColors, setSpanColors] = useState({
-        panel: 'white',
         mantenimiento: '#555d8b',
+        pedidos: '#555d8b',
         clientes: '#555d8b',
         motorizados: '#555d8b',
         asesores: '#555d8b',
@@ -121,6 +124,26 @@ function Dashboard() {
                     mantenimiento: 'white'
                 }));
             }
+        }
+
+        if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
+            setExpanded(prev => ({ ...prev, pedidos: true }));
+            setPedidosSeleccion(lastSegment);
+            
+            setArrowImages(prev => ({
+                ...prev,
+                pedidos: '/images/down arrow.png'
+            }));
+            
+            setGearImages(prev => ({
+                ...prev,
+                pedidos: '/images/file.png'
+            }));
+            
+            setSpanColors(prev => ({
+                ...prev,
+                pedidos: 'white'
+            }));
         }
         
         if (window.innerWidth <= 768) {
@@ -231,36 +254,32 @@ function Dashboard() {
                 : '/images/shadow arrow.png',
         }));
 
-        if (section === 'panel') {
-            setGearImages((prevGearImages) => ({
-                ...prevGearImages,
-                panel: !expanded.panel ? '/images/gear.png' : '/images/shadow gear.png',
-            }));
-        } else {
-            setGearImages((prevGearImages) => {
-                let newGearImages = { ...prevGearImages };
-                switch (section) {
-                    case 'mantenimiento':
-                        newGearImages.mantenimiento = !expanded.mantenimiento ? '/images/file.png' : '/images/shadow file.png';
-                        break;
-                    case 'clientes':
-                        newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
-                        break;
-                    case 'motorizados':
-                        newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
-                        break;
-                    case 'asesores':
-                        newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
-                        break;
-                    case 'reportes':
-                        newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
-                        break;
-                    default:
-                        break;
-                }
-                return newGearImages;
-            });
-        }
+        setGearImages((prevGearImages) => {
+            let newGearImages = { ...prevGearImages };
+            switch (section) {
+                case 'mantenimiento':
+                    newGearImages.mantenimiento = !expanded.mantenimiento ? '/images/file.png' : '/images/shadow file.png';
+                    break;
+                case 'clientes':
+                    newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
+                    break;
+                case 'pedidos':
+                    newGearImages.pedidos = !expanded.pedidos ? '/images/file.png' : '/images/shadow file.png';
+                    break;
+                case 'motorizados':
+                    newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
+                    break;
+                case 'asesores':
+                    newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
+                    break;
+                case 'reportes':
+                    newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
+                    break;
+                default:
+                    break;
+            }
+            return newGearImages;
+        });
 
         setSpanColors((prevSpanColors) => ({
             ...prevSpanColors,
@@ -279,6 +298,16 @@ function Dashboard() {
 
     const handleMantenimientoClick = (option) => {
         setMantenimientoSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handlePedidosClick = (option) => {
+        setPedidosSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
         
@@ -309,129 +338,16 @@ function Dashboard() {
 
     const renderContent = () => {
         switch (activeSection) {
-            case 'pedidos':
-                return (
-                    <div className="div-dashboard">
-                        <h1>Listado de Pedidos (FORMULARIO COD)</h1>
-                        <div className="search-button-container">
-                            <button className="my-button" onClick={openModal}>+ Nuevo Pedido</button>
-                            <div className="search-input-container">
-                                <input
-                                    type="text"
-                                    placeholder="Busca tu orden"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="search-input"
-                                />
-                                <img src="/images/search.png" alt="Buscar" className="search-icon" />
-                                <select className="filter-select" value={filterOptions.orden} onChange={(e) => setFilterOptions({ ...filterOptions, orden: e.target.value })}>
-                                    <option value="">Confirmado</option>
-                                    <option value="">Seguimiento</option>
-                                    <option value="">Importado</option>
-                                    <option value="">Anulado</option>
-                                    <option value="">No contesta</option>
-                                    <option value="">Contactado</option>
-                                    <option value="">Repetido</option>
-                                    <option value="">Sin stock</option>
-                                </select>
-                                <select className="filter-select" value={filterOptions.delivery} onChange={(e) => setFilterOptions({ ...filterOptions, delivery: e.target.value })}>
-                                    <option value="Pendiente">Pendiente</option>
-                                    <option value="En proceso">En proceso</option>
-                                    <option value="Listo para envío">Listo para envío</option>
-                                    <option value="En tránsito">En tránsito</option>
-                                    <option value="En reparto">En reparto</option>
-                                    <option value="Entregado">Entregado</option>
-                                    <option value="Intento de entrega fallido">Intento de entrega fallido</option>
-                                    <option value="Devuelto">Devuelto</option>
-                                    <option value="Cancelado">Cancelado</option>
-                                </select>
-                                <select className="filter-select" value={filterOptions.tranzabilidad} onChange={(e) => setFilterOptions({ ...filterOptions, tranzabilidad: e.target.value })}>
-                                    <option value="">Tranzabilidad</option>
-                                </select>
-                                <select className="filter-select" value={filterOptions.importes} onChange={(e) => setFilterOptions({ ...filterOptions, importes: e.target.value })}>
-                                    <option value="">Importes</option>
-                                </select>
-                                <input
-                                    type="date"
-                                    className="filter-date"
-                                    value={filterOptions.fechaInicio}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, fechaInicio: e.target.value })}
-                                />
-                                <input
-                                    type="date"
-                                    className="filter-date"
-                                    value={filterOptions.fechaFin}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, fechaFin: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="lista-clientes">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th className="text-center">Orden</th>
-                                        <th className="text-center">Acciones</th>
-                                        <th className="text-center">Delivery</th>
-                                        <th className="text-center">Tranzabilidad</th>
-                                        <th className="text-center">Importes</th>
-                                        <th className="text-center">Pagos</th>
-                                        <th className="text-center">Productos</th>
-                                        <th className="text-center">Nota</th>
-                                        <th className="text-center">Cliente</th>
-                                        <th className="text-center">Ubicación</th>
-                                        <th className="text-center">Fechas</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {clients.map((client, index) => (
-                                        <tr key={index}>
-                                            <td className="text-center"></td>
-                                            <td className="text-center">
-                                                <button className="btn-editar" onClick={() => handleEdit(index)}>Editar</button>
-                                                <button className="btn-eliminar" onClick={() => handleDelete(index)}>Eliminar</button>
-                                            </td>
-                                            <td className="text-center"></td>
-                                            <td className="text-center"></td>
-                                            <td className="text-center"></td>
-                                            <td className="text-center"></td>
-                                            <td className="text-center">{client.producto}</td>
-                                            <td className="text-center">{client.notas}</td>
-                                            <td className="text-center">{client.nombre}</td>
-                                            <td className="text-center">{client.distrito}</td>
-                                            <td className="text-center">
-                                                <div>
-                                                    Ingreso: {client.diaIngreso}<br />
-                                                    Atención: {client.diaAtencion}<br />
-                                                    Programado: {client.diaProgramado}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            case 'pedidos2':
+            case 'ordenDePedido':
                 return <PedidosDashboard />;
+            case 'seguimientoContraentrega':  
+                return <SeguimientoContraentrega />;
+            case 'enviosAgencia': 
+                return <div className="div-dashboard"><h1>Envíos Agencia</h1></div>;
             case 'productos':
                 return <ProductosDashboard />;
             case 'usuarios':
                 return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
-            case 'productos-lista':
-                return <div className="div-dashboard"><h1>Contenido de Productos</h1></div>;
-            case 'categorias':
-                return <div className="div-dashboard"><h1>Contenido de Categorías</h1></div>;
-            case 'almacen':
-                return <div className="div-dashboard"><h1>Contenido de Almacén</h1></div>;
-            case 'devolucion':
-                return <div className="div-dashboard"><h1>Contenido de Devolución</h1></div>;
-            case 'reparto':
-                return <div className="div-dashboard"><h1>Contenido de Reparto</h1></div>;
-            case 'seguimiento':
-                return <div className="div-dashboard"><h1>Contenido de Seguimiento</h1></div>;
-            case 'calendario':
-                return <div className="div-dashboard"><h1>Contenido de Calendario</h1></div>;
             default:
                 return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
         }
@@ -451,7 +367,12 @@ function Dashboard() {
                     </button>
                     <h2>Panel de control</h2>
                     <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
-                    <h3>{activeSection === 'productos' ? 'Productos' : activeSection === 'usuarios' ? 'Usuarios de Tienda' : activeSection}</h3>
+                    <h3>
+                        {activeSection === 'productos' ? 'Productos' : 
+                         activeSection === 'usuarios' ? 'Usuarios de Tienda' : 
+                         activeSection === 'ordenDePedido' ? 'Orden de Pedido' :
+                         activeSection}
+                    </h3>
                 </div>
                 <button className="bell-button">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="header-icon notificaciones-icon"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
@@ -541,77 +462,41 @@ function Dashboard() {
                 </div>
                 <nav>
                     <ul className="main-menu">
-                        <li className={`main-menu-item ${expanded.panel ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('panel')}>
+                        <li className={`main-menu-item ${expanded.pedidos ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('pedidos')}>
                                 <img
-                                    src={gearImages.panel}
-                                    alt="Panel Control"
+                                    src={gearImages.pedidos}
+                                    alt="Pedidos"
                                     style={{ width: '22px', height: '22px' }}
                                 />
-                                <i className="fas fa-shopping-cart"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.panel }}>Panel Control</span>
-                                <i className={`fas fa-chevron-${expanded.panel ? 'down' : 'right'}`}></i>
+                                <i className="fas fa-clipboard-list"></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.pedidos }}>Pedidos</span>
+                                <i className={`fas fa-chevron-${expanded.pedidos ? 'down' : 'right'}`}></i>
                                 <img
-                                    src={arrowImages.panel}
-                                    alt="Panel Control"
+                                    src={arrowImages.pedidos}
+                                    alt="Pedidos"
                                     className="menu-icon"
                                 />
                             </div>
-                            {expanded.panel && (
+                            {expanded.pedidos && (
                                 <ul className="submenu">
                                     <li 
-                                        onClick={() => handleSectionClick('pedidos')} 
-                                        className={activeSection === 'pedidos' ? 'active' : ''}
+                                        onClick={() => handlePedidosClick('ordenDePedido')}
+                                        className={pedidosSeleccion === 'ordenDePedido' ? 'active' : ''}
                                     >
-                                        Pedidos
+                                        Orden de Pedido
                                     </li>
                                     <li 
-                                        onClick={() => handleSectionClick('pedidos2')} 
-                                        className={activeSection === 'pedidos2' ? 'active' : ''}
+                                        onClick={() => handlePedidosClick('seguimientoContraentrega')}
+                                        className={pedidosSeleccion === 'seguimientoContraentrega' ? 'active' : ''}
                                     >
-                                        Pedidos 2
+                                        Seguimiento Contraentrega
                                     </li>
                                     <li 
-                                        onClick={() => handleSectionClick('productos-lista')} 
-                                        className={activeSection === 'productos-lista' ? 'active' : ''}
+                                        onClick={() => handlePedidosClick('enviosAgencia')}
+                                        className={pedidosSeleccion === 'enviosAgencia' ? 'active' : ''}
                                     >
-                                        Productos
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('categorias')} 
-                                        className={activeSection === 'categorias' ? 'active' : ''}
-                                    >
-                                        Categorias
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('almacen')} 
-                                        className={activeSection === 'almacen' ? 'active' : ''}
-                                    >
-                                        Almacen
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('devolucion')} 
-                                        className={activeSection === 'devolucion' ? 'active' : ''}
-                                    >
-                                        Devolución
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('reparto')} 
-                                        className={activeSection === 'reparto' ? 'active' : ''}
-                                    >
-                                        Reparto
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('seguimiento')} 
-                                        className={activeSection === 'seguimiento' ? 'active' : ''}
-                                    >
-                                        Seguimiento
-                                    </li>
-                                    <li 
-                                        onClick={() => handleSectionClick('calendario')} 
-                                        className={activeSection === 'calendario' ? 'active' : ''}
-                                    >
-                                        Calendario
+                                        Envíos Agencia
                                     </li>
                                 </ul>
                             )}
