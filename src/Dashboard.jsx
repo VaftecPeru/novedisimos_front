@@ -7,6 +7,7 @@ import closeIcon from '/images/close.png';
 import PedidosDashboard from './PedidosDashboard';
 import ProductosDashboard from './ProductosDashboard';
 import SeguimientoContraentrega from './SeguimientoContraentrega';
+import ShopifyDashboard from './ShopifyDashboard';
 
 Modal.setAppElement('#root');
 
@@ -18,11 +19,14 @@ function Dashboard() {
         motorizados: false,
         asesores: false,
         reportes: false,
+        integraciones: false,
     });
 
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
 
     const [pedidosSeleccion, setPedidosSeleccion] = useState('ordenDePedido');
+    
+    const [integracionesSeleccion, setIntegracionesSeleccion] = useState('shopify');
 
     const [arrowImages, setArrowImages] = useState({
         mantenimiento: '/images/shadow arrow.png',
@@ -31,6 +35,7 @@ function Dashboard() {
         motorizados: '/images/shadow arrow.png',
         asesores: '/images/shadow arrow.png',
         reportes: '/images/shadow arrow.png',
+        integraciones: '/images/shadow arrow.png',
     });
 
     const [gearImages, setGearImages] = useState({
@@ -40,6 +45,7 @@ function Dashboard() {
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
         reportes: '/images/shadow report.png',
+        integraciones: '/images/shadow file.png',
     });
 
     const [spanColors, setSpanColors] = useState({
@@ -49,6 +55,7 @@ function Dashboard() {
         motorizados: '#555d8b',
         asesores: '#555d8b',
         reportes: '#555d8b',
+        integraciones: '#555d8b',
     });
 
     const [activeSection, setActiveSection] = useState('');
@@ -105,8 +112,48 @@ function Dashboard() {
         if (lastSegment !== 'dashboard') {
             setActiveSection(lastSegment);
             
+            const initialExpandedState = {
+                mantenimiento: false,
+                clientes: false,
+                pedidos: false,
+                motorizados: false,
+                asesores: false,
+                reportes: false,
+                integraciones: false,
+            };
+            
+            setArrowImages({
+                mantenimiento: '/images/shadow arrow.png',
+                clientes: '/images/shadow arrow.png',
+                pedidos: '/images/shadow arrow.png',
+                motorizados: '/images/shadow arrow.png',
+                asesores: '/images/shadow arrow.png',
+                reportes: '/images/shadow arrow.png',
+                integraciones: '/images/shadow arrow.png',
+            });
+            
+            setGearImages({
+                mantenimiento: '/images/shadow file.png',
+                pedidos: '/images/shadow file.png',
+                clientes: '/images/shadow folder.png',
+                motorizados: '/images/shadow file.png',
+                asesores: '/images/shadow tv.png',
+                reportes: '/images/shadow report.png',
+                integraciones: '/images/shadow file.png',
+            });
+            
+            setSpanColors({
+                mantenimiento: '#555d8b',
+                pedidos: '#555d8b',
+                clientes: '#555d8b',
+                motorizados: '#555d8b',
+                asesores: '#555d8b',
+                reportes: '#555d8b',
+                integraciones: '#555d8b',
+            });
+            
             if (lastSegment === 'productos' || lastSegment === 'usuarios') {
-                setExpanded(prev => ({ ...prev, mantenimiento: true }));
+                initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
                 
                 setArrowImages(prev => ({
@@ -124,26 +171,48 @@ function Dashboard() {
                     mantenimiento: 'white'
                 }));
             }
-        }
 
-        if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
-            setExpanded(prev => ({ ...prev, pedidos: true }));
-            setPedidosSeleccion(lastSegment);
+            if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
+                initialExpandedState.pedidos = true;
+                setPedidosSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    pedidos: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    pedidos: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    pedidos: 'white'
+                }));
+            }
             
-            setArrowImages(prev => ({
-                ...prev,
-                pedidos: '/images/down arrow.png'
-            }));
+            if (lastSegment === 'shopify') {
+                initialExpandedState.integraciones = true;
+                setIntegracionesSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    integraciones: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    integraciones: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    integraciones: 'white'
+                }));
+            }
             
-            setGearImages(prev => ({
-                ...prev,
-                pedidos: '/images/file.png'
-            }));
-            
-            setSpanColors(prev => ({
-                ...prev,
-                pedidos: 'white'
-            }));
+            setExpanded(initialExpandedState);
         }
         
         if (window.innerWidth <= 768) {
@@ -242,49 +311,83 @@ function Dashboard() {
     };
 
     const toggleSection = (section) => {
-        setExpanded({
-            ...expanded,
-            [section]: !expanded[section],
-        });
+        const newExpandedState = { ...expanded };
+        
+        if (!newExpandedState[section]) {
+            Object.keys(newExpandedState).forEach(key => {
+                newExpandedState[key] = false;
+            });
+        }
+        
+        newExpandedState[section] = !newExpandedState[section];
+        
+        setExpanded(newExpandedState);
 
-        setArrowImages((prevArrowImages) => ({
-            ...prevArrowImages,
-            [section]: !expanded[section]
-                ? '/images/down arrow.png'
-                : '/images/shadow arrow.png',
-        }));
-
-        setGearImages((prevGearImages) => {
-            let newGearImages = { ...prevGearImages };
+        const newArrowImages = {
+            mantenimiento: '/images/shadow arrow.png',
+            clientes: '/images/shadow arrow.png',
+            pedidos: '/images/shadow arrow.png',
+            motorizados: '/images/shadow arrow.png',
+            asesores: '/images/shadow arrow.png',
+            reportes: '/images/shadow arrow.png',
+            integraciones: '/images/shadow arrow.png',
+        };
+        
+        const newGearImages = {
+            mantenimiento: '/images/shadow file.png',
+            pedidos: '/images/shadow file.png',
+            clientes: '/images/shadow folder.png',
+            motorizados: '/images/shadow file.png',
+            asesores: '/images/shadow tv.png',
+            reportes: '/images/shadow report.png',
+            integraciones: '/images/shadow file.png',
+        };
+        
+        const newSpanColors = {
+            mantenimiento: '#555d8b',
+            pedidos: '#555d8b',
+            clientes: '#555d8b',
+            motorizados: '#555d8b',
+            asesores: '#555d8b',
+            reportes: '#555d8b',
+            integraciones: '#555d8b',
+        };
+        
+        if (newExpandedState[section]) {
+            newArrowImages[section] = '/images/down arrow.png';
+            
             switch (section) {
                 case 'mantenimiento':
-                    newGearImages.mantenimiento = !expanded.mantenimiento ? '/images/file.png' : '/images/shadow file.png';
+                    newGearImages.mantenimiento = '/images/file.png';
                     break;
                 case 'clientes':
-                    newGearImages.clientes = !expanded.clientes ? '/images/folder.png' : '/images/shadow folder.png';
+                    newGearImages.clientes = '/images/folder.png';
                     break;
                 case 'pedidos':
-                    newGearImages.pedidos = !expanded.pedidos ? '/images/file.png' : '/images/shadow file.png';
+                    newGearImages.pedidos = '/images/file.png';
                     break;
                 case 'motorizados':
-                    newGearImages.motorizados = !expanded.motorizados ? '/images/file.png' : '/images/shadow file.png';
+                    newGearImages.motorizados = '/images/file.png';
                     break;
                 case 'asesores':
-                    newGearImages.asesores = !expanded.asesores ? '/images/tv.png' : '/images/shadow tv.png';
+                    newGearImages.asesores = '/images/tv.png';
                     break;
                 case 'reportes':
-                    newGearImages.reportes = !expanded.reportes ? '/images/report.png' : '/images/shadow report.png';
+                    newGearImages.reportes = '/images/report.png';
+                    break;
+                case 'integraciones':
+                    newGearImages.integraciones = '/images/file.png';
                     break;
                 default:
                     break;
             }
-            return newGearImages;
-        });
-
-        setSpanColors((prevSpanColors) => ({
-            ...prevSpanColors,
-            [section]: !expanded[section] ? 'white' : '#555d8b',
-        }));
+            
+            newSpanColors[section] = 'white';
+        }
+        
+        setArrowImages(newArrowImages);
+        setGearImages(newGearImages);
+        setSpanColors(newSpanColors);
     };
 
     const handleSectionClick = (section) => {
@@ -315,6 +418,16 @@ function Dashboard() {
             toggleSidebar();
         }
     };
+    
+    const handleIntegracionesClick = (option) => {
+        setIntegracionesSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
 
     const handleEdit = (index) => {
         setEditIndex(index);
@@ -336,6 +449,43 @@ function Dashboard() {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open h-5 w-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path><path d="m14 9 3 3-3 3"></path></svg>
     );
 
+    const renderHeaderTitle = () => {
+        if (activeSection === '') return null;
+        
+        let parentSection = '';
+        
+        if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
+            parentSection = 'Pedidos';
+        } else if (['productos', 'usuarios'].includes(activeSection)) {
+            parentSection = 'Mantenimiento';
+        } else if (['shopify'].includes(activeSection)) {
+            parentSection = 'Integraciones';
+        }
+        
+        const sectionDisplayNames = {
+            'productos': 'Productos',
+            'usuarios': 'Usuarios de Tienda', 
+            'ordenDePedido': 'Orden de Pedido',
+            'seguimientoContraentrega': 'Seguimiento Contraentrega',
+            'enviosAgencia': 'Envíos Agencia',
+            'shopify': 'Shopify'
+        };
+        
+        const activeSectionName = sectionDisplayNames[activeSection] || activeSection;
+        
+        if (parentSection) {
+            return (
+                <>
+                    <h2>{parentSection}</h2>
+                    <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
+                    <h3>{activeSectionName}</h3>
+                </>
+            );
+        }
+        
+        return <h2>{activeSectionName}</h2>;
+    };
+
     const renderContent = () => {
         switch (activeSection) {
             case 'ordenDePedido':
@@ -348,6 +498,8 @@ function Dashboard() {
                 return <ProductosDashboard />;
             case 'usuarios':
                 return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
+            case 'shopify':
+                return <ShopifyDashboard />;
             default:
                 return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
         }
@@ -365,14 +517,7 @@ function Dashboard() {
                     <button onClick={toggleSidebar} className="sidebar-toggle-button">
                         {sidebarCollapsed ? openIcon : openCloseIcon}
                     </button>
-                    <h2>Panel de control</h2>
-                    <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
-                    <h3>
-                        {activeSection === 'productos' ? 'Productos' : 
-                         activeSection === 'usuarios' ? 'Usuarios de Tienda' : 
-                         activeSection === 'ordenDePedido' ? 'Orden de Pedido' :
-                         activeSection}
-                    </h3>
+                    {renderHeaderTitle()}
                 </div>
                 <button className="bell-button">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="header-icon notificaciones-icon"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
@@ -530,6 +675,33 @@ function Dashboard() {
                                         className={mantenimientoSeleccion === 'usuarios' ? 'active' : ''}
                                     >
                                         Usuarios de tienda
+                                    </li>
+                                </ul>
+                            )}
+                        </li>
+                        <li className={`main-menu-item ${expanded.integraciones ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('integraciones')}>
+                                <img
+                                    src={gearImages.integraciones}
+                                    alt="Integraciones"
+                                    style={{ width: '22px', height: '22px' }}
+                                />
+                                <i className="fas fa-plug"></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.integraciones }}>Integraciones</span>
+                                <i className={`fas fa-chevron-${expanded.integraciones ? 'down' : 'right'}`}></i>
+                                <img
+                                    src={arrowImages.integraciones}
+                                    alt="Integraciones"
+                                    className="menu-icon"
+                                />
+                            </div>
+                            {expanded.integraciones && (
+                                <ul className="submenu">
+                                    <li 
+                                        onClick={() => handleIntegracionesClick('shopify')}
+                                        className={integracionesSeleccion === 'shopify' ? 'active' : ''}
+                                    >
+                                        Shopify
                                     </li>
                                 </ul>
                             )}
