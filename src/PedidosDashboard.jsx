@@ -100,12 +100,403 @@ function PedidosDashboard() {
     }
   ]);
 
+  const [provinciasAmazonas] = useState([
+    { value: 'Bagua', label: 'Bagua' },
+    { value: 'Bongará', label: 'Bongará' },
+    { value: 'Chachapoyas', label: 'Chachapoyas' },
+    { value: 'Condorcanqui', label: 'Condorcanqui' },
+    { value: 'Luya', label: 'Luya' },
+    { value: 'Rodríguez de Mendoza', label: 'Rodríguez de Mendoza' },
+    { value: 'Utcubamba', label: 'Utcubamba' },
+  ]);
+
+  const [provinciasAncash] = useState([
+    { value: 'Aija', label: 'Aija' },
+    { value: 'Antonio Raymondi', label: 'Antonio Raymondi' },
+    { value: 'Asunción', label: 'Asunción' },
+    { value: 'Bolognesi', label: 'Bolognesi' },
+    { value: 'Carhuaz', label: 'Carhuaz' },
+    { value: 'Carlos Fermín Fitzcarrald', label: 'Carlos Fermín Fitzcarrald' },
+    { value: 'Casma', label: 'Casma' },
+    { value: 'Corongo', label: 'Corongo' },
+    { value: 'Huaraz', label: 'Huaraz' },
+    { value: 'Huari', label: 'Huari' },
+    { value: 'Huarmey', label: 'Huarmey' },
+    { value: 'Huaylas', label: 'Huaylas' },
+    { value: 'Mariscal Luzuriaga', label: 'Mariscal Luzuriaga' },
+    { value: 'Ocros', label: 'Ocros' },
+    { value: 'Pallasca', label: 'Pallasca' },
+    { value: 'Pomabamba', label: 'Pomabamba' },
+    { value: 'Recuay', label: 'Recuay' },
+    { value: 'Santa', label: 'Santa' },
+    { value: 'Sihuas', label: 'Sihuas' },
+    { value: 'Yungay', label: 'Yungay' },
+  ]);
+
+  const [provinciasApurimac] = useState([
+    { value: 'Abancay', label: 'Abancay' },
+    { value: 'Andahuaylas', label: 'Andahuaylas' },
+    { value: 'Antabamba', label: 'Antabamba' },
+    { value: 'Aymaraes', label: 'Aymaraes' },
+    { value: 'Cotabambas', label: 'Cotabambas' },
+    { value: 'Chincheros', label: 'Chincheros' },
+    { value: 'Grau', label: 'Grau' },
+  ]);
+
+  const [provinciasArequipa] = useState([
+    { value: 'Arequipa', label: 'Arequipa' },
+    { value: 'Camaná', label: 'Camaná' },
+    { value: 'Caravelí', label: 'Caravelí' },
+    { value: 'Castilla', label: 'Castilla' },
+    { value: 'Caylloma', label: 'Caylloma' },
+    { value: 'Condesuyos', label: 'Condesuyos' },
+    { value: 'Islay', label: 'Islay' },
+    { value: 'La Unión', label: 'La Unión' },
+  ]);
+
+  const [provinciasAyacucho] = useState([
+    { value: 'Cangallo', label: 'Cangallo' },
+    { value: 'Huamanga', label: 'Huamanga' },
+    { value: 'Huanca Sancos', label: 'Huanca Sancos' },
+    { value: 'Huanta', label: 'Huanta' },
+    { value: 'La Mar', label: 'La Mar' },
+    { value: 'Lucanas', label: 'Lucanas' },
+    { value: 'Parinacochas', label: 'Parinacochas' },
+    { value: 'Páucar del Sara Sara', label: 'Páucar del Sara Sara' },
+    { value: 'Sucre', label: 'Sucre' },
+    { value: 'Víctor Fajardo', label: 'Víctor Fajardo' },
+    { value: 'Vilcas Huamán', label: 'Vilcas Huamán' },
+  ]);
+
+  const [provinciasCajamarca] = useState([
+    { value: 'Cajabamba', label: 'Cajabamba' },
+    { value: 'Cajamarca', label: 'Cajamarca' },
+    { value: 'Celendín', label: 'Celendín' },
+    { value: 'Chota', label: 'Chota' },
+    { value: 'Contumazá', label: 'Contumazá' },
+    { value: 'Cutervo', label: 'Cutervo' },
+    { value: 'Hualgayoc', label: 'Hualgayoc' },
+    { value: 'Jaén', label: 'Jaén' },
+    { value: 'San Ignacio', label: 'San Ignacio' },
+    { value: 'San Marcos', label: 'San Marcos' },
+    { value: 'San Miguel', label: 'San Miguel' },
+    { value: 'San Pablo', label: 'San Pablo' },
+    { value: 'Santa Cruz', label: 'Santa Cruz' },
+  ]);
+
+  const [provinciasCallao] = useState([
+    { value: 'Callao', label: 'Callao' },
+  ]);
+
+  const [provinciasCusco] = useState([
+    { value: 'Acomayo', label: 'Acomayo' },
+    { value: 'Anta', label: 'Anta' },
+    { value: 'Apurímac', label: 'Apurímac' },
+    { value: 'Calca', label: 'Calca' },
+    { value: 'Canas', label: 'Canas' },
+    { value: 'Canchis', label: 'Canchis' },
+    { value: 'Chumbivilcas', label: 'Chumbivilcas' },
+    { value: 'Espinar', label: 'Espinar' },
+    { value: 'La Convención', label: 'La Convención' },
+    { value: 'Paruro', label: 'Paruro' },
+    { value: 'Paucartambo', label: 'Paucartambo' },
+    { value: 'Quispicanchi', label: 'Quispicanchi' },
+    { value: 'Urubamba', label: 'Urubamba' }
+  ]);
+
+  const [provinciasHuancavelica] = useState([
+    { value: 'Acobamba', label: 'Acobamba' },
+    { value: 'Angaraes', label: 'Angaraes' },
+    { value: 'Castrovirreyna', label: 'Castrovirreyna' },
+    { value: 'Churcampa', label: 'Churcampa' },
+    { value: 'Huancavelica', label: 'Huancavelica' },
+    { value: 'Huaytará', label: 'Huaytará' },
+    { value: 'Tayacaja', label: 'Tayacaja' }
+  ]);
+
+  const [provinciasHuanuco] = useState([
+    { value: 'Ambo', label: 'Ambo' },
+    { value: 'Dos de Mayo', label: 'Dos de Mayo' },
+    { value: 'Huánuco', label: 'Huánuco' },
+    { value: 'Huacaybamba', label: 'Huacaybamba' },
+    { value: 'Leoncio Prado', label: 'Leoncio Prado' },
+    { value: 'Marañón', label: 'Marañón' },
+    { value: 'Pachitea', label: 'Pachitea' },
+    { value: 'Panao', label: 'Panao' },
+    { value: 'Rupa-Rupa', label: 'Rupa-Rupa' },
+    { value: 'Yarowilca', label: 'Yarowilca' }
+  ]);
+
+  const [provinciasIca] = useState([
+    { value: 'Ica', label: 'Ica' },
+    { value: 'Chincha', label: 'Chincha' },
+    { value: 'Nasca', label: 'Nasca' },
+    { value: 'Palpa', label: 'Palpa' },
+    { value: 'Pisco', label: 'Pisco' }
+  ]);
+
+  const [provinciasJunin] = useState([
+    { value: 'Huancayo', label: 'Huancayo' },
+    { value: 'Junín', label: 'Junín' },
+    { value: 'Chanchamayo', label: 'Chanchamayo' },
+    { value: 'Chupaca', label: 'Chupaca' },
+    { value: 'Concepción', label: 'Concepción' },
+    { value: 'Jauja', label: 'Jauja' },
+    { value: 'Tarma', label: 'Tarma' },
+    { value: 'Yauli', label: 'Yauli' },
+    { value: 'Satipo', label: 'Satipo' }
+  ]);
+
+  const [provinciasLaLibertad] = useState([
+    { value: 'Trujillo', label: 'Trujillo' },
+    { value: 'Ascope', label: 'Ascope' },
+    { value: 'Bolívar', label: 'Bolívar' },
+    { value: 'Chepén', label: 'Chepén' },
+    { value: 'Gran Chimú', label: 'Gran Chimú' },
+    { value: 'Julcán', label: 'Julcán' },
+    { value: 'Otuzco', label: 'Otuzco' },
+    { value: 'Pacasmayo', label: 'Pacasmayo' },
+    { value: 'Pataz', label: 'Pataz' },
+    { value: 'Santiago de Chuco', label: 'Santiago de Chuco' },
+    { value: 'Gran Chimú', label: 'Gran Chimú' },
+    { value: 'Virú', label: 'Virú' }
+  ]);
+
+  const [provinciasLambayeque] = useState([
+    { value: 'Chiclayo', label: 'Chiclayo' },
+    { value: 'Chongoyape', label: 'Chongoyape' },
+    { value: 'Eten', label: 'Eten' },
+    { value: 'Ferreñafe', label: 'Ferreñafe' },
+    { value: 'Lambayeque', label: 'Lambayeque' },
+    { value: 'Lagunillas', label: 'Lagunillas' },
+    { value: 'Mochumi', label: 'Mochumi' },
+    { value: 'Olmos', label: 'Olmos' },
+    { value: 'Pítipo', label: 'Pítipo' },
+    { value: 'Reque', label: 'Reque' },
+    { value: 'Túcume', label: 'Túcume' }
+  ]);
+
+  const [provinciasLima] = useState([
+    { value: 'Barranca', label: 'Barranca' },
+    { value: 'Cajatambo', label: 'Cajatambo' },
+    { value: 'Canta', label: 'Canta' },
+    { value: 'Cañete', label: 'Cañete' },
+    { value: 'Huaral', label: 'Huaral' },
+    { value: 'Huarochirí', label: 'Huarochirí' },
+    { value: 'Huaura', label: 'Huaura' },
+    { value: 'Lima', label: 'Lima' },
+    { value: 'Oyón', label: 'Oyón' },
+    { value: 'Yauyos', label: 'Yauyos' },
+  ]);
+
+  const [provinciasLoreto] = useState([
+    { value: 'Maynas', label: 'Maynas' },
+    { value: 'Alto Amazonas', label: 'Alto Amazonas' },
+    { value: 'Datem del Marañón', label: 'Datem del Marañón' },
+    { value: 'Loreto', label: 'Loreto' },
+    { value: 'Mariscal Ramón Castilla', label: 'Mariscal Ramón Castilla' },
+    { value: 'Requena', label: 'Requena' },
+    { value: 'Ucayali', label: 'Ucayali' }
+  ]);
+
+  const [provinciasMadreDeDios] = useState([
+    { value: 'Tambopata', label: 'Tambopata' },
+    { value: 'Manu', label: 'Manu' },
+    { value: 'Tahuamanu', label: 'Tahuamanu' }
+  ]);
+
+  const [provinciasMoquegua] = useState([
+    { value: 'Mariscal Nieto', label: 'Mariscal Nieto' },
+    { value: 'Ilo', label: 'Ilo' },
+    { value: 'General Sánchez Cerro', label: 'General Sánchez Cerro' },
+    { value: 'Pedro Ruiz Gallo', label: 'Pedro Ruiz Gallo' }
+  ]);
+
+  const [provinciasPasco] = useState([
+    { value: 'Pasco', label: 'Pasco' },
+    { value: 'Daniel Alcides Carrión', label: 'Daniel Alcides Carrión' },
+    { value: 'Oxapampa', label: 'Oxapampa' }
+  ]);
+
+  const [provinciasPiura] = useState([
+    { value: 'Piura', label: 'Piura' },
+    { value: 'Ayabaca', label: 'Ayabaca' },
+    { value: 'Huancabamba', label: 'Huancabamba' },
+    { value: 'Morropón', label: 'Morropón' },
+    { value: 'Paita', label: 'Paita' },
+    { value: 'Sullana', label: 'Sullana' },
+    { value: 'Talara', label: 'Talara' },
+    { value: 'Sechura', label: 'Sechura' }
+  ]);
+
+  const [provinciasPuno] = useState([
+    { value: 'Puno', label: 'Puno' },
+    { value: 'Azángaro', label: 'Azángaro' },
+    { value: 'Carabaya', label: 'Carabaya' },
+    { value: 'Chucuito', label: 'Chucuito' },
+    { value: 'Huancané', label: 'Huancané' },
+    { value: 'Lampa', label: 'Lampa' },
+    { value: 'Melgar', label: 'Melgar' },
+    { value: 'San Antonio de Putina', label: 'San Antonio de Putina' },
+    { value: 'San Román', label: 'San Román' },
+    { value: 'Sandia', label: 'Sandia' },
+    { value: 'Yunguyo', label: 'Yunguyo' }
+  ]);
+
+  const [provinciasSanMartin] = useState([
+    { value: 'Moyobamba', label: 'Moyobamba' },
+    { value: 'Bellavista', label: 'Bellavista' },
+    { value: 'El Dorado', label: 'El Dorado' },
+    { value: 'Huallaga', label: 'Huallaga' },
+    { value: 'Lamas', label: 'Lamas' },
+    { value: 'Mariscal Cáceres', label: 'Mariscal Cáceres' },
+    { value: 'Picota', label: 'Picota' },
+    { value: 'Rioja', label: 'Rioja' },
+    { value: 'San Martín', label: 'San Martín' },
+    { value: 'Tocache', label: 'Tocache' }
+  ]);
+
+  const [provinciasTacna] = useState([
+    { value: 'Tacna', label: 'Tacna' },
+    { value: 'Candarave', label: 'Candarave' },
+    { value: 'Jorge Basadre', label: 'Jorge Basadre' },
+    { value: 'Tarata', label: 'Tarata' }
+  ]);
+
+  const [provinciasTumbes] = useState([
+    { value: 'Tumbes', label: 'Tumbes' },
+    { value: 'Contralmirante Villar', label: 'Contralmirante Villar' },
+    { value: 'Zorritos', label: 'Zorritos' }
+  ]);
+
+  const [provinciasUcayali] = useState([
+    { value: 'Pucallpa', label: 'Pucallpa' },
+    { value: 'Atalaya', label: 'Atalaya' },
+    { value: 'Coronel Portillo', label: 'Coronel Portillo' },
+    { value: 'Padre Abad', label: 'Padre Abad' },
+    { value: 'Purús', label: 'Purús' }
+  ]);
+
+  const provinciasPorDepartamento = {
+    Amazonas: provinciasAmazonas,
+    Áncash: provinciasAncash,
+    Apurímac: provinciasApurimac,
+    Arequipa: provinciasArequipa,
+    Ayacucho: provinciasAyacucho,
+    Cajamarca: provinciasCajamarca,
+    Callao: provinciasCallao,
+    Cusco: provinciasCusco,
+    Huancavelica: provinciasHuancavelica,
+    Huánuco: provinciasHuanuco,
+    Ica: provinciasIca,
+    Junín: provinciasJunin,
+    'La Libertad': provinciasLaLibertad,
+    Lambayeque: provinciasLambayeque,
+    Lima: provinciasLima,
+    Loreto: provinciasLoreto,
+    'Madre de Dios': provinciasMadreDeDios,
+    Moquegua: provinciasMoquegua,
+    Pasco: provinciasPasco,
+    Piura: provinciasPiura,
+    Puno: provinciasPuno,
+    'San Martín': provinciasSanMartin,
+    Tacna: provinciasTacna,
+    Tumbes: provinciasTumbes,
+    Ucayali: provinciasUcayali,
+  };
+
+  const distritosAncashData = {
+    Huaraz: [
+      { value: 'Huaraz', label: 'Huaraz' },
+      { value: 'Independencia', label: 'Independencia' },
+    ],
+    Huarmey: [
+      { value: 'Huarmey', label: 'Huarmey' },
+      { value: 'Cochapetí', label: 'Cochapetí' },
+    ],
+    Casma: [
+      { value: 'Casma', label: 'Casma' },
+      { value: 'Yaután', label: 'Yaután' },
+    ],
+  };
+
+  const distritosLimaData = {
+    Lima: [
+      { value: 'Ancón', label: 'Ancón' },
+      { value: 'Ate', label: 'Ate' },
+      { value: 'Barranco', label: 'Barranco' },
+      { value: 'Breña', label: 'Breña' },
+      { value: 'Carabayllo', label: 'Carabayllo' },
+      { value: 'Chaclacayo', label: 'Chaclacayo' },
+      { value: 'Chorrillos', label: 'Chorrillos' },
+      { value: 'Cieneguilla', label: 'Cieneguilla' },
+      { value: 'Comas', label: 'Comas' },
+      { value: 'El Agustino', label: 'El Agustino' },
+      { value: 'Independencia', label: 'Independencia' },
+      { value: 'Jesús María', label: 'Jesús María' },
+      { value: 'La Molina', label: 'La Molina' },
+      { value: 'La Victoria', label: 'La Victoria' },
+      { value: 'Lince', label: 'Lince' },
+      { value: 'Los Olivos', label: 'Los Olivos' },
+      { value: 'Lurigancho-Chosica', label: 'Lurigancho-Chosica' },
+      { value: 'Lurín', label: 'Lurín' },
+      { value: 'Magdalena del Mar', label: 'Magdalena del Mar' },
+      { value: 'Pueblo Libre', label: 'Pueblo Libre' },
+      { value: 'Miraflores', label: 'Miraflores' },
+      { value: 'Pachacámac', label: 'Pachacámac' },
+      { value: 'Pucusana', label: 'Pucusana' },
+      { value: 'Puente Piedra', label: 'Puente Piedra' },
+      { value: 'Rímac', label: 'Rímac' },
+      { value: 'San Bartolo', label: 'San Bartolo' },
+      { value: 'San Borja', label: 'San Borja' },
+      { value: 'San Isidro', label: 'San Isidro' },
+      { value: 'San Juan de Lurigancho', label: 'San Juan de Lurigancho' },
+      { value: 'San Juan de Miraflores', label: 'San Juan de Miraflores' },
+      { value: 'San Luis', label: 'San Luis' },
+      { value: 'San Martín de Porres', label: 'San Martín de Porres' },
+      { value: 'San Miguel', label: 'San Miguel' },
+      { value: 'Santa Anita', label: 'Santa Anita' },
+      { value: 'Santa María del Mar', label: 'Santa María del Mar' },
+      { value: 'Santa Rosa', label: 'Santa Rosa' },
+      { value: 'Santiago de Surco', label: 'Santiago de Surco' },
+      { value: 'Surquillo', label: 'Surquillo' },
+      { value: 'Villa El Salvador', label: 'Villa El Salvador' },
+      { value: 'Villa María del Triunfo', label: 'Villa María del Triunfo' },
+      { value: 'San Sebastián', label: 'San Sebastián' },
+      { value: 'Santa Eulalia', label: 'Santa Eulalia' },
+      { value: 'Ricardo Palma', label: 'Ricardo Palma' },
+    ]
+  };
+
+  const distritosPorDepartamentoProvincia = {
+    Lima: distritosLimaData,
+    Áncash: distritosAncashData,
+  };
+
+  const [provinciasSeleccionadas, setProvinciasSeleccionadas] = useState([]);
+  const [distritosSeleccionados, setDistritosSeleccionados] = useState([]);
+
   const handleFiltroChange = (campo, valor) => {
     setFiltros({ ...filtros, [campo]: valor });
   };
 
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
+  
+    if (e.target.name === 'departamento') {
+      const departamentoSeleccionado = e.target.value;
+      const provincias = provinciasPorDepartamento[departamentoSeleccionado] || [];
+      setProvinciasSeleccionadas(provincias);
+      setNuevoPedido(prevState => ({ ...prevState, provincia: '', distrito: '' }));
+      setDistritosSeleccionados([]);
+    } else if (e.target.name === 'provincia') {
+      const departamentoSeleccionado = nuevoPedido.departamento;
+      const provinciaSeleccionada = e.target.value;
+      const distritos = distritosPorDepartamentoProvincia[departamentoSeleccionado]?.[provinciaSeleccionada] || [];
+  
+      setDistritosSeleccionados(distritos);
+      setNuevoPedido(prevState => ({ ...prevState, distrito: '' }));
+    }
   };
   
   const handleProductoChange = (e) => {
@@ -151,8 +542,8 @@ function PedidosDashboard() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           sx={{ bgcolor: '#4f46e5', borderRadius: '20px', '&:hover': { bgcolor: '#4338ca' } }}
           onClick={() => setDrawerOpen(true)}
           startIcon={<Add />}
@@ -166,7 +557,7 @@ function PedidosDashboard() {
           size="small"
           value={filtros.searchTerm}
           onChange={(e) => handleFiltroChange('searchTerm', e.target.value)}
-          sx={{ minWidth: 250, bgcolor: 'white' }} 
+          sx={{ minWidth: 250, bgcolor: 'white' }}
           InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
         />
 
@@ -231,7 +622,7 @@ function PedidosDashboard() {
           ))}
         </Box>
 
-        <Button 
+        <Button
           variant="outlined"
           startIcon={<FilterList />}
           sx={{ bgcolor: 'white', borderColor: '#4763e4', color: '#4763e4' }}
@@ -302,12 +693,12 @@ function PedidosDashboard() {
             <Typography variant="h6" fontWeight="bold">Nuevo Pedido</Typography>
             <IconButton onClick={() => setDrawerOpen(false)}><Close /></IconButton>
           </Box>
-          
+
           <Divider sx={{ mb: 3 }} />
-          
+
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="subtitle1" fontWeight="bold">Nueva Orden</Typography>
-            
+
             <TextField
               label="Nota"
               name="nota"
@@ -318,7 +709,7 @@ function PedidosDashboard() {
               rows={3}
               size="small"
             />
-            
+
             <FormControl fullWidth size="small">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
@@ -335,9 +726,9 @@ function PedidosDashboard() {
                 <MenuItem value="Facebook">Facebook</MenuItem>
               </Select>
             </FormControl>
-            
+
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Cliente</Typography>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Nombres y Apellidos:</Typography>
@@ -349,7 +740,7 @@ function PedidosDashboard() {
               fullWidth
               size="small"
             />
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Móvil:</Typography>
@@ -361,9 +752,9 @@ function PedidosDashboard() {
               fullWidth
               size="small"
             />
-            
+
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Entrega</Typography>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Departamento:</Typography>
@@ -374,13 +765,33 @@ function PedidosDashboard() {
                 value={nuevoPedido.departamento}
                 onChange={handleFormChange}
               >
-                <MenuItem value="Lima">Lima</MenuItem>
+                <MenuItem value="Amazonas">Amazonas</MenuItem>
+                <MenuItem value="Áncash">Áncash</MenuItem>
+                <MenuItem value="Apurímac">Apurímac</MenuItem>
                 <MenuItem value="Arequipa">Arequipa</MenuItem>
+                <MenuItem value="Ayacucho">Ayacucho</MenuItem>
+                <MenuItem value="Cajamarca">Cajamarca</MenuItem>
+                <MenuItem value="Callao">Callao</MenuItem>
                 <MenuItem value="Cusco">Cusco</MenuItem>
-                <MenuItem value="Trujillo">Trujillo</MenuItem>
+                <MenuItem value="Huancavelica">Huancavelica</MenuItem>
+                <MenuItem value="Huánuco">Huánuco</MenuItem>
+                <MenuItem value="Ica">Ica</MenuItem>
+                <MenuItem value="Junín">Junín</MenuItem>
+                <MenuItem value="La Libertad">La Libertad</MenuItem>
+                <MenuItem value="Lambayeque">Lambayeque</MenuItem>
+                <MenuItem value="Lima">Lima</MenuItem>
+                <MenuItem value="Loreto">Loreto</MenuItem>
+                <MenuItem value="Madre de Dios">Madre de Dios</MenuItem>
+                <MenuItem value="Moquegua">Moquegua</MenuItem>
+                <MenuItem value="Pasco">Pasco</MenuItem>
+                <MenuItem value="Piura">Piura</MenuItem>
+                <MenuItem value="Puno">Puno</MenuItem>
+                <MenuItem value="San Martín">San Martín</MenuItem>
+                <MenuItem value="Tacna">Tacna</MenuItem>
+                <MenuItem value="Tumbes">Tumbes</MenuItem>
+                <MenuItem value="Ucayali">Ucayali</MenuItem>
               </Select>
             </FormControl>
-            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Provincia:</Typography>
@@ -390,33 +801,33 @@ function PedidosDashboard() {
                 name="provincia"
                 value={nuevoPedido.provincia}
                 onChange={handleFormChange}
+                disabled={!nuevoPedido.departamento}
               >
-                <MenuItem value="Lima">Lima</MenuItem>
-                <MenuItem value="Callao">Callao</MenuItem>
-                <MenuItem value="Cañete">Cañete</MenuItem>
-                <MenuItem value="Huaral">Huaral</MenuItem>
+                {provinciasSeleccionadas.map((provincia) => (
+                  <MenuItem key={provincia.value} value={provincia.value}>
+                    {provincia.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
-            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
-              <Typography variant="body2">Distrito:</Typography>
-            </Box>
-            <FormControl fullWidth size="small">
-              <Select
-                name="distrito"
-                value={nuevoPedido.distrito}
-                onChange={handleFormChange}
-              >
-                <MenuItem value="San Isidro">San Isidro</MenuItem>
-                <MenuItem value="Miraflores">Miraflores</MenuItem>
-                <MenuItem value="San Borja">San Borja</MenuItem>
-                <MenuItem value="Surco">Surco</MenuItem>
-                <MenuItem value="La Molina">La Molina</MenuItem>
-                <MenuItem value="Ate">Ate</MenuItem>
-              </Select>
-            </FormControl>
-            
+  <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+  <Typography variant="body2">Distrito:</Typography>
+</Box>
+<FormControl fullWidth size="small">
+  <Select
+    name="distrito"
+    value={nuevoPedido.distrito}
+    onChange={handleFormChange}
+    disabled={!nuevoPedido.provincia} 
+  >
+    {distritosSeleccionados.map((distrito) => (
+      <MenuItem key={distrito.value} value={distrito.value}>
+        {distrito.label}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Dirección:</Typography>

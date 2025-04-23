@@ -8,6 +8,7 @@ import PedidosDashboard from './PedidosDashboard';
 import ProductosDashboard from './ProductosDashboard';
 import SeguimientoContraentrega from './SeguimientoContraentrega';
 import ShopifyDashboard from './ShopifyDashboard';
+import CoberturaDashboard from './CoberturaDashboard'; 
 
 Modal.setAppElement('#root');
 
@@ -27,6 +28,8 @@ function Dashboard() {
     const [pedidosSeleccion, setPedidosSeleccion] = useState('ordenDePedido');
     
     const [integracionesSeleccion, setIntegracionesSeleccion] = useState('shopify');
+
+    const [configuracionSeleccion, setConfiguracionSeleccion] = useState('cobertura');
 
     const [arrowImages, setArrowImages] = useState({
         mantenimiento: '/images/shadow arrow.png',
@@ -209,6 +212,46 @@ function Dashboard() {
                 setSpanColors(prev => ({
                     ...prev,
                     integraciones: 'white'
+                }));
+            }
+
+            if (lastSegment === 'cobertura') {
+                initialExpandedState.configuracion = true;
+                setConfiguracionSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    configuracion: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    configuracion: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    configuracion: 'white'
+                }));
+            }
+
+            if (lastSegment === 'curier') {
+                initialExpandedState.configuracion = true;
+                setConfiguracionSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    configuracion: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    configuracion: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    configuracion: 'white'
                 }));
             }
             
@@ -429,6 +472,16 @@ function Dashboard() {
         }
     };
 
+    const handleConfiguracionClick = (option) => {
+        setConfiguracionSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
     const handleEdit = (index) => {
         setEditIndex(index);
         setNewClient(clients[index]);
@@ -460,15 +513,21 @@ function Dashboard() {
             parentSection = 'Mantenimiento';
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
+        } else if (['cobertura'].includes(activeSection)) {
+            parentSection = 'Configuracion';  
+        } else if (['curier'].includes(activeSection)) {
+            parentSection = 'Configuracion';  
         }
-        
+
         const sectionDisplayNames = {
             'productos': 'Productos',
             'usuarios': 'Usuarios de Tienda', 
             'ordenDePedido': 'Orden de Pedido',
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
             'enviosAgencia': 'Envíos Agencia',
-            'shopify': 'Shopify'
+            'shopify': 'Shopify',
+            'cobertura': 'Registrar Cobertura',
+            'curier': 'Registrar Currier Nuevos'
         };
         
         const activeSectionName = sectionDisplayNames[activeSection] || activeSection;
@@ -789,6 +848,39 @@ function Dashboard() {
                                 <li>Reporte 1</li>
                                 <li>Reporte 2</li>
                             </ul>}
+                        </li>
+                        <li className={`main-menu-item ${expanded.configuracion ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('configuracion')}>
+                                <img
+                                    src={gearImages.configuracion}
+                                    alt="Configuracion"
+                                    style={{ width: '22px', height: '22px' }}
+                                />
+                                <i className="fas fa-clipboard-list"></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.configuracion }}>Configuracion</span>
+                                <i className={`fas fa-chevron-${expanded.configuracion ? 'down' : 'right'}`}></i>
+                                <img
+                                    src={arrowImages.configuracion}
+                                    alt="Configuracion"
+                                    className="menu-icon"
+                                />
+                            </div>
+                            {expanded.configuracion && (
+                                <ul className="submenu">
+                                    <li 
+                                        onClick={() => handleConfiguracionClick('cobertura')}
+                                        className={configuracionSeleccion === 'cobertura' ? 'active' : ''}
+                                    >
+                                        Cobertura
+                                    </li>
+                                    <li 
+                                        onClick={() => handleConfiguracionClick('curier')}
+                                        className={configuracionSeleccion === 'curier' ? 'active' : ''}
+                                    >
+                                        Currier Nuevos
+                                    </li>
+                                </ul>
+                            )}
                         </li>
                     </ul>
                 </nav>
