@@ -21,6 +21,7 @@ function Dashboard() {
         asesores: false,
         reportes: false,
         integraciones: false,
+        configuracion: false,
     });
 
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
@@ -39,6 +40,7 @@ function Dashboard() {
         asesores: '/images/shadow arrow.png',
         reportes: '/images/shadow arrow.png',
         integraciones: '/images/shadow arrow.png',
+        configuracion: '/images/shadow arrow.png',
     });
 
     const [gearImages, setGearImages] = useState({
@@ -49,6 +51,7 @@ function Dashboard() {
         asesores: '/images/shadow tv.png',
         reportes: '/images/shadow report.png',
         integraciones: '/images/shadow file.png',
+        configuracion: '/images/shadow file.png',
     });
 
     const [spanColors, setSpanColors] = useState({
@@ -59,6 +62,7 @@ function Dashboard() {
         asesores: '#555d8b',
         reportes: '#555d8b',
         integraciones: '#555d8b',
+        configuracion: '#555d8b',
     });
 
     const [activeSection, setActiveSection] = useState('');
@@ -123,6 +127,7 @@ function Dashboard() {
                 asesores: false,
                 reportes: false,
                 integraciones: false,
+                configuracion: false
             };
             
             setArrowImages({
@@ -133,6 +138,7 @@ function Dashboard() {
                 asesores: '/images/shadow arrow.png',
                 reportes: '/images/shadow arrow.png',
                 integraciones: '/images/shadow arrow.png',
+                configuracion: '/images/shadow arrow.png',
             });
             
             setGearImages({
@@ -143,6 +149,7 @@ function Dashboard() {
                 asesores: '/images/shadow tv.png',
                 reportes: '/images/shadow report.png',
                 integraciones: '/images/shadow file.png',
+                configuracion: '/images/shadow file.png',
             });
             
             setSpanColors({
@@ -153,9 +160,30 @@ function Dashboard() {
                 asesores: '#555d8b',
                 reportes: '#555d8b',
                 integraciones: '#555d8b',
+                configuracion: '#555d8b',
             });
             
             if (lastSegment === 'productos' || lastSegment === 'usuarios') {
+                initialExpandedState.mantenimiento = true;
+                setMantenimientoSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    mantenimiento: 'white'
+                }));
+            }
+
+            if (lastSegment === 'productos' || lastSegment === 'movimiento') {
                 initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
                 
@@ -374,6 +402,7 @@ function Dashboard() {
             asesores: '/images/shadow arrow.png',
             reportes: '/images/shadow arrow.png',
             integraciones: '/images/shadow arrow.png',
+            configuracion: '/images/shadow arrow.png',
         };
         
         const newGearImages = {
@@ -384,6 +413,7 @@ function Dashboard() {
             asesores: '/images/shadow tv.png',
             reportes: '/images/shadow report.png',
             integraciones: '/images/shadow file.png',
+            configuracion: '/images/shadow file.png',
         };
         
         const newSpanColors = {
@@ -394,6 +424,7 @@ function Dashboard() {
             asesores: '#555d8b',
             reportes: '#555d8b',
             integraciones: '#555d8b',
+            configuracion: '#555d8b',
         };
         
         if (newExpandedState[section]) {
@@ -509,7 +540,7 @@ function Dashboard() {
         
         if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
             parentSection = 'Pedidos';
-        } else if (['productos', 'usuarios'].includes(activeSection)) {
+        } else if (['productos', 'usuarios', 'movimiento'].includes(activeSection)) {
             parentSection = 'Mantenimiento';
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
@@ -522,6 +553,7 @@ function Dashboard() {
         const sectionDisplayNames = {
             'productos': 'Productos',
             'usuarios': 'Usuarios de Tienda', 
+            'movimiento': 'Movimiento', 
             'ordenDePedido': 'Orden de Pedido',
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
             'enviosAgencia': 'Envíos Agencia',
@@ -557,8 +589,12 @@ function Dashboard() {
                 return <ProductosDashboard />;
             case 'usuarios':
                 return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
+            case 'movimiento':
+                return <div className="div-dashboard"><h1>Movimiento</h1></div>;
             case 'shopify':
                 return <ShopifyDashboard />;
+            case 'cobertura':
+                return <div className="div-dashboard"><h1>Cobertura</h1></div>;
             default:
                 return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
         }
@@ -734,6 +770,12 @@ function Dashboard() {
                                         className={mantenimientoSeleccion === 'usuarios' ? 'active' : ''}
                                     >
                                         Usuarios de tienda
+                                    </li>
+                                    <li 
+                                        onClick={() => handleMantenimientoClick('movimiento')}
+                                        className={mantenimientoSeleccion === 'movimiento' ? 'active' : ''}
+                                    >
+                                        Movimiento
                                     </li>
                                 </ul>
                             )}
