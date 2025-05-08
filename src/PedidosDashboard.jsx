@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, Button, TextField, InputAdornment, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem,
   IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
+import { fetchOrders, getShopInfo } from './components/services/shopifyService';
 import './PedidosDashboard.css';
 
+
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-PE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
 const EstadoChip = ({ estado, estadoAdicional }) => {
   const colorMap = {
     'IN-WOW': '#3884f7',
@@ -77,29 +88,10 @@ function PedidosDashboard() {
   const [nuevoPedido, setNuevoPedido] = useState(estadoInicial);
   const [nuevoProducto, setNuevoProducto] = useState({ descripcion: '', cantidad: 1, precio: '' });
 
-  const [pedidos] = useState([
-    {
-      id: 'NOW004351',
-      cliente: 'Denisse Peña Obregon Erika',
-      ubicacion: 'Jr piñac mz.u lt 3-3 - Lurigancho - Ate',
-      estado: 'CONFIRMADO',
-      estadoAdicional: 'IN-WOW',
-      importes: {
-        total: 'S/ 121.00',
-        detalles: [
-          { descripcion: '1 KIT DE 12 BOLSIGATOS PARA UÑAS', valor: '' },
-          { descripcion: '2 CAJA DE 10 PARCHES DESINTOXICANTES', valor: '' },
-          { descripcion: '1 PRODUCTO SORPRESA DE REGALO', valor: '' }
-        ]
-      },
-      fechas: {
-        registro: '27/03/2023',
-        despacho: '27/03/2023',
-        entrega: '28/03/2023'
-      }
-    }
-  ]);
-
+  const [pedidos, setPedidos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
     { value: 'Bongará', label: 'Bongará' },
@@ -1019,6 +1011,107 @@ function PedidosDashboard() {
     setFiltros({ ...filtros, [campo]: valor });
   };
 
+  useEffect(() => {
+    const cargarPedidos = async () => {
+      try {
+        setLoading(true);
+        console.log('Cargando pedidos desde Shopify...');
+        const response = await fetchOrders();
+        console.log('Respuesta de la API:', response);
+        
+        if (response && response.pedidos) {
+          const pedidosFormateados = response.pedidos.map(order => ({
+            id: order.name || `#${order.order_number}`,
+            cliente: order.customer ? 
+                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
+                    (order.email || 'Cliente no registrado'),
+            ubicacion: order.shipping_address ? 
+                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
+                      'Sin dirección',
+            estado: 'CONFIRMADO',
+            estadoAdicional: 'IN-WOW',
+            importes: {
+              total: `PEN ${order.current_total_price || '0.00'}`,
+              detalles: order.line_items ? order.line_items.map(item => ({
+                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
+                valor: `PEN ${item.price || '0.00'}`
+              })) : []
+            },
+            fechas: {
+              registro: formatDate(order.created_at),
+              despacho: formatDate(order.processed_at),
+              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
+            }
+          }));
+          
+          setPedidos(pedidosFormateados);
+        } else if (response && Array.isArray(response.orders)) {
+          const pedidosFormateados = response.orders.map(order => ({
+            id: order.name || `#${order.order_number}`,
+            cliente: order.customer ? 
+                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
+                    (order.email || 'Cliente no registrado'),
+            ubicacion: order.shipping_address ? 
+                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
+                      'Sin dirección',
+            estado: 'CONFIRMADO',
+            estadoAdicional: 'IN-WOW',
+            importes: {
+              total: `PEN ${order.current_total_price || '0.00'}`,
+              detalles: order.line_items ? order.line_items.map(item => ({
+                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
+                valor: `PEN ${item.price || '0.00'}`
+              })) : []
+            },
+            fechas: {
+              registro: formatDate(order.created_at),
+              despacho: formatDate(order.processed_at),
+              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
+            }
+          }));
+          
+          setPedidos(pedidosFormateados);
+        } else if (Array.isArray(response)) {
+          const pedidosFormateados = response.map(order => ({
+            id: order.name || `#${order.order_number}`,
+            cliente: order.customer ? 
+                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
+                    (order.email || 'Cliente no registrado'),
+            ubicacion: order.shipping_address ? 
+                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
+                      'Sin dirección',
+            estado: 'CONFIRMADO',
+            estadoAdicional: 'IN-WOW',
+            importes: {
+              total: `PEN ${order.current_total_price || '0.00'}`,
+              detalles: order.line_items ? order.line_items.map(item => ({
+                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
+                valor: `PEN ${item.price || '0.00'}`
+              })) : []
+            },
+            fechas: {
+              registro: formatDate(order.created_at),
+              despacho: formatDate(order.processed_at),
+              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
+            }
+          }));
+          
+          setPedidos(pedidosFormateados);
+        } else {
+          console.error('Formato de respuesta no reconocido:', response);
+          setError('No se pudo obtener la lista de pedidos. Formato de respuesta inválido.');
+        }
+      } catch (err) {
+        console.error('Error al cargar pedidos:', err);
+        setError(err.message || 'Error al cargar pedidos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarPedidos();
+  }, []);
+
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
   
@@ -1068,6 +1161,23 @@ function PedidosDashboard() {
         !pedido.id.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Cargando pedidos desde Shopify...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6" color="error">Error al cargar pedidos</Typography>
+        <Typography variant="body1">{error}</Typography>
+        <Typography variant="body2">Verifique que el servidor backend esté en ejecución y que las credenciales de Shopify sean correctas.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>

@@ -49,7 +49,7 @@ function Dashboard() {
         clientes: '/images/shadow folder.png',
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
-        imformes: '/images/shadow report.png',
+        informes: '/images/shadow report.png',
         integraciones: '/images/shadow file.png',
         configuracion: '/images/shadow file.png',
     });
@@ -876,7 +876,7 @@ function Dashboard() {
                             <div className="menu-item-header" onClick={() => toggleSection('informes')}>
                                 <img
                                     src={gearImages.informes}
-                                    alt="Reporte"
+                                    alt="Informes"
                                     style={{ width: '22px', height: '22px' }}
                                 />
                                 <i className="fas fa-user-tie"></i>
