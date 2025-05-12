@@ -9,6 +9,7 @@ import ProductosDashboard from './ProductosDashboard';
 import SeguimientoContraentrega from './SeguimientoContraentrega';
 import ShopifyDashboard from './ShopifyDashboard';
 import MovimientoDashboard from './MovimientoDashboard';
+import InformeDashboard from './InformeDashboard';
 
 Modal.setAppElement('#root');
 
@@ -31,6 +32,8 @@ function Dashboard() {
     const [integracionesSeleccion, setIntegracionesSeleccion] = useState('shopify');
 
     const [configuracionSeleccion, setConfiguracionSeleccion] = useState('cobertura');
+
+    const [informesSeleccion, setInformesSeleccion] = useState('vista');
 
     const [arrowImages, setArrowImages] = useState({
         mantenimiento: '/images/shadow arrow.png',
@@ -240,6 +243,26 @@ function Dashboard() {
                 setSpanColors(prev => ({
                     ...prev,
                     integraciones: 'white'
+                }));
+            }
+
+            if (lastSegment === 'vista') {
+                initialExpandedState.informes = true;
+                setInformesSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    informes: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    informes: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    informes: 'white'
                 }));
             }
 
@@ -503,6 +526,16 @@ function Dashboard() {
         }
     };
 
+    const handleInformesClick = (option) => {
+        setInformesSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
     const handleConfiguracionClick = (option) => {
         setConfiguracionSeleccion(option);
         setActiveSection(option);
@@ -544,6 +577,8 @@ function Dashboard() {
             parentSection = 'Mantenimiento';
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
+        } else if (['vista'].includes(activeSection)) {
+            parentSection = 'Informes';  
         } else if (['cobertura'].includes(activeSection)) {
             parentSection = 'Configuracion';  
         } else if (['curier'].includes(activeSection)) {
@@ -558,6 +593,7 @@ function Dashboard() {
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
             'enviosAgencia': 'Envíos Agencia',
             'shopify': 'Shopify',
+            'vista': 'Vista Informes',
             'cobertura': 'Registrar Cobertura',
             'curier': 'Registrar Currier Nuevos'
         };
@@ -593,6 +629,8 @@ function Dashboard() {
                 return <MovimientoDashboard />;
             case 'shopify':
                 return <ShopifyDashboard />;
+            case 'vista':
+                return <InformeDashboard />;
             case 'cobertura':
                 return <div className="div-dashboard"><h1>Cobertura</h1></div>;
             case 'curier':
@@ -889,7 +927,12 @@ function Dashboard() {
                                 />
                             </div>
                             {expanded.informes && <ul className="submenu">
-                                <li>Vista Informes</li>
+                                <li 
+                                        onClick={() => handleInformesClick('vista')}
+                                        className={informesSeleccion === 'vista' ? 'active' : ''}
+                                    >
+                                        Vista Informes
+                                    </li>
                             </ul>}
                         </li>
                         <li className={`main-menu-item ${expanded.configuracion ? 'expanded' : ''}`}>

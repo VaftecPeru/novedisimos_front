@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Button, Typography, FormControl, Select, MenuItem, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, Chip } from '@mui/material';
 import { format } from 'date-fns';
 
-function MiComponente() {
+function MovimientoDashboard() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [estadoProducto, setEstadoProducto] = React.useState('TODOS');
   const movimientosInventario = [
@@ -151,4 +151,4 @@ function MiComponente() {
   );
 }
 
-export default MiComponente;
+export default MovimientoDashboard;
