@@ -8,7 +8,8 @@ import PedidosDashboard from './PedidosDashboard';
 import ProductosDashboard from './ProductosDashboard';
 import SeguimientoContraentrega from './SeguimientoContraentrega';
 import ShopifyDashboard from './ShopifyDashboard';
-import CoberturaDashboard from './CoberturaDashboard'; 
+import MovimientoDashboard from './MovimientoDashboard';
+import InformeDashboard from './InformeDashboard';
 
 Modal.setAppElement('#root');
 
@@ -19,7 +20,7 @@ function Dashboard() {
         pedidos: false,
         motorizados: false,
         asesores: false,
-        reportes: false,
+        informes: false,
         integraciones: false,
         configuracion: false,
     });
@@ -32,13 +33,15 @@ function Dashboard() {
 
     const [configuracionSeleccion, setConfiguracionSeleccion] = useState('cobertura');
 
+    const [informesSeleccion, setInformesSeleccion] = useState('vista');
+
     const [arrowImages, setArrowImages] = useState({
         mantenimiento: '/images/shadow arrow.png',
         clientes: '/images/shadow arrow.png',
         pedidos: '/images/shadow arrow.png',
         motorizados: '/images/shadow arrow.png',
         asesores: '/images/shadow arrow.png',
-        reportes: '/images/shadow arrow.png',
+        informes: '/images/shadow arrow.png',
         integraciones: '/images/shadow arrow.png',
         configuracion: '/images/shadow arrow.png',
     });
@@ -49,7 +52,7 @@ function Dashboard() {
         clientes: '/images/shadow folder.png',
         motorizados: '/images/shadow file.png',
         asesores: '/images/shadow tv.png',
-        reportes: '/images/shadow report.png',
+        informes: '/images/shadow report.png',
         integraciones: '/images/shadow file.png',
         configuracion: '/images/shadow file.png',
     });
@@ -60,7 +63,7 @@ function Dashboard() {
         clientes: '#555d8b',
         motorizados: '#555d8b',
         asesores: '#555d8b',
-        reportes: '#555d8b',
+        informes: '#555d8b',
         integraciones: '#555d8b',
         configuracion: '#555d8b',
     });
@@ -125,7 +128,7 @@ function Dashboard() {
                 pedidos: false,
                 motorizados: false,
                 asesores: false,
-                reportes: false,
+                informes: false,
                 integraciones: false,
                 configuracion: false
             };
@@ -136,7 +139,7 @@ function Dashboard() {
                 pedidos: '/images/shadow arrow.png',
                 motorizados: '/images/shadow arrow.png',
                 asesores: '/images/shadow arrow.png',
-                reportes: '/images/shadow arrow.png',
+                informes: '/images/shadow arrow.png',
                 integraciones: '/images/shadow arrow.png',
                 configuracion: '/images/shadow arrow.png',
             });
@@ -147,7 +150,7 @@ function Dashboard() {
                 clientes: '/images/shadow folder.png',
                 motorizados: '/images/shadow file.png',
                 asesores: '/images/shadow tv.png',
-                reportes: '/images/shadow report.png',
+                informes: '/images/shadow report.png',
                 integraciones: '/images/shadow file.png',
                 configuracion: '/images/shadow file.png',
             });
@@ -158,7 +161,7 @@ function Dashboard() {
                 clientes: '#555d8b',
                 motorizados: '#555d8b',
                 asesores: '#555d8b',
-                reportes: '#555d8b',
+                informes: '#555d8b',
                 integraciones: '#555d8b',
                 configuracion: '#555d8b',
             });
@@ -240,6 +243,26 @@ function Dashboard() {
                 setSpanColors(prev => ({
                     ...prev,
                     integraciones: 'white'
+                }));
+            }
+
+            if (lastSegment === 'vista') {
+                initialExpandedState.informes = true;
+                setInformesSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    informes: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    informes: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    informes: 'white'
                 }));
             }
 
@@ -400,7 +423,7 @@ function Dashboard() {
             pedidos: '/images/shadow arrow.png',
             motorizados: '/images/shadow arrow.png',
             asesores: '/images/shadow arrow.png',
-            reportes: '/images/shadow arrow.png',
+            informes: '/images/shadow arrow.png',
             integraciones: '/images/shadow arrow.png',
             configuracion: '/images/shadow arrow.png',
         };
@@ -411,7 +434,7 @@ function Dashboard() {
             clientes: '/images/shadow folder.png',
             motorizados: '/images/shadow file.png',
             asesores: '/images/shadow tv.png',
-            reportes: '/images/shadow report.png',
+            informes: '/images/shadow report.png',
             integraciones: '/images/shadow file.png',
             configuracion: '/images/shadow file.png',
         };
@@ -422,7 +445,7 @@ function Dashboard() {
             clientes: '#555d8b',
             motorizados: '#555d8b',
             asesores: '#555d8b',
-            reportes: '#555d8b',
+            informes: '#555d8b',
             integraciones: '#555d8b',
             configuracion: '#555d8b',
         };
@@ -446,8 +469,8 @@ function Dashboard() {
                 case 'asesores':
                     newGearImages.asesores = '/images/tv.png';
                     break;
-                case 'reportes':
-                    newGearImages.reportes = '/images/report.png';
+                case 'informes':
+                    newGearImages.informes = '/images/report.png';
                     break;
                 case 'integraciones':
                     newGearImages.integraciones = '/images/file.png';
@@ -503,6 +526,16 @@ function Dashboard() {
         }
     };
 
+    const handleInformesClick = (option) => {
+        setInformesSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
     const handleConfiguracionClick = (option) => {
         setConfiguracionSeleccion(option);
         setActiveSection(option);
@@ -544,6 +577,8 @@ function Dashboard() {
             parentSection = 'Mantenimiento';
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
+        } else if (['vista'].includes(activeSection)) {
+            parentSection = 'Informes';  
         } else if (['cobertura'].includes(activeSection)) {
             parentSection = 'Configuracion';  
         } else if (['curier'].includes(activeSection)) {
@@ -558,6 +593,7 @@ function Dashboard() {
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
             'enviosAgencia': 'Envíos Agencia',
             'shopify': 'Shopify',
+            'vista': 'Vista Informes',
             'cobertura': 'Registrar Cobertura',
             'curier': 'Registrar Currier Nuevos'
         };
@@ -590,11 +626,15 @@ function Dashboard() {
             case 'usuarios':
                 return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
             case 'movimiento':
-                return <div className="div-dashboard"><h1>Movimiento</h1></div>;
+                return <MovimientoDashboard />;
             case 'shopify':
                 return <ShopifyDashboard />;
+            case 'vista':
+                return <InformeDashboard />;
             case 'cobertura':
                 return <div className="div-dashboard"><h1>Cobertura</h1></div>;
+            case 'curier':
+                return <div className="div-dashboard"><h1>Curiers Nuevos</h1></div>;
             default:
                 return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
         }
@@ -870,25 +910,29 @@ function Dashboard() {
                                 <li>Asesor 2</li>
                             </ul>}
                         </li>
-                        <li className={`main-menu-item ${expanded.reportes ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('reportes')}>
+                        <li className={`main-menu-item ${expanded.informes ? 'expanded' : ''}`}>
+                            <div className="menu-item-header" onClick={() => toggleSection('informes')}>
                                 <img
-                                    src={gearImages.reportes}
-                                    alt="Reporte"
+                                    src={gearImages.informes}
+                                    alt="Informes"
                                     style={{ width: '22px', height: '22px' }}
                                 />
                                 <i className="fas fa-user-tie"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.reportes }}>Reportes</span>
-                                <i className={`fas fa-chevron-${expanded.reportes ? 'down' : 'right'}`}></i>
+                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.informes }}>Informes</span>
+                                <i className={`fas fa-chevron-${expanded.informes ? 'down' : 'right'}`}></i>
                                 <img
-                                    src={arrowImages.reportes}
-                                    alt="Reportes"
+                                    src={arrowImages.informes}
+                                    alt="Informes"
                                     className="menu-icon"
                                 />
                             </div>
-                            {expanded.reportes && <ul className="submenu">
-                                <li>Reporte 1</li>
-                                <li>Reporte 2</li>
+                            {expanded.informes && <ul className="submenu">
+                                <li 
+                                        onClick={() => handleInformesClick('vista')}
+                                        className={informesSeleccion === 'vista' ? 'active' : ''}
+                                    >
+                                        Vista Informes
+                                    </li>
                             </ul>}
                         </li>
                         <li className={`main-menu-item ${expanded.configuracion ? 'expanded' : ''}`}>
