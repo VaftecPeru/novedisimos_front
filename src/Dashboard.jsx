@@ -558,6 +558,11 @@ function Dashboard() {
         localStorage.setItem('clientsData', JSON.stringify(updatedClients));
     };
 
+    const handleCerrarSesion = () => {
+        // Aquí podrías agregar lógica adicional antes de cerrar sesión, como limpiar cookies o localStorage
+        navigate('/');
+    };
+
     const openCloseIcon = (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-close h-5 w-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path><path d="m16 15-3-3 3-3"></path></svg>
     );
@@ -760,19 +765,19 @@ function Dashboard() {
                             </div>
                             {expanded.pedidos && (
                                 <ul className="submenu">
-                                    <li 
+                                    <li
                                         onClick={() => handlePedidosClick('ordenDePedido')}
                                         className={pedidosSeleccion === 'ordenDePedido' ? 'active' : ''}
                                     >
                                         Orden de Pedido
                                     </li>
-                                    <li 
+                                    <li
                                         onClick={() => handlePedidosClick('seguimientoContraentrega')}
                                         className={pedidosSeleccion === 'seguimientoContraentrega' ? 'active' : ''}
                                     >
                                         Seguimiento Contraentrega
                                     </li>
-                                    <li 
+                                    <li
                                         onClick={() => handlePedidosClick('enviosAgencia')}
                                         className={pedidosSeleccion === 'enviosAgencia' ? 'active' : ''}
                                     >
@@ -799,19 +804,19 @@ function Dashboard() {
                             </div>
                             {expanded.mantenimiento && (
                                 <ul className="submenu">
-                                    <li 
+                                    <li
                                         onClick={() => handleMantenimientoClick('productos')}
                                         className={mantenimientoSeleccion === 'productos' ? 'active' : ''}
                                     >
                                         Productos
                                     </li>
-                                    <li 
+                                    <li
                                         onClick={() => handleMantenimientoClick('usuarios')}
                                         className={mantenimientoSeleccion === 'usuarios' ? 'active' : ''}
                                     >
                                         Usuarios de tienda
                                     </li>
-                                    <li 
+                                    <li
                                         onClick={() => handleMantenimientoClick('movimiento')}
                                         className={mantenimientoSeleccion === 'movimiento' ? 'active' : ''}
                                     >
@@ -838,7 +843,7 @@ function Dashboard() {
                             </div>
                             {expanded.integraciones && (
                                 <ul className="submenu">
-                                    <li 
+                                    <li
                                         onClick={() => handleIntegracionesClick('shopify')}
                                         className={integracionesSeleccion === 'shopify' ? 'active' : ''}
                                     >
@@ -927,12 +932,12 @@ function Dashboard() {
                                 />
                             </div>
                             {expanded.informes && <ul className="submenu">
-                                <li 
-                                        onClick={() => handleInformesClick('vista')}
-                                        className={informesSeleccion === 'vista' ? 'active' : ''}
-                                    >
-                                        Vista Informes
-                                    </li>
+                                <li
+                                    onClick={() => handleInformesClick('vista')}
+                                    className={informesSeleccion === 'vista' ? 'active' : ''}
+                                >
+                                    Vista Informes
+                                </li>
                             </ul>}
                         </li>
                         <li className={`main-menu-item ${expanded.configuracion ? 'expanded' : ''}`}>
@@ -953,13 +958,13 @@ function Dashboard() {
                             </div>
                             {expanded.configuracion && (
                                 <ul className="submenu">
-                                    <li 
+                                    <li
                                         onClick={() => handleConfiguracionClick('cobertura')}
                                         className={configuracionSeleccion === 'cobertura' ? 'active' : ''}
                                     >
                                         Cobertura
                                     </li>
-                                    <li 
+                                    <li
                                         onClick={() => handleConfiguracionClick('curier')}
                                         className={configuracionSeleccion === 'curier' ? 'active' : ''}
                                     >
@@ -970,6 +975,20 @@ function Dashboard() {
                         </li>
                     </ul>
                 </nav>
+                <div className="bottom-section">
+        <div className="user-info">
+            <div className="user-avatar">
+                <img src="../images/avatar-ejemplo.png" alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+            </div>
+            <div className="user-details">
+                <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#eee', textAlign: 'left' }}>Prueba Ejemplo</span>
+                <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left' }}>prueba@ejemplo.com</span>
+            </div>
+        </div>
+        <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
+            Cerrar Sesión
+        </button>
+    </div>
                 <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" />
             </div>
         </div>
