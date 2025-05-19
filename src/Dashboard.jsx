@@ -206,6 +206,26 @@ function Dashboard() {
                 }));
             }
 
+            if (lastSegment === 'productos' || lastSegment === 'almacenes') {
+                initialExpandedState.mantenimiento = true;
+                setMantenimientoSeleccion(lastSegment);
+                
+                setArrowImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/down arrow.png'
+                }));
+                
+                setGearImages(prev => ({
+                    ...prev,
+                    mantenimiento: '/images/file.png'
+                }));
+                
+                setSpanColors(prev => ({
+                    ...prev,
+                    mantenimiento: 'white'
+                }));
+            }
+
             if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
                 initialExpandedState.pedidos = true;
                 setPedidosSeleccion(lastSegment);
@@ -580,6 +600,8 @@ function Dashboard() {
             parentSection = 'Pedidos';
         } else if (['productos', 'usuarios', 'movimiento'].includes(activeSection)) {
             parentSection = 'Mantenimiento';
+        } else if (['productos', 'usuarios', 'almacenes'].includes(activeSection)) {
+            parentSection = 'Mantenimiento';
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
         } else if (['vista'].includes(activeSection)) {
@@ -594,6 +616,7 @@ function Dashboard() {
             'productos': 'Productos',
             'usuarios': 'Usuarios de Tienda', 
             'movimiento': 'Movimiento', 
+            'almacenes': 'Almacen',
             'ordenDePedido': 'Orden de Pedido',
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
             'enviosAgencia': 'Envíos Agencia',
@@ -632,6 +655,8 @@ function Dashboard() {
                 return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
             case 'movimiento':
                 return <MovimientoDashboard />;
+            case 'almacenes':
+                return <div className="div-dashboard"><h1>Almacen</h1></div>;
             case 'shopify':
                 return <ShopifyDashboard />;
             case 'vista':
@@ -822,6 +847,12 @@ function Dashboard() {
                                     >
                                         Movimiento
                                     </li>
+                                    <li
+                                        onClick={() => handleMantenimientoClick('almacenes')}
+                                        className={mantenimientoSeleccion === 'almacenes' ? 'active' : ''}
+                                    >
+                                        Almacen
+                                    </li>
                                 </ul>
                             )}
                         </li>
@@ -978,18 +1009,18 @@ function Dashboard() {
                 <div className="bottom-section">
         <div className="user-info">
             <div className="user-avatar">
-                <img src="../images/avatar-ejemplo.png" alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                <img src="../images/avatarejemplo.png" alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
             </div>
             <div className="user-details">
-                <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#eee', textAlign: 'left' }}>Prueba Ejemplo</span>
-                <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left' }}>prueba@ejemplo.com</span>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#eee', textAlign: 'left', marginLeft: '5px' }}>Prueba Ejemplo</span>
+                <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>prueba@ejemplo.com</span>
             </div>
         </div>
         <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
             Cerrar Sesión
         </button>
     </div>
-                <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" />
+                <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" style={{ borderRadius: '50px' }}/>
             </div>
         </div>
     );
