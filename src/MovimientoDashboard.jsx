@@ -36,7 +36,7 @@ function MovimientoDashboard() {
       tipo: 'ENTRY',
       estado: 'DISPONIBLE',
     },
-    
+
   ];
 
   const estadosDisponibles = ['TODOS', 'DISPONIBLE', 'VENDIDO', 'EN_REVISION', 'OBSOLETO'];
@@ -48,8 +48,8 @@ function MovimientoDashboard() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        flexGrow: 1, 
-        width: '100%', 
+        flexGrow: 1,
+        width: '100%',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
@@ -60,6 +60,7 @@ function MovimientoDashboard() {
             color: 'black',
             borderRadius: '20px',
             border: '1px solid #576cc4',
+            
             '&:hover': {
               backgroundColor: '#e0e0e0',
               borderColor: '#435ca7',
@@ -111,36 +112,110 @@ function MovimientoDashboard() {
         className="movimiento dashboard"
         style={{
           display: 'flex',
-          flexGrow: 1, 
+          flexGrow: 1,
           width: '98%',
           height: '1000px',
           marginLeft: '20px',
         }}
       >
-        <TableContainer component={Paper} sx={{ mb: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', flexGrow: 1 }}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            mb: 4,
+            boxShadow: 'none', // Quitamos la sombra del TableContainer
+            border: 'none',     // Quitamos cualquier borde del TableContainer
+            flexGrow: 1,
+          }}
+        >
+          {/* Quitamos el borde exterior de la Tabla. Las líneas las darán las celdas. */}
           <Table sx={{ minWidth: 750 }} size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: '#f3f4f6' }}>
                 {['Fecha', 'Producto', 'Almacen', 'Cantidad', 'Comentario', 'Operación', 'Tipo', 'Estado']
-                  .map(header => <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>)}
+                  .map(header => (
+                    <TableCell
+                      key={header}
+                      sx={{
+                        fontWeight: 'bold',
+                        border: '1px solid #e0e0e0', // Bordes para los encabezados
+                        textAlign: 'center', // Centrar el texto del encabezado
+                      }}
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {movimientosInventario.map((movimiento) => (
+              {movimientosInventario.map((movimiento, index) => (
                 <TableRow key={movimiento.fecha.toISOString()} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <Typography>{format(movimiento.fecha, 'dd/MM/yyyy HH:mm')}</Typography>
                       <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>ALMACEN-{movimiento.almacen}</Typography>
                     </Box>
                   </TableCell>
-                  <TableCell>{movimiento.producto}</TableCell>
-                  <TableCell>{movimiento.almacen}</TableCell>
-                  <TableCell>{movimiento.cantidad}</TableCell>
-                  <TableCell>{movimiento.comentario}</TableCell>
-                  <TableCell>{movimiento.operacion}</TableCell>
-                  <TableCell>{movimiento.tipo}</TableCell>
-                  <TableCell><Chip label={movimiento.estado} size="small" sx={{ border: 'none', backgroundColor: 'white' }} /></TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.producto}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.almacen}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.cantidad}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.comentario}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.operacion}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    {movimiento.tipo}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Chip label={movimiento.estado} size="small" sx={{ border: 'none', backgroundColor: 'white' }} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

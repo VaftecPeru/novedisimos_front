@@ -9,6 +9,7 @@ import ProductosDashboard from './ProductosDashboard';
 import SeguimientoContraentrega from './SeguimientoContraentrega';
 import ShopifyDashboard from './ShopifyDashboard';
 import MovimientoDashboard from './MovimientoDashboard';
+import AlmacenDashboard from './AlmacenDashboard';
 import InformeDashboard from './InformeDashboard';
 
 Modal.setAppElement('#root');
@@ -656,7 +657,7 @@ function Dashboard() {
             case 'movimiento':
                 return <MovimientoDashboard />;
             case 'almacenes':
-                return <div className="div-dashboard"><h1>Almacen</h1></div>;
+                return <AlmacenDashboard />;
             case 'shopify':
                 return <ShopifyDashboard />;
             case 'vista':
