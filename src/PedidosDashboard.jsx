@@ -1011,6 +1011,13 @@ function PedidosDashboard() {
     setFiltros({ ...filtros, [campo]: valor });
   };
 
+  const getNoteAttributeValue = (order, attributeName) => {
+  if (!order.note_attributes) return 'No disponible';
+  
+  const attribute = order.note_attributes.find(attr => attr.name === attributeName);
+  return attribute ? attribute.value : 'No disponible';
+};
+
   useEffect(() => {
     const cargarPedidos = async () => {
       try {
@@ -1019,8 +1026,8 @@ function PedidosDashboard() {
         const response = await fetchOrders();
         console.log('Respuesta de la API:', response);
         
-        if (response && response.pedidos) {
-          const pedidosFormateados = response.pedidos.map(order => ({
+        if (response && response.orders) {
+          const pedidosFormateados = response.orders.map(order => ({
             id: order.name || `#${order.order_number}`,
             cliente: order.customer ? 
                     `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
