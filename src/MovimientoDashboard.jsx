@@ -54,36 +54,38 @@ function MovimientoDashboard() {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Button
-          variant="contained"
-          sx={{
-            backgroundColor: '#f1f1f1',
-            color: 'black',
-            borderRadius: '20px',
-            border: '1px solid #576cc4',
-            
-            '&:hover': {
-              backgroundColor: '#e0e0e0',
-              borderColor: '#435ca7',
-              boxShadow: '0 0 5px rgba(71, 99, 228, 0.5)',
-            },
-            padding: '4px 16px',
-            marginLeft: '20px',
-          }}
-          onClick={() => setDrawerOpen(true)}
-          startIcon={
-            <img
-              src="/images/youtube icon.png"
-              alt="Logo de YouTube"
-              style={{
-                height: '20px',
-                width: '20px',
-              }}
-            />
-          }
-          disableTypography
-        >
-          Ver video tutorial
-        </Button>
+  variant="contained"
+  sx={{
+    backgroundColor: '#f1f1f1',
+    color: 'black',
+    borderRadius: '20px',
+    border: '1px solid transparent', // Borde transparente por defecto
+    borderColor: '#e0e0e0',
+    boxShadow: 'none', // Elimina la sombra por defecto
+
+    '&:hover': {
+      backgroundColor: '#e0e0e0',
+      borderColor: '#1972df', // El borde aparece al pasar el ratón
+      boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
+    },
+    padding: '4px 16px',
+    marginLeft: '20px',
+  }}
+  onClick={() => setDrawerOpen(true)}
+  startIcon={
+    <img
+      src="/images/youtube icon.png"
+      alt="Logo de YouTube"
+      style={{
+        height: '20px',
+        width: '20px',
+      }}
+    />
+  }
+  disableTypography
+>
+  Ver video tutorial
+</Button>
         <Typography variant="body2" sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }} className="producto-label">
           Producto
         </Typography>
@@ -122,12 +124,11 @@ function MovimientoDashboard() {
           component={Paper}
           sx={{
             mb: 4,
-            boxShadow: 'none', // Quitamos la sombra del TableContainer
-            border: 'none',     // Quitamos cualquier borde del TableContainer
+            boxShadow: 'none', 
+            border: 'none',     
             flexGrow: 1,
           }}
         >
-          {/* Quitamos el borde exterior de la Tabla. Las líneas las darán las celdas. */}
           <Table sx={{ minWidth: 750 }} size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: '#f3f4f6' }}>
@@ -137,8 +138,8 @@ function MovimientoDashboard() {
                       key={header}
                       sx={{
                         fontWeight: 'bold',
-                        border: '1px solid #e0e0e0', // Bordes para los encabezados
-                        textAlign: 'center', // Centrar el texto del encabezado
+                        border: '1px solid #e0e0e0', 
+                        textAlign: 'center', 
                       }}
                     >
                       {header}
@@ -151,7 +152,7 @@ function MovimientoDashboard() {
                 <TableRow key={movimiento.fecha.toISOString()} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -162,7 +163,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -170,7 +171,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -178,7 +179,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -186,7 +187,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -194,7 +195,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -202,7 +203,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
@@ -210,7 +211,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Borde para cada celda
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center'
                     }}
                   >
