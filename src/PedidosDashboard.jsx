@@ -18,6 +18,53 @@ const formatDate = (dateString) => {
     year: 'numeric'
   });
 };
+
+
+const getNoteAttributeValue = (order, attributeName) => {
+  if (!order.note_attributes) return 'No disponible';
+  const attribute = order.note_attributes.find(attr => attr.name === attributeName);
+  return attribute ? attribute.value : 'No disponible';
+};
+
+const mapShopifyStatus = (order) => {
+  if (order.cancelled_at) return 'CANCELADO';
+  if (order.financial_status === 'paid') return 'CONFIRMADO';
+  if (order.financial_status === 'pending') return 'PENDIENTE';
+  return 'PENDIENTE';
+};
+
+const mapDeliveryStatus = (order) => {
+  if (order.fulfillment_status === 'fulfilled') return 'FINAL DE ENTREGA';
+  if (order.fulfillment_status === 'partial') return 'POR DERIVAR';
+  if (order.financial_status === 'paid') return 'ADMITIDO';
+  return 'IN-WOW';
+};
+
+const getLocationFromOrder = (order) => {
+  const provincia = getNoteAttributeValue(order, 'Provincia y Distrito:');
+  const direccion = getNoteAttributeValue(order, 'Dirección');
+  
+  if (provincia !== 'No disponible') {
+    return provincia;
+  }
+  
+  if (order.shipping_address) {
+    return `${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}`.trim();
+  }
+  
+  return direccion !== 'No disponible' ? direccion : 'Sin ubicación';
+};
+
+const getAlmacenFromLocation = (location) => {
+  if (!location || location === 'Sin ubicación') return 'TODOS';
+  
+  const locationLower = location.toLowerCase();
+  if (locationLower.includes('lima') || locationLower.includes('callao')) {
+    return 'LIMA';
+  }
+  return 'PROVINCIA';
+};
+
 const EstadoChip = ({ estado, estadoAdicional }) => {
   const colorMap = {
     'IN-WOW': '#3884f7',
@@ -52,11 +99,11 @@ const FechaItem = ({ label, fecha }) => (
 
 function PedidosDashboard() {
   const [filtros, setFiltros] = useState({
-    estado: 'CONFIRMADO',
+    estado: '',
     estadoEntrega: '',
     almacen: 'TODOS',
-    fechaInicio: '2023-03-12',
-    fechaFin: '2023-03-27',
+    fechaInicio: '',
+    fechaFin: '',
     searchTerm: ''
   });
   
@@ -89,6 +136,7 @@ function PedidosDashboard() {
   const [nuevoProducto, setNuevoProducto] = useState({ descripcion: '', cantidad: 1, precio: '' });
 
   const [pedidos, setPedidos] = useState([]);
+  const [pedidosOriginales, setPedidosOriginales] = useState([]);  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -1006,6 +1054,9 @@ function PedidosDashboard() {
 
   const [provinciasSeleccionadas, setProvinciasSeleccionadas] = useState([]);
   const [distritosSeleccionados, setDistritosSeleccionados] = useState([]);
+  const [estadosDisponibles, setEstadosDisponibles] = useState([]);
+  const [estadosEntregaDisponibles, setEstadosEntregaDisponibles] = useState([]);
+  const [almacenesDisponibles, setAlmacenesDisponibles] = useState(['TODOS', 'LIMA', 'PROVINCIA']);
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros({ ...filtros, [campo]: valor });
@@ -1019,105 +1070,170 @@ function PedidosDashboard() {
 };
 
   useEffect(() => {
-    const cargarPedidos = async () => {
+    const cargarTodosLosPedidos = async () => {
       try {
         setLoading(true);
-        console.log('Cargando pedidos desde Shopify...');
-        const response = await fetchOrders();
-        console.log('Respuesta de la API:', response);
+        console.log('Cargando TODOS los pedidos desde Shopify...');
         
-        if (response && response.orders) {
-          const pedidosFormateados = response.orders.map(order => ({
-            id: order.name || `#${order.order_number}`,
-            cliente: order.customer ? 
-                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
-                    (order.email || 'Cliente no registrado'),
-            ubicacion: order.shipping_address ? 
-                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
-                      'Sin dirección',
-            estado: 'CONFIRMADO',
-            estadoAdicional: 'IN-WOW',
-            importes: {
-              total: `PEN ${order.current_total_price || '0.00'}`,
-              detalles: order.line_items ? order.line_items.map(item => ({
-                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
-                valor: `PEN ${item.price || '0.00'}`
-              })) : []
-            },
-            fechas: {
-              registro: formatDate(order.created_at),
-              despacho: formatDate(order.processed_at),
-              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
+        let allOrders = [];
+        let hasMore = true;
+        let page = 1;
+        const limit = 250; 
+        
+        while (hasMore && page <= 10) { 
+          try {
+            console.log(`Cargando página ${page} de pedidos...`);
+            
+            const response = await fetchOrdersWithPagination(page, limit);
+            
+            let ordersData = [];
+            if (response && response.orders) {
+              ordersData = response.orders;
+            } else if (Array.isArray(response)) {
+              ordersData = response;
             }
-          }));
-          
-          setPedidos(pedidosFormateados);
-        } else if (response && Array.isArray(response.orders)) {
-          const pedidosFormateados = response.orders.map(order => ({
-            id: order.name || `#${order.order_number}`,
-            cliente: order.customer ? 
-                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
-                    (order.email || 'Cliente no registrado'),
-            ubicacion: order.shipping_address ? 
-                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
-                      'Sin dirección',
-            estado: 'CONFIRMADO',
-            estadoAdicional: 'IN-WOW',
-            importes: {
-              total: `PEN ${order.current_total_price || '0.00'}`,
-              detalles: order.line_items ? order.line_items.map(item => ({
-                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
-                valor: `PEN ${item.price || '0.00'}`
-              })) : []
-            },
-            fechas: {
-              registro: formatDate(order.created_at),
-              despacho: formatDate(order.processed_at),
-              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
+            
+            if (ordersData.length === 0) {
+              hasMore = false;
+            } else {
+              allOrders = [...allOrders, ...ordersData];
+              hasMore = ordersData.length === limit; 
+              page++;
             }
-          }));
-          
-          setPedidos(pedidosFormateados);
-        } else if (Array.isArray(response)) {
-          const pedidosFormateados = response.map(order => ({
-            id: order.name || `#${order.order_number}`,
-            cliente: order.customer ? 
-                    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
-                    (order.email || 'Cliente no registrado'),
-            ubicacion: order.shipping_address ? 
-                      `${order.shipping_address.address1 || ''} - ${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}` : 
-                      'Sin dirección',
-            estado: 'CONFIRMADO',
-            estadoAdicional: 'IN-WOW',
-            importes: {
-              total: `PEN ${order.current_total_price || '0.00'}`,
-              detalles: order.line_items ? order.line_items.map(item => ({
-                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
-                valor: `PEN ${item.price || '0.00'}`
-              })) : []
-            },
-            fechas: {
-              registro: formatDate(order.created_at),
-              despacho: formatDate(order.processed_at),
-              entrega: order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-'
-            }
-          }));
-          
-          setPedidos(pedidosFormateados);
-        } else {
-          console.error('Formato de respuesta no reconocido:', response);
-          setError('No se pudo obtener la lista de pedidos. Formato de respuesta inválido.');
+            
+            console.log(`Página ${page - 1}: ${ordersData.length} pedidos. Total acumulado: ${allOrders.length}`);
+            
+          } catch (pageError) {
+            console.error(`Error en página ${page}:`, pageError);
+            hasMore = false;
+          }
         }
+        
+        if (allOrders.length === 0) {
+          console.log('Fallback: Cargando con método original...');
+          const response = await fetchOrders();
+          
+          if (response && response.orders) {
+            allOrders = response.orders;
+          } else if (Array.isArray(response)) {
+            allOrders = response;
+          } else {
+            console.error('Formato de respuesta no reconocido:', response);
+            setError('No se pudo obtener la lista de pedidos. Formato de respuesta inválido.');
+            return;
+          }
+        }
+        
+        console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
+        
+        const pedidosFormateados = allOrders.map(order => {
+          const estado = mapShopifyStatus(order);
+          const estadoAdicional = mapDeliveryStatus(order);
+          const ubicacion = getLocationFromOrder(order);
+          const almacen = getAlmacenFromLocation(ubicacion);
+          
+          return {
+            id: order.name || `#${order.order_number}`,
+            orderNumber: order.order_number,
+            shopifyId: order.id,
+            
+            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible' 
+              ? getNoteAttributeValue(order, 'Nombre y Apellidos')
+              : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
+            
+            telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible' 
+              ? getNoteAttributeValue(order, 'Celular')
+              : (order.phone || 'Sin teléfono'),
+            
+            ubicacion: ubicacion,
+            almacen: almacen,
+            
+            estado: estado,
+            estadoAdicional: estadoAdicional,
+            
+            financial_status: order.financial_status,
+            fulfillment_status: order.fulfillment_status,
+            
+            importes: {
+              total: `${order.presentment_currency || 'PEN'} ${order.current_total_price || order.total_price || '0.00'}`,
+              subtotal: order.subtotal_price || '0.00',
+              currency: order.presentment_currency || order.currency || 'PEN',
+              detalles: order.line_items ? order.line_items.map(item => ({
+                descripcion: `${item.quantity || 1} ${item.name || 'Producto'}`,
+                valor: `${order.presentment_currency || 'PEN'} ${item.price || '0.00'}`
+              })) : []
+            },
+            
+            fechas: {
+              registro: formatDate(order.created_at),
+              despacho: formatDate(order.processed_at),
+              entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) : 
+                      (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
+            },
+            
+            medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
+            
+            tags: order.tags || '',
+            note: order.note || '',
+            
+            fechaCreacion: new Date(order.created_at),
+            fechaActualizacion: new Date(order.updated_at),
+            
+            originalOrder: order
+          };
+        });
+        
+        setPedidos(pedidosFormateados);
+        setPedidosOriginales(pedidosFormateados);
+        
+        const estadosUnicos = [...new Set(pedidosFormateados.map(p => p.estado))].filter(Boolean);
+        const estadosEntregaUnicos = [...new Set(pedidosFormateados.map(p => p.estadoAdicional))].filter(Boolean);
+        
+        setEstadosDisponibles(estadosUnicos);
+        setEstadosEntregaDisponibles(estadosEntregaUnicos);
+        
+        console.log('✅ Pedidos procesados exitosamente:', pedidosFormateados.length);
+        console.log('📊 Estados disponibles:', estadosUnicos);
+        console.log('🚚 Estados de entrega disponibles:', estadosEntregaUnicos);
+        
       } catch (err) {
-        console.error('Error al cargar pedidos:', err);
+        console.error('❌ Error al cargar pedidos:', err);
         setError(err.message || 'Error al cargar pedidos');
       } finally {
         setLoading(false);
       }
     };
 
-    cargarPedidos();
+    cargarTodosLosPedidos();
   }, []);
+
+  const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
+    try {
+      const urls = [
+        `${API_BASE_URL}/orders?limit=${limit}&page=${page}`,
+        `${API_BASE_URL}/orders?limit=${limit}&page_info=${page}`,
+        `${API_BASE_URL}/orders?per_page=${limit}&page=${page}`,
+        `${API_BASE_URL}/orders`  
+      ];
+      
+      for (const url of urls) {
+        try {
+          console.log(`Intentando URL: ${url}`);
+          const response = await axios.get(url);
+          if (response.data) {
+            return response.data;
+          }
+        } catch (urlError) {
+          console.warn(`Error con URL ${url}:`, urlError.message);
+        }
+      }
+      
+      throw new Error('No se pudo cargar con ninguna URL de paginación');
+    } catch (error) {
+      console.error('Error en fetchOrdersWithPagination:', error);
+      throw error;
+    }
+  };
 
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
@@ -1160,14 +1276,52 @@ function PedidosDashboard() {
     setNuevoPedido(estadoInicial);
   };
 
-  const pedidosFiltrados = pedidos.filter(pedido => {
-    const { estado, estadoEntrega, searchTerm } = filtros;
-    if (estado && pedido.estado !== estado) return false;
-    if (estadoEntrega && pedido.estadoAdicional !== estadoEntrega) return false;
-    if (searchTerm && !pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !pedido.id.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+    const { estado, estadoEntrega, almacen, fechaInicio, fechaFin, searchTerm } = filtros;
+    
+    if (estado && estado !== '' && pedido.estado !== estado) return false;
+    
+    if (estadoEntrega && estadoEntrega !== '' && pedido.estadoAdicional !== estadoEntrega) return false;
+    
+    if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
+    
+    if (fechaInicio && fechaInicio !== '') {
+      try {
+        const fechaInicioParsed = new Date(fechaInicio);
+        fechaInicioParsed.setHours(0, 0, 0, 0);  
+        if (pedido.fechaCreacion < fechaInicioParsed) return false;
+      } catch (error) {
+        console.warn('Error al parsear fecha inicio:', fechaInicio);
+      }
+    }
+    
+    if (fechaFin && fechaFin !== '') {
+      try {
+        const fechaFinParsed = new Date(fechaFin);
+        fechaFinParsed.setHours(23, 59, 59, 999); 
+        if (pedido.fechaCreacion > fechaFinParsed) return false;
+      } catch (error) {
+        console.warn('Error al parsear fecha fin:', fechaFin);
+      }
+    }
+    
+    if (searchTerm && searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
+      const matchesId = pedido.id && pedido.id.toLowerCase().includes(searchLower);
+      const matchesTelefono = pedido.telefono && pedido.telefono.toLowerCase().includes(searchLower);
+      const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
+      const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
+      const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
+      
+      if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
+        return false;
+      }
+    }
+    
     return true;
   });
+
   if (loading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1208,7 +1362,7 @@ function PedidosDashboard() {
         </Button>
 
         <TextField
-          placeholder="Buscar..."
+          placeholder="Buscar por cliente, pedido, teléfono o ubicación..."
           variant="outlined"
           size="small"
           value={filtros.searchTerm}
@@ -1223,8 +1377,9 @@ function PedidosDashboard() {
             onChange={(e) => handleFiltroChange('estado', e.target.value)}
             sx={{ height: 40 }}
           >
-            {['CONFIRMADO', 'PENDIENTE', 'CANCELADO'].map(opt => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+            <MenuItem value="">Todos los estados</MenuItem>
+            {estadosDisponibles.map(estado => (
+              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -1233,12 +1388,13 @@ function PedidosDashboard() {
           <Select
             value={filtros.estadoEntrega}
             onChange={(e) => handleFiltroChange('estadoEntrega', e.target.value)}
-            renderValue={selected => selected || "Selecciona estados"}
+            displayEmpty
+            renderValue={selected => selected || "Estados de entrega"}
             sx={{ height: 40 }}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            {['IN-WOW', 'ADMITIDO', 'POR DERIVAR', 'FINAL DE ENTREGA'].map(opt => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+            >
+            <MenuItem value="">Estados de entrega</MenuItem>
+            {estadosEntregaDisponibles.map(estado => (
+              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -1247,43 +1403,54 @@ function PedidosDashboard() {
           <Select
             value={filtros.almacen}
             onChange={(e) => handleFiltroChange('almacen', e.target.value)}
+            displayEmpty
+            renderValue={selected => selected || "Seleccion un estado"}
             sx={{ height: 40 }}
           >
-            {['TODOS', 'LIMA', 'PROVINCIA'].map(opt => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+            {almacenesDisponibles.map(almacen => (
+              <MenuItem key={almacen} value={almacen}>{almacen}</MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por:</Typography>
-          <FormControl size="small" sx={{ minWidth: 180, bgcolor: 'white' }}>
-            <Select value="fecha" sx={{ height: 40 }}>
-              <MenuItem value="fecha">Fecha Actualización</MenuItem>
-              <MenuItem value="creacion">Fecha Creación</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          {['fechaInicio', 'fechaFin'].map(campo => (
-            <TextField
-              key={campo}
-              type="date"
-              size="small"
-              value={filtros[campo]}
-              onChange={(e) => handleFiltroChange(campo, e.target.value)}
-              sx={{ width: 160, bgcolor: 'white' }}
-            />
-          ))}
+          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por fecha:</Typography>
+          <TextField
+            label="Desde"
+            type="date"
+            size="small" 
+            value={filtros.fechaInicio}
+            onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
+            sx={{ width: 160, bgcolor: 'white' }}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Hasta"
+            type="date"
+            size="small"
+            value={filtros.fechaFin}
+            onChange={(e) => handleFiltroChange('fechaFin', e.target.value)}
+            sx={{ width: 160, bgcolor: 'white' }}
+            InputLabelProps={{ shrink: true }}
+          />
         </Box>
 
         <Button
           variant="outlined"
           startIcon={<FilterList />}
           sx={{ bgcolor: 'white', borderColor: '#4763e4', color: '#4763e4' }}
+          onClick={() => {
+            setFiltros({
+              estado: '',
+              estadoEntrega: '',
+              almacen: 'TODOS',
+              fechaInicio: '',
+              fechaFin: '',
+              searchTerm: ''
+            });
+          }}
         >
-          Más filtros
+          Limpiar filtros
         </Button>
       </Box>
 
