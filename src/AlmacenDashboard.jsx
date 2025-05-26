@@ -12,7 +12,7 @@ function AlmacenDashboard() {
       soporteAlmacen: 'S1918247574',
       contraentrega: '20 ciudades de la cobertura (24 - 72 hrs)',
     },
-    // Puedes añadir más filas aquí si es necesario
+    
   ];
 
   return (
@@ -40,12 +40,11 @@ function AlmacenDashboard() {
           component={Paper}
           sx={{
             mb: 4,
-            boxShadow: 'none', // Eliminamos la sombra si no la quieres
-            border: 'none',     // Aseguramos que no tenga borde propio
+            boxShadow: 'none', 
+            border: 'none',     
             flexGrow: 1,
           }}
         >
-          {/* Quitamos el borde exterior de la Tabla. Las líneas las darán las celdas. */}
           <Table sx={{ minWidth: 750 }} size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: '#f3f4f6' }}>
@@ -55,8 +54,8 @@ function AlmacenDashboard() {
                       key={header}
                       sx={{
                         fontWeight: 'bold',
-                        border: '1px solid #e0e0e0', // Bordes para los encabezados
-                        textAlign: 'center', // Centrar el texto del encabezado
+                        border: '1px solid #e0e0e0', 
+                        textAlign: 'center', 
                       }}
                     >
                       {header}
@@ -69,7 +68,7 @@ function AlmacenDashboard() {
                 <TableRow key={index} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Bordes para las celdas del cuerpo
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center',
                     }}
                   >
@@ -77,15 +76,16 @@ function AlmacenDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Bordes para las celdas del cuerpo
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center',
+                      
                     }}
                   >
                     {row.almacen}
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Bordes para las celdas del cuerpo
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center',
                     }}
                   >
@@ -93,7 +93,7 @@ function AlmacenDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Bordes para las celdas del cuerpo
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center',
                     }}
                   >
@@ -101,7 +101,7 @@ function AlmacenDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', // Bordes para las celdas del cuerpo
+                      border: '1px solid #e0e0e0', 
                       textAlign: 'center',
                     }}
                   >

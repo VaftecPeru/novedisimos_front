@@ -4,11 +4,6 @@ import Registro from './Registro';
 import RegistroCorreo from './RegistroCorreo';
 import RegistroCorreoFinal from './Registrofinal';
 import Dashboard from './Dashboard';
-import Categorias from './Categorias';
-import Devolucion from './Devolucion';
-import Reparto from './Reparto';
-import Seguimiento from './Seguimiento';
-import Calendario from './Calendario';
 import { useState } from 'react';
 
 function App() {
@@ -122,11 +117,6 @@ function MainApp() {
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
-        <Route path="/categorias" element={<Categorias />} />
-        <Route path="/devolucion" element={<Devolucion />} />
-        <Route path="/reparto" element={<Reparto />} />
-        <Route path="/seguimiento" element={<Seguimiento />} />
-        <Route path="/calendario" element={<Calendario />} />
       </Routes>
     </Router>
   );
