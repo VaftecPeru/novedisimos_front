@@ -1381,7 +1381,7 @@ function PedidosDashboard() {
           value={filtros.estado}
           onChange={(e) => handleFiltroChange('estado', e.target.value)}
           displayEmpty
-          renderValue={selected => selected || "Estados"}  // <- CAMBIO AQUÍ
+          renderValue={selected => selected || "Estados"}  
           sx={{ height: 40 }}
         >
           <MenuItem value="">Todos los estados</MenuItem>
