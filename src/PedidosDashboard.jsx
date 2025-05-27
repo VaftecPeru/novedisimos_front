@@ -99,13 +99,14 @@ const FechaItem = ({ label, fecha }) => (
 
 function PedidosDashboard() {
   const [filtros, setFiltros] = useState({
-    estado: '',
-    estadoEntrega: '',
-    almacen: 'TODOS',
-    fechaInicio: '',
-    fechaFin: '',
-    searchTerm: ''
-  });
+  estado: 'PENDIENTE',
+  almacen: 'TODOS',
+  tipoFecha: 'ingreso',
+  fechaInicio: '',
+  fechaFin: '',
+  searchTerm: ''
+});
+
   
   const [drawerOpen, setDrawerOpen] = useState(false);
   
@@ -1165,11 +1166,13 @@ function PedidosDashboard() {
             },
             
             fechas: {
-              registro: formatDate(order.created_at),
-              despacho: formatDate(order.processed_at),
+              ingreso: formatDate(order.created_at),
+              registro: formatDate(order.processed_at),
+              despacho: formatDate(order.shipped_at) || '-',
               entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) : 
                       (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
             },
+
             
             medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
             
@@ -1277,29 +1280,31 @@ function PedidosDashboard() {
   };
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-    const { estado, estadoEntrega, almacen, fechaInicio, fechaFin, searchTerm } = filtros;
-    
+    const { estado, /* estadoEntrega, */ almacen, fechaInicio, fechaFin, searchTerm } = filtros;
+
     if (estado && estado !== '' && pedido.estado !== estado) return false;
-    
+    {/*
     if (estadoEntrega && estadoEntrega !== '' && pedido.estadoAdicional !== estadoEntrega) return false;
-    
+    */}
     if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
     
     if (fechaInicio && fechaInicio !== '') {
       try {
         const fechaInicioParsed = new Date(fechaInicio);
-        fechaInicioParsed.setHours(0, 0, 0, 0);  
-        if (pedido.fechaCreacion < fechaInicioParsed) return false;
+        fechaInicioParsed.setHours(0, 0, 0, 0);
+        const fechaIngresoPedido = new Date(pedido.originalOrder.created_at);
+        if (fechaIngresoPedido < fechaInicioParsed) return false;
       } catch (error) {
         console.warn('Error al parsear fecha inicio:', fechaInicio);
       }
     }
-    
+
     if (fechaFin && fechaFin !== '') {
       try {
         const fechaFinParsed = new Date(fechaFin);
-        fechaFinParsed.setHours(23, 59, 59, 999); 
-        if (pedido.fechaCreacion > fechaFinParsed) return false;
+        fechaFinParsed.setHours(23, 59, 59, 999);
+        const fechaIngresoPedido = new Date(pedido.originalOrder.created_at);
+        if (fechaIngresoPedido > fechaFinParsed) return false;
       } catch (error) {
         console.warn('Error al parsear fecha fin:', fechaFin);
       }
@@ -1371,19 +1376,21 @@ function PedidosDashboard() {
           InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
         />
 
-        <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
-          <Select
-            value={filtros.estado}
-            onChange={(e) => handleFiltroChange('estado', e.target.value)}
-            sx={{ height: 40 }}
-          >
-            <MenuItem value="">Todos los estados</MenuItem>
-            {estadosDisponibles.map(estado => (
-              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+       <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
+        <Select
+          value={filtros.estado}
+          onChange={(e) => handleFiltroChange('estado', e.target.value)}
+          displayEmpty
+          renderValue={selected => selected || "Estados"}  // <- CAMBIO AQUÍ
+          sx={{ height: 40 }}
+        >
+          <MenuItem value="">Todos los estados</MenuItem>
+          {estadosDisponibles.map(estado => (
+            <MenuItem key={estado} value={estado}>{estado}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+        {/*
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
           <Select
             value={filtros.estadoEntrega}
@@ -1398,6 +1405,7 @@ function PedidosDashboard() {
             ))}
           </Select>
         </FormControl>
+        */}
 
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
           <Select
@@ -1414,7 +1422,19 @@ function PedidosDashboard() {
         </FormControl>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por fecha:</Typography>
+          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por:</Typography>
+          <FormControl size="small" sx={{ minWidth: 140, bgcolor: 'white' }}>
+            <Select
+              value={filtros.tipoFecha}
+              onChange={(e) => handleFiltroChange('tipoFecha', e.target.value)}
+              sx={{ height: 40 }}
+            >
+              <MenuItem value="ingreso">Fecha Ingreso</MenuItem>
+              <MenuItem value="registro">Fecha Registro</MenuItem>
+              <MenuItem value="despacho">Fecha Despacho</MenuItem>
+              <MenuItem value="entrega">Fecha Entrega</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             label="Desde"
             type="date"
@@ -1424,6 +1444,7 @@ function PedidosDashboard() {
             sx={{ width: 160, bgcolor: 'white' }}
             InputLabelProps={{ shrink: true }}
           />
+
           <TextField
             label="Hasta"
             type="date"
@@ -1441,9 +1462,9 @@ function PedidosDashboard() {
           sx={{ bgcolor: 'white', borderColor: '#4763e4', color: '#4763e4' }}
           onClick={() => {
             setFiltros({
-              estado: '',
-              estadoEntrega: '',
+              estado: 'PENDIENTE',
               almacen: 'TODOS',
+              tipoFecha: 'ingreso',
               fechaInicio: '',
               fechaFin: '',
               searchTerm: ''
@@ -1472,7 +1493,9 @@ function PedidosDashboard() {
                     <IconButton size="small" sx={{ color: '#6b7280' }}><Search fontSize="small" /></IconButton>
                   </Box>
                 </TableCell>
-                <TableCell><EstadoChip estado={pedido.estado} estadoAdicional={pedido.estadoAdicional} /></TableCell>
+                
+                <TableCell><EstadoChip estado={pedido.estado}  /></TableCell>
+              
                 <TableCell><IconButton size="small" sx={{ color: '#f59e0b' }}><FilterList fontSize="small" /></IconButton></TableCell>
                 <TableCell>
                   <Box>{pedido.importes.total}
@@ -1494,9 +1517,10 @@ function PedidosDashboard() {
                 <TableCell sx={{ maxWidth: 200 }}><Typography variant="body2" noWrap>{pedido.ubicacion}</Typography></TableCell>
                 <TableCell>
                   <Box sx={{ fontSize: '0.75rem' }}>
-                    <FechaItem label="R" fecha={pedido.fechas.registro} />
-                    <FechaItem label="D" fecha={pedido.fechas.despacho} />
-                    <FechaItem label="E" fecha={pedido.fechas.entrega} />
+                    <FechaItem label="Ingreso" fecha={pedido.fechas.ingreso} />
+                    <FechaItem label="Registro" fecha={pedido.fechas.registro} />
+                    <FechaItem label="Despacho" fecha={pedido.fechas.despacho} />
+                    <FechaItem label="Entrega" fecha={pedido.fechas.entrega} />
                   </Box>
                 </TableCell>
               </TableRow>
@@ -1698,6 +1722,8 @@ function PedidosDashboard() {
               </RadioGroup>
             </FormControl>
             
+            {/*
+            // DROPDOWN OCULTO - Estado Adicional
             <FormControl fullWidth size="small">
               <Select
                 name="estadoAdicional"
@@ -1709,7 +1735,8 @@ function PedidosDashboard() {
                 ))}
               </Select>
             </FormControl>
-            
+            */}
+
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Productos</Typography>
             
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1776,25 +1803,7 @@ function PedidosDashboard() {
               </Paper>
             )}
             
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Nota Adicional</Typography>
-            <TextField
-              label="Nota adicional"
-              name="notaAdicional"
-              value={nuevoPedido.notaAdicional}
-              onChange={handleFormChange}
-              multiline
-              rows={3}
-              fullWidth
-            />
-            
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Medio de Pago</Typography>
-            <FormControl component="fieldset">
-              <RadioGroup row name="medioPago" value={nuevoPedido.medioPago} onChange={handleFormChange}>
-                {['EFECTIVO', 'TRANSFERENCIA', 'YAPE', 'PLIN'].map(opt => (
-                  <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />
-                ))}
-              </RadioGroup>
-            </FormControl>
+      
             
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
               <Button variant="outlined" onClick={() => setDrawerOpen(false)}>Cancelar</Button>
