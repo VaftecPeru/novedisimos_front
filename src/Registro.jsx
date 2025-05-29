@@ -153,7 +153,7 @@ function Registro() {
                 borderWidth: '1px',
               },
               '&.Mui-focused': {
-                boxShadow: '0 0 0 1px rgba(71, 99, 228, 0.25)',
+                boxShadow: 'none',
               },
               '&:hover': {
                 boxShadow: 'none',
@@ -191,7 +191,7 @@ function Registro() {
                 borderWidth: '1px',
               },
               '&.Mui-focused': {
-                boxShadow: '0 0 0 1px rgba(71, 99, 228, 0.25)',
+                boxShadow: 'none',
               },
               '&:hover': {
                 boxShadow: 'none',
@@ -229,7 +229,7 @@ function Registro() {
                 borderWidth: '1px',
               },
               '&.Mui-focused': {
-                boxShadow: '0 0 0 1px rgba(71, 99, 228, 0.25)',
+                boxShadow: 'none',
               },
               '&:hover': {
                 boxShadow: 'none',
@@ -285,7 +285,7 @@ function Registro() {
                 borderWidth: '1px',
               },
               '&.Mui-focused': {
-                boxShadow: '0 0 0 1px rgba(71, 99, 228, 0.25)',
+                boxShadow: 'none',
               },
               '&:hover': {
                 boxShadow: 'none',
@@ -317,7 +317,7 @@ function Registro() {
             <Checkbox
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              sx={{ color: termsError ? 'red' : 'primary' }} 
+              sx={{ color: termsError ? 'red' : 'primary', marginRight:'2px', marginTop:'-10px' }} 
             />
           }
           label={
@@ -326,8 +326,8 @@ function Registro() {
             </Typography>
           }
           sx={{
-            marginTop: '10px',
-            marginBottom: '8px',
+            marginTop: '5px',
+            marginBottom: '0px',
             alignItems: 'flex-start', 
             '& .MuiFormControlLabel-label': {
               marginTop: '5px', 
@@ -345,7 +345,7 @@ function Registro() {
             backgroundColor: '#4763e4',
             fontSize: '18px',
             color: 'white',
-            marginTop: '10px',
+            marginTop: '0px',
             '&:hover': {
               backgroundColor: '#354db3',
             },

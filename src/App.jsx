@@ -200,9 +200,8 @@ function App() {
         >
           Acceder ➜
         </Button>
-
         <Typography variant="body2" sx={{ fontFamily: 'arial, sans-serif', fontWeight: 'normal', textAlign: 'center', marginTop: '10px', fontSize: '18px' }}>
-          ¿No tienes una cuenta? <Link to="/registro" className="registro-link" style={{ color: '#5c73db', textDecoration: 'none' }}>Crear cuenta</Link>
+          ¿No tienes una cuenta? <Link to="/registro" className="registro-link" style={{ color: '#5c73db', textDecoration: 'underline' }}>Crear cuenta</Link>
         </Typography>
       </Box>
     </Box>
