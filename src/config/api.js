@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://api.novedadeswow.com';
+const API_URL = 'https://api.novedadeswow.com';
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
