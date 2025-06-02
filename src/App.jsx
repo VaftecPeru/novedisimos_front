@@ -2,7 +2,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Registro from './Registro';
 import RegistroCorreo from './RegistroCorreo';
-import RegistroCorreoFinal from './Registrofinal';
+import RegistroCorreoFinal from './RegistroCorreoFinal';
 import Dashboard from './Dashboard';
 import { useState } from 'react';
 
