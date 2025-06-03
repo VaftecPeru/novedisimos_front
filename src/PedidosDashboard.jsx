@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Button, TextField, InputAdornment, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem,
-  IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel
+  IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
 import { fetchOrders, getShopInfo } from './components/services/shopifyService';
@@ -40,6 +40,17 @@ const mapDeliveryStatus = (order) => {
   return 'IN-WOW';
 };
 
+const getTrazabilidadStatus = (order) => {
+  if (order.cancelled_at) return 'ANULADO';
+  if (order.fulfillment_status === 'fulfilled') return 'ENTREGADO';
+  if (order.fulfillment_status === 'partial') return 'EN_TRANSITO';
+  if (order.fulfillment_status === 'shipped') return 'EN_TRANSITO';
+  if (order.tags && order.tags.includes('listo-enviar')) return 'LISTO_PARA_ENVIAR';
+  if (order.tags && order.tags.includes('preparando')) return 'PREPARANDO_PEDIDO';
+  if (order.financial_status === 'paid') return 'PREPARANDO_PEDIDO';
+  return 'PENDIENTE';
+};
+
 const getLocationFromOrder = (order) => {
   const provincia = getNoteAttributeValue(order, 'Provincia y Distrito:');
   const direccion = getNoteAttributeValue(order, 'Dirección');
@@ -65,13 +76,41 @@ const getAlmacenFromLocation = (location) => {
   return 'PROVINCIA';
 };
 
-const EstadoChip = ({ estado, estadoAdicional }) => {
+const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabilidadChange }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  
+  const estadosTrazabilidad = [
+    { value: 'PENDIENTE', label: 'Pendiente', color: '#f59e0b' },
+    { value: 'PREPARANDO_PEDIDO', label: 'Preparando pedido', color: '#3b82f6' },
+    { value: 'LISTO_PARA_ENVIAR', label: 'Listo para enviar', color: '#8b5cf6' },
+    { value: 'EN_TRANSITO', label: 'En tránsito', color: '#06b6d4' },
+    { value: 'ENTREGADO', label: 'Entregado', color: '#10b981' },
+    { value: 'ANULADO', label: 'Anulado / Reprogramado', color: '#ef4444' }
+  ];
+  
+  const estadoTrazabilidadActual = estadosTrazabilidad.find(e => e.value === trazabilidad) || estadosTrazabilidad[0];
+  
   const colorMap = {
     'IN-WOW': '#3884f7',
     'ADMITIDO': '#10b981',
     'POR DERIVAR': '#f59e0b',
     'FINAL DE ENTREGA': '#8b5cf6',
     'default': '#4763e4'
+  };
+  
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleEstadoSelect = (nuevoEstado) => {
+    if (onTrazabilidadChange) {
+      onTrazabilidadChange(pedidoId, nuevoEstado);
+    }
+    handleClose();
   };
   
   return (
@@ -86,6 +125,38 @@ const EstadoChip = ({ estado, estadoAdicional }) => {
           sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }} 
         />
       )}
+      <Chip 
+        label={estadoTrazabilidadActual.label}
+        onClick={handleClick}
+        sx={{ 
+          bgcolor: estadoTrazabilidadActual.color, 
+          color: 'white', 
+          borderRadius: '4px', 
+          fontWeight: 'bold', 
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+          '&:hover': { opacity: 0.8 }
+        }} 
+      />
+      
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+      >
+        {estadosTrazabilidad.map((estado) => (
+          <MenuItem 
+            key={estado.value} 
+            onClick={() => handleEstadoSelect(estado.value)}
+            sx={{ 
+              color: estado.color,
+              fontWeight: trazabilidad === estado.value ? 'bold' : 'normal'
+            }}
+          >
+            {estado.label}
+          </MenuItem>
+        ))}
+      </Menu>
     </Box>
   );
 };
@@ -1130,6 +1201,7 @@ function PedidosDashboard() {
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
+          const trazabilidad = getTrazabilidadStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
           
@@ -1256,6 +1328,22 @@ function PedidosDashboard() {
       setNuevoPedido(prevState => ({ ...prevState, distrito: '' }));
     }
   };
+
+  const handleTrazabilidadChange = (pedidoId, nuevoEstado) => {
+    console.log(`Cambiando trazabilidad de ${pedidoId} a ${nuevoEstado}`);
+    
+    setPedidos(prev => prev.map(pedido => 
+      pedido.id === pedidoId 
+        ? { ...pedido, trazabilidad: nuevoEstado }
+        : pedido
+    ));
+    
+    setPedidosOriginales(prev => prev.map(pedido => 
+      pedido.id === pedidoId 
+        ? { ...pedido, trazabilidad: nuevoEstado }
+        : pedido
+    ));
+  };
   
   const handleProductoChange = (e) => {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
@@ -1279,54 +1367,69 @@ function PedidosDashboard() {
     setNuevoPedido(estadoInicial);
   };
 
-  const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-    const { estado, /* estadoEntrega, */ almacen, fechaInicio, fechaFin, searchTerm } = filtros;
+const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+  const { estado, almacen, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
 
-    if (estado && estado !== '' && pedido.estado !== estado) return false;
-    {/*
-    if (estadoEntrega && estadoEntrega !== '' && pedido.estadoAdicional !== estadoEntrega) return false;
-    */}
-    if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
+  if (estado && estado !== '' && pedido.estado !== estado) return false;
+  if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
+  
+  if (fechaInicio || fechaFin) {
+    let fechaComparar = null;
     
-    if (fechaInicio && fechaInicio !== '') {
-      try {
-        const fechaInicioParsed = new Date(fechaInicio);
-        fechaInicioParsed.setHours(0, 0, 0, 0);
-        const fechaIngresoPedido = new Date(pedido.originalOrder.created_at);
-        if (fechaIngresoPedido < fechaInicioParsed) return false;
-      } catch (error) {
-        console.warn('Error al parsear fecha inicio:', fechaInicio);
-      }
-    }
-
-    if (fechaFin && fechaFin !== '') {
-      try {
-        const fechaFinParsed = new Date(fechaFin);
-        fechaFinParsed.setHours(23, 59, 59, 999);
-        const fechaIngresoPedido = new Date(pedido.originalOrder.created_at);
-        if (fechaIngresoPedido > fechaFinParsed) return false;
-      } catch (error) {
-        console.warn('Error al parsear fecha fin:', fechaFin);
-      }
-    }
-    
-    if (searchTerm && searchTerm.trim() !== '') {
-      const searchLower = searchTerm.toLowerCase().trim();
-      const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
-      const matchesId = pedido.id && pedido.id.toLowerCase().includes(searchLower);
-      const matchesTelefono = pedido.telefono && pedido.telefono.toLowerCase().includes(searchLower);
-      const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
-      const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
-      const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
-      
-      if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
-        return false;
-      }
+    switch(tipoFecha) {
+      case 'ingreso':
+        fechaComparar = pedido.originalOrder.created_at;
+        break;
+      case 'registro':
+        fechaComparar = pedido.originalOrder.processed_at || pedido.originalOrder.created_at;
+        break;
+      case 'despacho':
+        fechaComparar = pedido.originalOrder.shipped_at;
+        if (!fechaComparar) return false; 
+        break;
+      case 'entrega':
+        fechaComparar = pedido.originalOrder.fulfilled_at;
+        if (!fechaComparar && pedido.originalOrder.fulfillment_status === 'fulfilled') {
+          fechaComparar = pedido.originalOrder.updated_at;
+        }
+        if (!fechaComparar) return false;
+        break;
+      default:
+        fechaComparar = pedido.originalOrder.created_at;
     }
     
-    return true;
-  });
-
+    if (!fechaComparar) return false;
+    
+    const fechaPedido = new Date(fechaComparar);
+    const fechaPedidoSoloFecha = new Date(fechaPedido.getFullYear(), fechaPedido.getMonth(), fechaPedido.getDate());
+    
+    if (fechaInicio) {
+      const fechaInicioComparar = new Date(fechaInicio);
+      if (fechaPedidoSoloFecha < fechaInicioComparar) return false;
+    }
+    
+    if (fechaFin) {
+      const fechaFinComparar = new Date(fechaFin);
+      if (fechaPedidoSoloFecha > fechaFinComparar) return false;
+    }
+  }
+  
+  if (searchTerm && searchTerm.trim() !== '') {
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
+    const matchesId = pedido.id && pedido.id.toLowerCase().includes(searchLower);
+    const matchesTelefono = pedido.telefono && pedido.telefono.toLowerCase().includes(searchLower);
+    const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
+    const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
+    const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
+    
+    if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
+      return false;
+    }
+  }
+  
+  return true;
+});
   if (loading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1494,7 +1597,15 @@ function PedidosDashboard() {
                   </Box>
                 </TableCell>
                 
-                <TableCell><EstadoChip estado={pedido.estado}  /></TableCell>
+                <TableCell>
+                   <EstadoChip 
+                    estado={pedido.estado} 
+                    estadoAdicional={pedido.estadoAdicional}
+                    trazabilidad={pedido.trazabilidad}
+                    pedidoId={pedido.id}
+                    onTrazabilidadChange={handleTrazabilidadChange}
+                  />
+                </TableCell>
               
                 <TableCell><IconButton size="small" sx={{ color: '#f59e0b' }}><FilterList fontSize="small" /></IconButton></TableCell>
                 <TableCell>
