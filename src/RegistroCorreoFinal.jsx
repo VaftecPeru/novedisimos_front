@@ -190,7 +190,7 @@ function RegistroCorreoFinal() {
               '&.Mui-focused fieldset': {
                 borderColor: '#adb8ec',
                 borderWidth: '1px',
-              },git pull origin develop
+              }, 
               '&.Mui-focused': {
                 boxShadow: 'none',
               },
