@@ -11,6 +11,8 @@ import ShopifyDashboard from './ShopifyDashboard';
 import MovimientoDashboard from './MovimientoDashboard';
 import AlmacenDashboard from './AlmacenDashboard';
 import InformeDashboard from './InformeDashboard';
+import { useUser } from './UserContext';
+import MenuPorRol from './MenuPorRol';
 
 Modal.setAppElement('#root');
 
@@ -115,6 +117,8 @@ function Dashboard() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(
         window.innerWidth <= 768 
     );
+
+    const { usuario } = useUser();
     
     useEffect(() => {
         const path = location.pathname.split('/');
@@ -580,7 +584,6 @@ function Dashboard() {
     };
 
     const handleCerrarSesion = () => {
-        // Aquí podrías agregar lógica adicional antes de cerrar sesión, como limpiar cookies o localStorage
         navigate('/');
     };
 
@@ -771,242 +774,20 @@ function Dashboard() {
                         <img className="img-logo" src="../images/ovedisimos-dashboard.png" alt="Imagen de login" />
                     </div>
                 </div>
-                <nav>
-                    <ul className="main-menu">
-                        <li className={`main-menu-item ${expanded.pedidos ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('pedidos')}>
-                                <img
-                                    src={gearImages.pedidos}
-                                    alt="Pedidos"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-clipboard-list"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.pedidos }}>Pedidos</span>
-                                <i className={`fas fa-chevron-${expanded.pedidos ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.pedidos}
-                                    alt="Pedidos"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.pedidos && (
-                                <ul className="submenu">
-                                    <li
-                                        onClick={() => handlePedidosClick('ordenDePedido')}
-                                        className={pedidosSeleccion === 'ordenDePedido' ? 'active' : ''}
-                                    >
-                                        Orden de Pedido
-                                    </li>
-                                    <li
-                                        onClick={() => handlePedidosClick('seguimientoContraentrega')}
-                                        className={pedidosSeleccion === 'seguimientoContraentrega' ? 'active' : ''}
-                                    >
-                                        Seguimiento Contraentrega
-                                    </li>
-                                    <li
-                                        onClick={() => handlePedidosClick('enviosAgencia')}
-                                        className={pedidosSeleccion === 'enviosAgencia' ? 'active' : ''}
-                                    >
-                                        Envíos Agencia
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                        <li className={`main-menu-item ${expanded.mantenimiento ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('mantenimiento')}>
-                                <img
-                                    src={gearImages.mantenimiento}
-                                    alt="Mantenimiento"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-cogs"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.mantenimiento }}>Mantenimiento</span>
-                                <i className={`fas fa-chevron-${expanded.mantenimiento ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.mantenimiento}
-                                    alt="Mantenimiento"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.mantenimiento && (
-                                <ul className="submenu">
-                                    <li
-                                        onClick={() => handleMantenimientoClick('productos')}
-                                        className={mantenimientoSeleccion === 'productos' ? 'active' : ''}
-                                    >
-                                        Productos
-                                    </li>
-                                    <li
-                                        onClick={() => handleMantenimientoClick('usuarios')}
-                                        className={mantenimientoSeleccion === 'usuarios' ? 'active' : ''}
-                                    >
-                                        Usuarios de tienda
-                                    </li>
-                                    <li
-                                        onClick={() => handleMantenimientoClick('movimiento')}
-                                        className={mantenimientoSeleccion === 'movimiento' ? 'active' : ''}
-                                    >
-                                        Movimiento
-                                    </li>
-                                    <li
-                                        onClick={() => handleMantenimientoClick('almacenes')}
-                                        className={mantenimientoSeleccion === 'almacenes' ? 'active' : ''}
-                                    >
-                                        Almacen
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                        <li className={`main-menu-item ${expanded.integraciones ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('integraciones')}>
-                                <img
-                                    src={gearImages.integraciones}
-                                    alt="Integraciones"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-plug"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.integraciones }}>Integraciones</span>
-                                <i className={`fas fa-chevron-${expanded.integraciones ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.integraciones}
-                                    alt="Integraciones"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.integraciones && (
-                                <ul className="submenu">
-                                    <li
-                                        onClick={() => handleIntegracionesClick('shopify')}
-                                        className={integracionesSeleccion === 'shopify' ? 'active' : ''}
-                                    >
-                                        Shopify
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                        <li className={`main-menu-item ${expanded.clientes ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('clientes')}>
-                                <img
-                                    src={gearImages.clientes}
-                                    alt="Clientes"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-users"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.clientes }}>Clientes</span>
-                                <i className={`fas fa-chevron-${expanded.clientes ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.clientes}
-                                    alt="Clientes"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.clientes && <ul className="submenu">
-                                <li>Cliente 1</li>
-                                <li>Cliente 2</li>
-                            </ul>}
-                        </li>
-                        <li className={`main-menu-item ${expanded.motorizados ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('motorizados')}>
-                                <img
-                                    src={gearImages.motorizados}
-                                    alt="Motorizados"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-motorcycle"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.motorizados }}>Motorizados</span>
-                                <i className={`fas fa-chevron-${expanded.motorizados ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.motorizados}
-                                    alt="Motorizados"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.motorizados && <ul className="submenu">
-                                <li>Motorizado 1</li>
-                                <li>Motorizado 2</li>
-                            </ul>}
-                        </li>
-                        <li className={`main-menu-item ${expanded.asesores ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('asesores')}>
-                                <img
-                                    src={gearImages.asesores}
-                                    alt="Asesores"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-user-tie"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.asesores }}>Asesores</span>
-                                <i className={`fas fa-chevron-${expanded.asesores ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.asesores}
-                                    alt="Asesores"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.asesores && <ul className="submenu">
-                                <li>Asesor 1</li>
-                                <li>Asesor 2</li>
-                            </ul>}
-                        </li>
-                        <li className={`main-menu-item ${expanded.informes ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('informes')}>
-                                <img
-                                    src={gearImages.informes}
-                                    alt="Informes"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-user-tie"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.informes }}>Informes</span>
-                                <i className={`fas fa-chevron-${expanded.informes ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.informes}
-                                    alt="Informes"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.informes && <ul className="submenu">
-                                <li
-                                    onClick={() => handleInformesClick('vista')}
-                                    className={informesSeleccion === 'vista' ? 'active' : ''}
-                                >
-                                    Vista Informes
-                                </li>
-                            </ul>}
-                        </li>
-                        <li className={`main-menu-item ${expanded.configuracion ? 'expanded' : ''}`}>
-                            <div className="menu-item-header" onClick={() => toggleSection('configuracion')}>
-                                <img
-                                    src={gearImages.configuracion}
-                                    alt="Configuracion"
-                                    style={{ width: '22px', height: '22px' }}
-                                />
-                                <i className="fas fa-clipboard-list"></i>
-                                <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.configuracion }}>Configuracion</span>
-                                <i className={`fas fa-chevron-${expanded.configuracion ? 'down' : 'right'}`}></i>
-                                <img
-                                    src={arrowImages.configuracion}
-                                    alt="Configuracion"
-                                    className="menu-icon"
-                                />
-                            </div>
-                            {expanded.configuracion && (
-                                <ul className="submenu">
-                                    <li
-                                        onClick={() => handleConfiguracionClick('cobertura')}
-                                        className={configuracionSeleccion === 'cobertura' ? 'active' : ''}
-                                    >
-                                        Cobertura
-                                    </li>
-                                    <li
-                                        onClick={() => handleConfiguracionClick('curier')}
-                                        className={configuracionSeleccion === 'curier' ? 'active' : ''}
-                                    >
-                                        Currier Nuevos
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                    </ul>
-                </nav>
+                <MenuPorRol 
+                    rol={usuario?.rol}
+                    expanded={expanded}
+                    toggleSection={toggleSection}
+                    handlePedidosClick={handlePedidosClick}
+                    handleMantenimientoClick={handleMantenimientoClick}
+                    handleIntegracionesClick={handleIntegracionesClick}
+                    gearImages={gearImages}
+                    spanColors={spanColors}
+                    arrowImages={arrowImages}
+                    pedidosSeleccion={pedidosSeleccion}
+                    mantenimientoSeleccion={mantenimientoSeleccion}
+                    integracionesSeleccion={integracionesSeleccion}
+                    />
                 <div className="bottom-section">
         <div className="user-info">
             <div className="user-avatar">

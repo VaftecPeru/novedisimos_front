@@ -2,9 +2,12 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Registro from './Registro';
 import RegistroCorreo from './RegistroCorreo';
-import RegistroCorreoFinal from './Registrofinal';
+import RegistroCorreoFinal from './RegistroCorreoFinal';
 import Dashboard from './Dashboard';
 import { useState } from 'react';
+import axios from 'axios';
+import { useUser } from './UserContext';
+
 
 import { Box, TextField, Button, Typography, IconButton, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
@@ -13,6 +16,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setUsuario } = useUser();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState('');
@@ -27,38 +31,27 @@ function App() {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    if (email === testEmail && password === testPassword) {
-      console.log('Inicio de sesión de prueba exitoso');
-      localStorage.setItem('authToken-test', 'token-de-prueba');
-      navigate('/dashboard/ordenDePedido');
-      return;
-    }
-
     try {
-      const response = await fetch('TU_URL_DE_LA_API_LARAVEL/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
+      const response = await axios.post(
+        'http://novedadeswow.com/api_php/login.php',
+        { correo: email, contraseña: password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+        
+    const user = response.data;
+      setUsuario(user); 
+      setLoginError('');
 
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('Login exitoso:', data);
-        localStorage.setItem('authToken', data.token);
-        navigate('/dashboard/ordenDePedido');
-      } else {
-        console.error('Error de login:', data);
-        setLoginError(data.message || 'Credenciales incorrectas');
-      }
-    } catch (error) {
-      console.error('Error de conexión:', error);
-      setLoginError('Error al ingresar al servidor');
+      console.log('Usuario logueado:', user);
+      navigate('/dashboard');
+      
+    } catch (err) {
+      console.error('Error en login:', err);
+      setLoginError('Correo o contraseña incorrectos');
     }
   };
 
@@ -200,9 +193,8 @@ function App() {
         >
           Acceder ➜
         </Button>
-
         <Typography variant="body2" sx={{ fontFamily: 'arial, sans-serif', fontWeight: 'normal', textAlign: 'center', marginTop: '10px', fontSize: '18px' }}>
-          ¿No tienes una cuenta? <Link to="/registro" className="registro-link" style={{ color: '#5c73db', textDecoration: 'none' }}>Crear cuenta</Link>
+          ¿No tienes una cuenta? <Link to="/registro" className="registro-link" style={{ color: '#5c73db', textDecoration: 'underline' }}>Crear cuenta</Link>
         </Typography>
       </Box>
     </Box>
