@@ -26,6 +26,7 @@ function Dashboard() {
         informes: false,
         integraciones: false,
         configuracion: false,
+        almacenes: false,
     });
 
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
@@ -47,6 +48,7 @@ function Dashboard() {
         informes: '/images/shadow arrow.png',
         integraciones: '/images/shadow arrow.png',
         configuracion: '/images/shadow arrow.png',
+        almacenes: '/images/shadow arrow.png',
     });
 
     const [gearImages, setGearImages] = useState({
@@ -69,6 +71,7 @@ function Dashboard() {
         informes: '#555d8b',
         integraciones: '#555d8b',
         configuracion: '#555d8b',
+        almacenes: '#555d8b',
     });
 
     const [activeSection, setActiveSection] = useState('');
@@ -451,6 +454,7 @@ function Dashboard() {
             informes: '/images/shadow arrow.png',
             integraciones: '/images/shadow arrow.png',
             configuracion: '/images/shadow arrow.png',
+            almacenes: '/images/shadow arrow.png',
         };
         
         const newGearImages = {
@@ -462,6 +466,7 @@ function Dashboard() {
             informes: '/images/shadow report.png',
             integraciones: '/images/shadow file.png',
             configuracion: '/images/shadow file.png',
+            almacenes: '/images/shadow file.png',
         };
         
         const newSpanColors = {
@@ -473,6 +478,7 @@ function Dashboard() {
             informes: '#555d8b',
             integraciones: '#555d8b',
             configuracion: '#555d8b',
+            almacenes: '#555d8b',
         };
         
         if (newExpandedState[section]) {

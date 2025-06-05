@@ -4,7 +4,7 @@ const MenuPorRol = ({ rol, expanded, toggleSection, handlePedidosClick, handleMa
   
   const permisosPorRol = {
     Administrador: ['pedidos', 'mantenimiento', 'integraciones', 'clientes', 'motorizados', 'asesores'],
-    Vendedor: ['pedidos', 'clientes'], 
+    Vendedor: ['clientes', 'almacenes'],
     Almacen: ['pedidos', 'mantenimiento'], 
     Delivery: ['motorizados'] 
   };
@@ -101,6 +101,20 @@ const MenuPorRol = ({ rol, expanded, toggleSection, handlePedidosClick, handleMa
                 </li>
               </ul>
             )}
+          </li>
+        )}
+
+        {seccionesPermitidas.includes('almacenes') && (
+          <li className="main-menu-item">
+            <div className="menu-item-header" onClick={() => handleMantenimientoClick('almacenes')}>
+              <img
+                src={gearImages.almacenes || gearImages.mantenimiento}
+                alt="Almacenes"
+                style={{ width: '22px', height: '22px' }}
+              />
+              <i className="fas fa-warehouse"></i>
+              <span style={{ fontWeight: 400, fontSize: 18, color: spanColors.almacenes || spanColors.mantenimiento }}>Almacenes</span>
+            </div>
           </li>
         )}
 
