@@ -36,10 +36,20 @@ function MovimientoDashboard() {
       tipo: 'ENTRY',
       estado: 'DISPONIBLE',
     },
-
   ];
 
   const estadosDisponibles = ['TODOS', 'DISPONIBLE', 'VENDIDO', 'EN_REVISION', 'OBSOLETO'];
+
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case 'DISPONIBLE':
+        return 'green';
+      case 'VENDIDO':
+        return 'red';
+      default:
+        return 'black';
+    }
+  };
 
   return (
     <div
@@ -50,82 +60,86 @@ function MovimientoDashboard() {
         alignItems: 'flex-start',
         flexGrow: 1,
         width: '100%',
+        paddingLeft: '20px', 
+        paddingRight: '20px', 
+        boxSizing: 'border-box', 
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap', width: '100%' }}> 
         <Button
-  variant="contained"
-  sx={{
-    backgroundColor: '#f1f1f1',
-    color: 'black',
-    borderRadius: '20px',
-    border: '1px solid transparent', // Borde transparente por defecto
-    borderColor: '#e0e0e0',
-    boxShadow: 'none', // Elimina la sombra por defecto
+          variant="contained"
+          sx={{
+            backgroundColor: '#f1f1f1',
+            color: 'black',
+            borderRadius: '20px',
+            border: '1px solid transparent',
+            borderColor: '#e0e0e0',
+            boxShadow: 'none',
 
-    '&:hover': {
-      backgroundColor: '#e0e0e0',
-      borderColor: '#1972df', // El borde aparece al pasar el ratón
-      boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
-    },
-    padding: '4px 16px',
-    marginLeft: '20px',
-  }}
-  onClick={() => setDrawerOpen(true)}
-  startIcon={
-    <img
-      src="/images/youtube icon.png"
-      alt="Logo de YouTube"
-      style={{
-        height: '20px',
-        width: '20px',
-      }}
-    />
-  }
-  disableTypography
->
-  Ver video tutorial
-</Button>
-        <Typography variant="body2" sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }} className="producto-label">
-          Producto
-        </Typography>
-        <FormControl size="small" className="estado-producto-select" sx={{ borderRadius: '20px' }}>
-          <Select
-            value={estadoProducto}
-            onChange={(e) => setEstadoProducto(e.target.value)}
-            displayEmpty
-            sx={{
-              height: '40px',
-              minWidth: '170px',
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#e0e0e0',
-                borderRadius: '20px',
-              }
-            }}
-          >
-            <MenuItem value="TODOS">Todos los estados</MenuItem>
-            {estadosDisponibles.slice(1).map((estado) => (
-              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            '&:hover': {
+              backgroundColor: '#e0e0e0',
+              borderColor: '#1972df',
+              boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
+            },
+            padding: '4px 16px',
+          }}
+          onClick={() => setDrawerOpen(true)}
+          startIcon={
+            <img
+              src="/images/youtube icon.png"
+              alt="Logo de YouTube"
+              style={{
+                height: '20px',
+                width: '20px',
+              }}
+            />
+          }
+          disableTypography
+        >
+          Ver video tutorial
+        </Button>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2" sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }} className="producto-label">
+            Producto
+          </Typography>
+          <FormControl size="small" className="estado-producto-select" sx={{ borderRadius: '20px' }}>
+            <Select
+              value={estadoProducto}
+              onChange={(e) => setEstadoProducto(e.target.value)}
+              displayEmpty
+              sx={{
+                height: '40px',
+                minWidth: '170px',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#e0e0e0',
+                  borderRadius: '20px',
+                }
+              }}
+            >
+              <MenuItem value="TODOS">Todos los estados</MenuItem>
+              {estadosDisponibles.slice(1).map((estado) => (
+                <MenuItem key={estado} value={estado}>{estado}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
       <div
         className="movimiento dashboard"
         style={{
           display: 'flex',
           flexGrow: 1,
-          width: '98%',
+          width: '100%', 
           height: '1000px',
-          marginLeft: '20px',
         }}
       >
         <TableContainer
           component={Paper}
           sx={{
             mb: 4,
-            boxShadow: 'none', 
-            border: 'none',     
+            boxShadow: 'none',
+            border: 'none',
             flexGrow: 1,
           }}
         >
@@ -138,8 +152,8 @@ function MovimientoDashboard() {
                       key={header}
                       sx={{
                         fontWeight: 'bold',
-                        border: '1px solid #e0e0e0', 
-                        textAlign: 'center', 
+                        border: '1px solid #e0e0e0',
+                        textAlign: 'center',
                       }}
                     >
                       {header}
@@ -152,7 +166,7 @@ function MovimientoDashboard() {
                 <TableRow key={movimiento.fecha.toISOString()} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -163,7 +177,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -171,7 +185,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -179,7 +193,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -187,7 +201,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -195,7 +209,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -203,7 +217,7 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
+                      border: '1px solid #e0e0e0',
                       textAlign: 'center'
                     }}
                   >
@@ -211,11 +225,12 @@ function MovimientoDashboard() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: '1px solid #e0e0e0', 
-                      textAlign: 'center'
+                      border: '1px solid #e0e0e0',
+                      textAlign: 'center',
+                      color: getEstadoColor(movimiento.estado),
                     }}
                   >
-                    <Chip label={movimiento.estado} size="small" sx={{ border: 'none', backgroundColor: 'white' }} />
+                    {movimiento.estado}
                   </TableCell>
                 </TableRow>
               ))}

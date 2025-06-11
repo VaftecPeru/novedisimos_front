@@ -185,6 +185,7 @@ function PedidosDashboard() {
     numeroOrden: '',
     canal: 'Shopify',
     nota: '',
+    vendedor: '',
     
     cliente: '',
     telefono: '',
@@ -1682,6 +1683,23 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
                 <MenuItem value="Instagram">Instagram</MenuItem>
                 <MenuItem value="WhatsApp">WhatsApp</MenuItem>
                 <MenuItem value="Facebook">Facebook</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+                <Typography variant="body2">Vendedor:</Typography>
+              </Box>
+              <Select
+                name="vendedor"
+                value={nuevoPedido.vendedor}
+                onChange={handleFormChange}
+              >
+                <MenuItem value="Shopify">Rocio</MenuItem>
+                <MenuItem value="Instagram">Vendedor 1</MenuItem>
+                <MenuItem value="WhatsApp">Vendedor 2</MenuItem>
+                <MenuItem value="Facebook">Vendedor 3</MenuItem>
               </Select>
             </FormControl>
 
