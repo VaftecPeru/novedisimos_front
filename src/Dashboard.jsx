@@ -351,6 +351,57 @@ function Dashboard() {
         };
     }, [location.pathname]);
 
+    useEffect(() => {
+        // Pedidos
+        if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
+            setPedidosSeleccion(activeSection);
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Mantenimiento
+        else if (['productos', 'usuarios', 'movimiento', 'almacenes'].includes(activeSection)) {
+            setMantenimientoSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Integraciones
+        else if (['shopify'].includes(activeSection)) {
+            setIntegracionesSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Informes
+        else if (['vista'].includes(activeSection)) {
+            setInformesSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+        }
+        // Configuración
+        else if (['cobertura', 'curier'].includes(activeSection)) {
+            setConfiguracionSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Otros casos
+        else {
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+    }, [activeSection]);
+
     const toggleSidebar = () => {
         const newCollapsedState = !sidebarCollapsed;
         setSidebarCollapsed(newCollapsedState);
@@ -430,54 +481,20 @@ function Dashboard() {
     };
 
     const toggleSection = (section) => {
-        const newExpandedState = { ...expanded };
-        
-        if (!newExpandedState[section]) {
-            Object.keys(newExpandedState).forEach(key => {
-                newExpandedState[key] = false;
-            });
-        }
-        
-        newExpandedState[section] = !newExpandedState[section];
-        
-        setExpanded(newExpandedState);
+        setExpanded(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
 
+        // El resto de tu lógica de iconos y colores puede quedarse igual si lo necesitas
         const newArrowImages = {
-            mantenimiento: '/images/shadow arrow.png',
-            clientes: '/images/shadow arrow.png',
-            pedidos: '/images/shadow arrow.png',
-            motorizados: '/images/shadow arrow.png',
-            asesores: '/images/shadow arrow.png',
-            informes: '/images/shadow arrow.png',
-            integraciones: '/images/shadow arrow.png',
-            configuracion: '/images/shadow arrow.png',
+            ...arrowImages,
+            [section]: !expanded[section] ? '/images/down arrow.png' : '/images/shadow arrow.png'
         };
-        
-        const newGearImages = {
-            mantenimiento: '/images/shadow file.png',
-            pedidos: '/images/shadow file.png',
-            clientes: '/images/shadow folder.png',
-            motorizados: '/images/shadow file.png',
-            asesores: '/images/shadow tv.png',
-            informes: '/images/shadow report.png',
-            integraciones: '/images/shadow file.png',
-            configuracion: '/images/shadow file.png',
-        };
-        
-        const newSpanColors = {
-            mantenimiento: '#555d8b',
-            pedidos: '#555d8b',
-            clientes: '#555d8b',
-            motorizados: '#555d8b',
-            asesores: '#555d8b',
-            informes: '#555d8b',
-            integraciones: '#555d8b',
-            configuracion: '#555d8b',
-        };
-        
-        if (newExpandedState[section]) {
-            newArrowImages[section] = '/images/down arrow.png';
-            
+        const newGearImages = { ...gearImages };
+        const newSpanColors = { ...spanColors };
+
+        if (!expanded[section]) {
             switch (section) {
                 case 'mantenimiento':
                     newGearImages.mantenimiento = '/images/file.png';
@@ -503,10 +520,11 @@ function Dashboard() {
                 default:
                     break;
             }
-            
             newSpanColors[section] = 'white';
+        } else {
+            newSpanColors[section] = '#555d8b';
         }
-        
+
         setArrowImages(newArrowImages);
         setGearImages(newGearImages);
         setSpanColors(newSpanColors);
@@ -780,7 +798,7 @@ function Dashboard() {
             <div className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
                 <div className="sidebar-header">
                     <div className="imagen-header">
-                        <img className="img-logo" src="../images/ovedisimos-dashboard.png" alt="Imagen de login" />
+                        <img className="img-logo" src="../images/img.png" alt="Imagen de login" />
                     </div>
                 </div>
                 <MenuPorRol 
@@ -796,7 +814,8 @@ function Dashboard() {
                     pedidosSeleccion={pedidosSeleccion}
                     mantenimientoSeleccion={mantenimientoSeleccion}
                     integracionesSeleccion={integracionesSeleccion}
-                    />
+                    activeSection={activeSection} // <-- agrega esto
+                />
                 <div className="bottom-section">
         <div className="user-info">
             <div className="user-avatar">
