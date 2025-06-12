@@ -19,8 +19,8 @@ const MenuPorRol = ({
   const permisosPorRol = {
     Administrador: ['pedidos', 'mantenimiento', 'integraciones', 'clientes', 'motorizados', 'asesores'],
     Vendedor: ['clientes', 'almacenes'],
-    Almacen: ['pedidos', 'mantenimiento'],
-    Delivery: ['motorizados']
+    Almacen: ['almacenes'], 
+    Delivery: ['motorizados'] 
   };
 
   const seccionesPermitidas = permisosPorRol[rol] || [];
