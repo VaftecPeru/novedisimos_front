@@ -1696,10 +1696,10 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
                 value={nuevoPedido.vendedor}
                 onChange={handleFormChange}
               >
-                <MenuItem value="Shopify">Rocio</MenuItem>
-                <MenuItem value="Instagram">Vendedor 1</MenuItem>
-                <MenuItem value="WhatsApp">Vendedor 2</MenuItem>
-                <MenuItem value="Facebook">Vendedor 3</MenuItem>
+                <MenuItem value="Vendedor1">Vendedor 1</MenuItem>
+                <MenuItem value="Vendedor2">Vendedor 2</MenuItem>
+                <MenuItem value="Vendedor3">Vendedor 3</MenuItem>
+                <MenuItem value="Vendedor4">Vendedor 4</MenuItem>
               </Select>
             </FormControl>
 
