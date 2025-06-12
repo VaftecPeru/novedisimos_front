@@ -737,15 +737,6 @@ function Dashboard() {
                             <option value="Shopify">Shopify</option>
                         </select>
 
-                        <h2>Vendedor</h2>
-                        <label>Seleccionar Vendedor:</label>
-                        <select name="vendedor" value={newClient.vendedor || ''} onChange={handleInputChange}>
-                            <option value="">Seleccionar</option>
-                            <option value="Vendedor A">Vendedor A</option>
-                            <option value="Vendedor B">Vendedor B</option>
-                            <option value="Vendedor C">Vendedor C</option>
-                        </select>
-
                         <h2>Cliente</h2>
                         <label>Nombres y Apellidos:</label>
                         <input type="text" name="nombre" value={newClient.nombre || ''} onChange={handleInputChange} />
