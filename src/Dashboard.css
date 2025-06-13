@@ -26,7 +26,7 @@ html, body {
 }
 
 .dashboard-sidebar {
-  background-color: #141e58;
+  background-color: #ffffff;
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -39,7 +39,8 @@ html, body {
   height: 100vh;
   transition: transform 0.3s ease, left 0.3s ease;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: hidde;
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-sidebar.collapsed {
@@ -53,7 +54,7 @@ html, body {
   width: 30px;
   height: 30px;
   cursor: pointer;
-  background-color: #4763e4;
+  background-color: #e83f45;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -110,7 +111,7 @@ body.sidebar-open {
 }
 
 .dashboard-header {
-  background-color: #021428;
+  background-color: #ffffff;
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -125,6 +126,14 @@ body.sidebar-open {
   z-index: 90;
   height: 50px;
   padding-left: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header.panel-control-header.h2 {
+  color: #4763e4;
+  font-size: 24px;
+  font-weight: 400;
+  margin-left: 20px;
 }
 
 .panel-control-header {
@@ -171,7 +180,7 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button {
-  background-color: #021428;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,7 +197,7 @@ body.sidebar-open {
 }
 
 .panel-control-header svg {
-  color: #eeeeee;
+  color: #da6367;
   border-radius: 10px;
 }
 
@@ -197,11 +206,11 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button:hover {
-  background-color: #05305f;
+  background-color: #e6babb;
 }
 
 .bell-button {
-  background-color: #021428;
+  background-color: #ffffff;
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -214,13 +223,13 @@ body.sidebar-open {
 }
 
 .bell-button:hover {
-  background-color: #05305f;
+  background-color: #e6babb;
 }
 
 .bell-button svg {
   width: 30px;
   height: 30px;
-  color: #eeeeee;
+  color: #e83f45;
   cursor: pointer;
 }
 
@@ -294,12 +303,12 @@ body.sidebar-open {
 
 .submenu li.activo,
 .submenu li.active {
-  background-color: #4256d0;
+  background-color: #da6367; 
   border-radius: 12px;
 }
 
 .submenu li:hover{
-  background-color: #4256d0; 
+  background-color: #da6367; 
   border-radius: 12px;
   padding-left: 50px;
   cursor: pointer;
@@ -325,6 +334,10 @@ body.sidebar-open {
   padding-right: 25px;
 }
 
+.h2 {
+  color: #0b0a0a;
+  
+}
 .mantenimiento-select:focus {
   border-color: #4763e4;
   box-shadow: 0 0 0 2px rgba(71, 99, 228, 0.2);
@@ -336,7 +349,7 @@ body.sidebar-open {
 }
 
 .imagen-header {
-  background-color: #141e58; 
+  background-color: #ffffff; 
   margin:0;
   width: 100%;
   padding: 20px;

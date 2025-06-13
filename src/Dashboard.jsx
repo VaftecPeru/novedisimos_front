@@ -13,7 +13,7 @@ import AlmacenDashboard from "./AlmacenDashboard";
 import InformeDashboard from "./InformeDashboard";
 import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
-import Motorizados from "./motorizados";
+import Motorizados from "./Motorizados";
 
 Modal.setAppElement("#root");
 
@@ -484,28 +484,25 @@ function Dashboard() {
     Object.keys(newExpandedState).forEach((key) => {
       if (parentSections.includes(key)) {
         newExpandedState[key] = false; // Colapsa la sección padre
-        newArrowImages[key] = "/images/shadow arrow.png"; // Restablece flecha
-        // Restablece la imagen de engranaje a su estado "shadow" para padres
+        newArrowImages[key] = "/images/shadow arrow.png"; 
+        
         if (key === "clientes")
           newGearImages[key] = "/images/shadow folder.png";
         else if (key === "asesores")
           newGearImages[key] = "/images/shadow tv.png";
         else if (key === "informes")
           newGearImages[key] = "/images/shadow report.png";
-        else newGearImages[key] = "/images/shadow file.png"; // Default para otros como mantenimiento, pedidos, integraciones, configuracion
-        newSpanColors[key] = "#555d8b"; // Restablece color de texto
+        else newGearImages[key] = "/images/shadow file.png"; 
+        newSpanColors[key] = "#555d8b"; 
       }
-      // También resetea los ítems de menú de nivel superior que no son padres (como 'motorizados')
-      // para que si se selecciona otro, este se desactive visualmente.
+    
       if (key === "motorizados") {
         newGearImages.motorizados = "/images/shadow file.png";
         newSpanColors.motorizados = "#555d8b";
       }
     });
 
-    // Reinicia también el estado de las "selecciones" de submenú a su valor inicial
-    // Esto es importante para que cuando cambies de sección principal, los submenús por defecto
-    // se activen visualmente, pero sólo si no estás entrando directamente a una subsección específica
+  
     setMantenimientoSeleccion("productos");
     setPedidosSeleccion("ordenDePedido");
     setIntegracionesSeleccion("shopify");
@@ -1003,7 +1000,7 @@ function Dashboard() {
           <div className="imagen-header">
             <img
               className="img-logo"
-              src="../images/ovedisimos-dashboard.png"
+              src="../images/img.png"
               alt="Imagen de login"
             />
           </div>
