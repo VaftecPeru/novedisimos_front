@@ -4,6 +4,7 @@ import Registro from './Registro';
 import RegistroCorreo from './RegistroCorreo';
 import RegistroCorreoFinal from './RegistroCorreoFinal';
 import Dashboard from './Dashboard';
+import ProtectedRoute from './ProtectedRoute'; 
 import { useState } from 'react';
 import axios from 'axios';
 import { useUser } from './UserContext';
@@ -12,6 +13,7 @@ import { useUser } from './UserContext';
 import { Box, TextField, Button, Typography, IconButton, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
 
 function App() {
   const [email, setEmail] = useState('');
@@ -24,6 +26,7 @@ function App() {
   const testEmail = 'prueba@ejemplo.com';
   const testPassword = 'claveprueba';
 
+  
   const togglePasswordVisibility = () => {
     setPasswordVisible((prev) => !prev);
   };
@@ -33,7 +36,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        'http://novedadeswow.com/api_php/login.php',
+        'https://novedadeswow.com/api_php/login.php',
         { correo: email, contraseña: password },
         {
           headers: {
@@ -47,8 +50,15 @@ function App() {
       setLoginError('');
 
       console.log('Usuario logueado:', user);
-      navigate('/dashboard');
-      
+      const savedRoute = localStorage.getItem('redirectAfterLogin');
+      if (savedRoute) {
+        console.log('Redirigiendo a ruta guardada:', savedRoute);
+        localStorage.removeItem('redirectAfterLogin'); 
+        navigate(savedRoute);
+      } else {
+        navigate('/dashboard');
+      }
+
     } catch (err) {
       console.error('Error en login:', err);
       setLoginError('Correo o contraseña incorrectos');
@@ -209,7 +219,7 @@ function MainApp() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
-        <Route path="/dashboard/*" element={<Dashboard />} />
+        <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

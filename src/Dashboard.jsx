@@ -259,6 +259,7 @@ function Dashboard() {
         }));
       }
 
+<<<<<<< HEAD
       if (lastSegment === "shopify") {
         initialExpandedState.integraciones = true;
         setIntegracionesSeleccion(lastSegment);
@@ -365,6 +366,76 @@ function Dashboard() {
       if (window.innerWidth <= 768) {
         document.body.classList.remove("sidebar-open");
       }
+=======
+    useEffect(() => {
+        // Pedidos
+        if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
+            setPedidosSeleccion(activeSection);
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Mantenimiento
+        else if (['productos', 'usuarios', 'movimiento', 'almacenes'].includes(activeSection)) {
+            setMantenimientoSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Integraciones
+        else if (['shopify'].includes(activeSection)) {
+            setIntegracionesSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Informes
+        else if (['vista'].includes(activeSection)) {
+            setInformesSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+        }
+        // Configuración
+        else if (['cobertura', 'curier'].includes(activeSection)) {
+            setConfiguracionSeleccion(activeSection);
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setInformesSeleccion('');
+        }
+        // Otros casos
+        else {
+            setPedidosSeleccion('');
+            setMantenimientoSeleccion('');
+            setIntegracionesSeleccion('');
+            setConfiguracionSeleccion('');
+            setInformesSeleccion('');
+        }
+    }, [activeSection]);
+
+    const toggleSidebar = () => {
+        const newCollapsedState = !sidebarCollapsed;
+        setSidebarCollapsed(newCollapsedState);
+        
+        if (window.innerWidth <= 768) {
+            if (newCollapsedState) {
+                document.body.classList.remove('sidebar-open');
+            } else {
+                document.body.classList.add('sidebar-open');
+            }
+        }
+    };
+    
+    const handleOverlayClick = () => {
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+>>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
     };
 
     window.addEventListener("resize", handleResize);
@@ -437,6 +508,7 @@ function Dashboard() {
 
       setTimeout(() => {
         setCompletedModalIsOpen(false);
+<<<<<<< HEAD
         let updatedClients;
         if (editIndex === -1) {
           updatedClients = [...clients, newClient];
@@ -444,6 +516,157 @@ function Dashboard() {
           updatedClients = [...clients];
           updatedClients[editIndex] = newClient;
         }
+=======
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewClient({ ...newClient, [name]: value });
+    };
+
+    const handleRegister = (e) => {
+        e.preventDefault();
+        setModalIsOpen(false);
+        setProcessingModalIsOpen(true);
+
+        setTimeout(() => {
+            setProcessingModalIsOpen(false);
+            setCompletedModalIsOpen(true);
+
+            setTimeout(() => {
+                setCompletedModalIsOpen(false);
+                let updatedClients;
+                if (editIndex === -1) {
+                    updatedClients = [...clients, newClient];
+                } else {
+                    updatedClients = [...clients];
+                    updatedClients[editIndex] = newClient;
+                }
+                setClients(updatedClients);
+                localStorage.setItem('clientsData', JSON.stringify(updatedClients));
+                console.log('Registro completado y proceso continuado.');
+            }, 1000);
+        }, 1000);
+    };
+
+    const toggleSection = (section) => {
+        setExpanded(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+
+        // El resto de tu lógica de iconos y colores puede quedarse igual si lo necesitas
+        const newArrowImages = {
+            ...arrowImages,
+            [section]: !expanded[section] ? '/images/down arrow.png' : '/images/shadow arrow.png'
+        };
+        const newGearImages = { ...gearImages };
+        const newSpanColors = { ...spanColors };
+
+        if (!expanded[section]) {
+            switch (section) {
+                case 'mantenimiento':
+                    newGearImages.mantenimiento = '/images/file.png';
+                    break;
+                case 'clientes':
+                    newGearImages.clientes = '/images/folder.png';
+                    break;
+                case 'pedidos':
+                    newGearImages.pedidos = '/images/file.png';
+                    break;
+                case 'motorizados':
+                    newGearImages.motorizados = '/images/file.png';
+                    break;
+                case 'asesores':
+                    newGearImages.asesores = '/images/tv.png';
+                    break;
+                case 'informes':
+                    newGearImages.informes = '/images/report.png';
+                    break;
+                case 'integraciones':
+                    newGearImages.integraciones = '/images/file.png';
+                    break;
+                default:
+                    break;
+            }
+            newSpanColors[section] = 'white';
+        } else {
+            newSpanColors[section] = '#555d8b';
+        }
+
+        setArrowImages(newArrowImages);
+        setGearImages(newGearImages);
+        setSpanColors(newSpanColors);
+    };
+
+    const handleSectionClick = (section) => {
+        setActiveSection(section);
+        navigate(`/dashboard/${section}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handleMantenimientoClick = (option) => {
+        setMantenimientoSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handlePedidosClick = (option) => {
+        setPedidosSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+    
+    const handleIntegracionesClick = (option) => {
+        setIntegracionesSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handleInformesClick = (option) => {
+        setInformesSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handleConfiguracionClick = (option) => {
+        setConfiguracionSeleccion(option);
+        setActiveSection(option);
+        navigate(`/dashboard/${option}`);
+        
+        if (window.innerWidth <= 768 && !sidebarCollapsed) {
+            toggleSidebar();
+        }
+    };
+
+    const handleEdit = (index) => {
+        setEditIndex(index);
+        setNewClient(clients[index]);
+        setModalIsOpen(true);
+    };
+
+    const handleDelete = (index) => {
+        const updatedClients = clients.filter((_, i) => i !== index);
+>>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
         setClients(updatedClients);
         localStorage.setItem("clientsData", JSON.stringify(updatedClients));
         console.log("Registro completado y proceso continuado.");
@@ -996,6 +1219,7 @@ function Dashboard() {
         </form>
       </Modal>
 
+<<<<<<< HEAD
       <div
         className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}
       >
@@ -1019,6 +1243,40 @@ function Dashboard() {
         />
         <div className="bottom-section">
           <div className="user-info">
+=======
+                        <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
+                    </div>
+                    <div className="modal-buttons">
+                        <button type="submit">Guardar</button>
+                        <button type="button" onClick={closeModal}>Cancelar</button>
+                    </div>
+                </form>
+            </Modal>
+
+            <div className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+                <div className="sidebar-header">
+                    <div className="imagen-header">
+                        <img className="img-logo" src="../images/img.png" alt="Imagen de login" />
+                    </div>
+                </div>
+                <MenuPorRol 
+                    rol={usuario?.rol}
+                    expanded={expanded}
+                    toggleSection={toggleSection}
+                    handlePedidosClick={handlePedidosClick}
+                    handleMantenimientoClick={handleMantenimientoClick}
+                    handleIntegracionesClick={handleIntegracionesClick}
+                    gearImages={gearImages}
+                    spanColors={spanColors}
+                    arrowImages={arrowImages}
+                    pedidosSeleccion={pedidosSeleccion}
+                    mantenimientoSeleccion={mantenimientoSeleccion}
+                    integracionesSeleccion={integracionesSeleccion}
+                    activeSection={activeSection} // <-- agrega esto
+                />
+                <div className="bottom-section">
+        <div className="user-info">
+>>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
             <div className="user-avatar">
               <img
                 src="../images/avatarejemplo.png"
