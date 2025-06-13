@@ -1,0 +1,212 @@
+body {
+  background-color: #f8f9fc;
+ width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  margin: 30px 0;
+  width: 100%;
+  max-width: none;
+  background: #fff;
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+h3 {
+  text-align: center;
+  color: #555;
+  font-weight: 400;
+  margin-top: 0;
+}
+
+.subtitulo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.box {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.dropdown {
+  margin-top: 8px;
+  padding: 6px;
+  width: 100%; /* Ya estaba al 100% */
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
+}
+
+/* Estilos actuales para .motorista (comportamiento móvil por defecto) */
+.motorista {
+  display: flex;
+  flex-direction: column; /* Apila info y botón en móvil */
+  align-items: flex-start; /* Alinea los ítems al inicio en móvil */
+  justify-content: space-between;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+  box-sizing: border-box;
+  width: 100%; /* Asegura que cada tarjeta motorista ocupe el 100% del ancho en móvil */
+}
+
+.motorista-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Espacio entre info y botón en móvil */
+  width: 100%; /* Asegura que la info ocupe todo el ancho disponible */
+}
+
+.motorista img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+
+.status {
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.disponible {
+  background-color: #d4f8d4;
+  color: #1b7c1b;
+}
+
+.ocupado {
+  background-color: #ffe1e1;
+  color: #b20000;
+}
+
+.btn {
+  padding: 10px 16px;
+  background-color: #3366ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Este estilo para el botón dentro de .motorista */
+.motorista .btn {
+  width: 100%; /* ¡NUEVO! Hace que el botón "Asignar a motorizado" sea 100% en móvil */
+}
+
+/* Estilo para que el botón final ocupe todo el ancho en móvil */
+.btn.full-width {
+  width: 100%; /* Ya estaba al 100% */
+  margin-top: 20px;
+}
+
+/* Estilo para el contenedor de confirmación en móvil (apilado) */
+.confirmation {
+  display: flex;
+  flex-direction: column; /* Apila etiqueta y input en móvil */
+  align-items: flex-start; /* Alinea a la izquierda en móvil */
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: 100%; /* Asegura que el contenedor de confirmación sea 100% */
+  box-sizing: border-box;
+}
+
+.confirmation label {
+  margin-bottom: 5px; /* Espacio entre label e input en móvil */
+}
+
+.confirmation input {
+  width: 100%; /* ¡CAMBIO! Hace que el input sea 100% de su contenedor en móvil */
+  padding: 8px;
+  font-size: 16px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box; /* Asegura que padding y border se incluyan en el ancho */
+}
+
+/* --- MEDIA QUERIES para PC (Pantallas grandes) --- */
+@media (min-width: 768px) {
+  /* Contenedor principal de los Motoristas - para ponerlos en fila */
+  .motorista-list {
+    display: flex;
+    gap: 20px; /* Espacio entre los elementos de la fila */
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan si no caben (por si hay más de 2) */
+    justify-content: flex-start; /* Alinea los elementos al inicio */
+    margin-top: 20px; /* Espacio después del dropdown */
+  }
+
+  /* Estilos para cada 'motorista' (Luis, Carlos) en PC */
+  .motorista {
+    flex: 1; /* Permite que los motoristas crezcan y ocupen el espacio disponible */
+    min-width: 280px; /* Ancho mínimo para cada tarjeta de motorista */
+    max-width: calc(50% - 10px); /* Para dos columnas con un gap de 20px */
+    flex-direction: row; /* Vuelve a poner info y botón en fila para PC */
+    align-items: center; /* Centra verticalmente en la fila */
+    justify-content: space-between; /* Espacio entre info y botón */
+    margin: 0; /* Elimina márgenes verticales cuando están en fila */
+  }
+
+  .motorista-info {
+    margin-bottom: 0; /* Elimina margen inferior de móvil */
+    width: auto; /* Permite que ocupe solo el espacio necesario en PC */
+  }
+
+  .motorista .btn {
+    width: auto; /* ¡NUEVO! El botón vuelve a su ancho automático en PC */
+  }
+
+  /* Contenedor del Código de Confirmación y el Botón Final en PC */
+  .bottom-row-desktop {
+    display: flex; /* Coloca los elementos en fila */
+    align-items: center; /* Alinea verticalmente al centro */
+    justify-content: space-between; /* Empuja el botón a la derecha */
+    margin-top: 20px; /* Espacio superior */
+  }
+
+  .confirmation {
+    margin-bottom: 0; /* Elimina el margen inferior del móvil */
+    flex-direction: row; /* Pone la etiqueta y el input en fila */
+    align-items: center; /* Centra verticalmente */
+    gap: 10px; /* Espacio entre label e input */
+    width: auto; /* Vuelve a su ancho automático en PC */
+  }
+
+  .confirmation label {
+    margin-bottom: 0; /* Elimina el margen inferior de móvil */
+  }
+
+  .confirmation input {
+    width: 80px; /* ¡CAMBIO! Vuelve a su ancho fijo en PC (como en la imagen) */
+  }
+
+  .btn.full-width {
+    width: auto; /* El botón ya no ocupa todo el ancho en PC */
+    margin-top: 0; /* Elimina el margen superior del móvil */
+  }
+}
