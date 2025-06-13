@@ -3,7 +3,6 @@ import React from "react";
 const MenuPorRol = ({
   rol,
   expanded,
-<<<<<<< HEAD
   onMenuItemClick,
   gearImages,
   spanColors,
@@ -22,26 +21,6 @@ const MenuPorRol = ({
     Vendedor: ["pedidos", "clientes"],
     Almacen: ["pedidos", "mantenimiento"],
     Delivery: ["motorizados"],
-=======
-  toggleSection,
-  handlePedidosClick,
-  handleMantenimientoClick,
-  handleIntegracionesClick,
-  gearImages,
-  spanColors,
-  arrowImages,
-  pedidosSeleccion,
-  mantenimientoSeleccion,
-  integracionesSeleccion,
-  activeSection
-}) => {
-
-  const permisosPorRol = {
-    Administrador: ['pedidos', 'mantenimiento', 'integraciones', 'clientes', 'motorizados', 'asesores'],
-    Vendedor: ['clientes', 'almacenes'],
-    Almacen: ['almacenes'], 
-    Delivery: ['motorizados'] 
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
   };
 
   const seccionesPermitidas = permisosPorRol[rol] || [];
@@ -49,7 +28,6 @@ const MenuPorRol = ({
   return (
     <nav>
       <ul className="main-menu">
-<<<<<<< HEAD
         {seccionesPermitidas.includes("pedidos") && (
           <li
             className={`main-menu-item ${expanded.pedidos ? "expanded" : ""}`}
@@ -59,20 +37,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("pedidos")}
             >
-=======
-        {seccionesPermitidas.includes('pedidos') && (
-          <li
-            className={`main-menu-item${expanded.pedidos ? ' expanded' : ''}${['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection) ? ' selected' : ''}`}
-          >
-            <div className="menu-item-header" onClick={() => toggleSection('pedidos')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.pedidos}
                 alt="Pedidos"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-clipboard-list"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Pedidos */}
               <span
                 style={{
@@ -89,10 +59,6 @@ const MenuPorRol = ({
                   expanded.pedidos ? "down" : "right"
                 }`}
               ></i>
-=======
-              <span style={{ fontWeight: 400, fontSize: 18 }}>Pedidos</span>
-              <i className={`fas fa-chevron-${expanded.pedidos ? 'down' : 'right'}`}></i>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={arrowImages.pedidos}
                 alt="Pedidos"
@@ -102,15 +68,10 @@ const MenuPorRol = ({
             {expanded.pedidos && (
               <ul className="submenu">
                 <li
-<<<<<<< HEAD
                   // Usamos onMenuItemClick y activeSection para el resaltado
                   onClick={() => onMenuItemClick("ordenDePedido")}
                   className={activeSection === "ordenDePedido" ? "active" : ""}
                 >
-=======
-                  onClick={() => handlePedidosClick('ordenDePedido')}
-                  className={pedidosSeleccion === 'ordenDePedido' ? 'active' : ''}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
                   Orden de Pedido
                 </li>
                 <li
@@ -132,7 +93,6 @@ const MenuPorRol = ({
           </li>
         )}
 
-<<<<<<< HEAD
         {seccionesPermitidas.includes("mantenimiento") && (
           <li
             className={`main-menu-item ${
@@ -144,21 +104,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("mantenimiento")}
             >
-=======
-        {seccionesPermitidas.includes('mantenimiento') && (
-          <li
-            className={`main-menu-item${expanded.mantenimiento ? ' expanded' : ''}${['productos', 'usuarios', 'movimiento', 'almacenes'].includes(activeSection) ? ' selected' : ''}`}
-          >
-            {/* <li className={`main-menu-item ${expanded.mantenimiento ? 'expanded' : ''}`}> */}
-            <div className="menu-item-header" onClick={() => toggleSection('mantenimiento')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.mantenimiento}
                 alt="Mantenimiento"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-cogs"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Mantenimiento */}
               <span
                 style={{
@@ -177,10 +128,6 @@ const MenuPorRol = ({
                   expanded.mantenimiento ? "down" : "right"
                 }`}
               ></i>
-=======
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Mantenimiento</span>
-              <i className={`fas fa-chevron-${expanded.mantenimiento ? 'down' : 'right'}`}></i>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={arrowImages.mantenimiento}
                 alt="Mantenimiento"
@@ -219,7 +166,6 @@ const MenuPorRol = ({
           </li>
         )}
 
-<<<<<<< HEAD
         {seccionesPermitidas.includes("integraciones") && (
           <li
             className={`main-menu-item ${
@@ -231,36 +177,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("integraciones")}
             >
-=======
-        {seccionesPermitidas.includes('almacenes') && (
-          <li className={`main-menu-item ${expanded.almacenes ? 'expanded' : ''}`}>
-            {/* <li className="main-menu-item"> */}
-            <div className="menu-item-header" onClick={() => handleMantenimientoClick('almacenes')}>
-              <img
-                src={gearImages.almacenes || gearImages.mantenimiento}
-                alt="Almacenes"
-                style={{ width: '22px', height: '22px' }}
-              />
-              <i className="fas fa-warehouse"></i>
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Almacenes</span>
-            </div>
-          </li>
-        )}
-
-        {seccionesPermitidas.includes('integraciones') && (
-          <li
-            className={`main-menu-item${expanded.integraciones ? ' expanded' : ''}${['shopify'].includes(activeSection) ? ' selected' : ''}`}
-          >
-            {/* <li className={`main-menu-item ${expanded.integraciones ? 'expanded' : ''}`}> */}
-            <div className="menu-item-header" onClick={() => toggleSection('integraciones')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.integraciones}
                 alt="Integraciones"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-plug"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Integraciones */}
               <span
                 style={{
@@ -279,10 +201,6 @@ const MenuPorRol = ({
                   expanded.integraciones ? "down" : "right"
                 }`}
               ></i>
-=======
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Integraciones</span>
-              <i className={`fas fa-chevron-${expanded.integraciones ? 'down' : 'right'}`}></i>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={arrowImages.integraciones}
                 alt="Integraciones"
@@ -303,7 +221,6 @@ const MenuPorRol = ({
           </li>
         )}
 
-<<<<<<< HEAD
         {seccionesPermitidas.includes("clientes") && (
           <li
             className={`main-menu-item ${expanded.clientes ? "expanded" : ""} ${
@@ -317,21 +234,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("clientes")}
             >
-=======
-        {seccionesPermitidas.includes('clientes') && (
-          <li
-            className={`main-menu-item${expanded.clientes ? ' expanded' : ''}${['cliente1', 'cliente2'].includes(activeSection) ? ' selected' : ''}`}
-          >
-            {/* <li className={`main-menu-item ${expanded.clientes ? 'expanded' : ''}`}> */}
-            <div className="menu-item-header" onClick={() => toggleSection('clientes')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.clientes}
                 alt="Clientes"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-users"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Clientes */}
               <span
                 style={{
@@ -350,10 +258,6 @@ const MenuPorRol = ({
                   expanded.clientes ? "down" : "right"
                 }`}
               ></i>
-=======
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Clientes</span>
-              <i className={`fas fa-chevron-${expanded.clientes ? 'down' : 'right'}`}></i>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={arrowImages.clientes}
                 alt="Clientes"
@@ -379,7 +283,6 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-<<<<<<< HEAD
         {seccionesPermitidas.includes("motorizados") && (
           <li
             className={`main-menu-item ${
@@ -393,20 +296,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("motorizados")}
             >
-=======
-
-        {seccionesPermitidas.includes('motorizados') && (
-          <li className={`main-menu-item${expanded.motorizados ? ' expanded' : ''}${['motorizado1', 'motorizado2'].includes(activeSection) ? ' selected' : ''}`}>
-          {/* <li className={`main-menu-item ${expanded.motorizados ? 'expanded' : ''}`}> */}
-            <div className="menu-item-header" onClick={() => toggleSection('motorizados')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.motorizados}
                 alt="Motorizados"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-motorcycle"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Motorizados */}
               <span
                 style={{
@@ -424,11 +319,6 @@ const MenuPorRol = ({
               {/* <i className={`fas fa-chevron-${expanded.motorizados ? 'down' : 'right'}`}></i> */}
               {/* La imagen de la flecha podría ocultarse o no ser necesaria */}
               {/* <img
-=======
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Motorizados</span>
-              <i className={`fas fa-chevron-${expanded.motorizados ? 'down' : 'right'}`}></i>
-              <img
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
                 src={arrowImages.motorizados}
                 alt="Motorizados"
                 className="menu-icon"
@@ -455,7 +345,6 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-<<<<<<< HEAD
         {seccionesPermitidas.includes("asesores") && (
           <li
             className={`main-menu-item ${expanded.asesores ? "expanded" : ""} ${
@@ -469,20 +358,12 @@ const MenuPorRol = ({
               className="menu-item-header"
               onClick={() => onMenuItemClick("asesores")}
             >
-=======
-
-        {seccionesPermitidas.includes('asesores') && (
-          <li className={`main-menu-item${expanded.asesores ? ' expanded' : ''}${['asesor1', 'asesor2'].includes(activeSection) ? ' selected' : ''}`}>
-          {/* <li className={`main-menu-item ${expanded.asesores ? 'expanded' : ''}`}> */}
-            <div className="menu-item-header" onClick={() => toggleSection('asesores')}>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={gearImages.asesores}
                 alt="Asesores"
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-user-tie"></i>
-<<<<<<< HEAD
               {/* Resaltado del TÍTULO de Asesores */}
               <span
                 style={{
@@ -501,10 +382,6 @@ const MenuPorRol = ({
                   expanded.asesores ? "down" : "right"
                 }`}
               ></i>
-=======
-              <span style={{ fontWeight: 400, fontSize: 18, }}>Asesores</span>
-              <i className={`fas fa-chevron-${expanded.asesores ? 'down' : 'right'}`}></i>
->>>>>>> 56e289f4518ce784252e06dc48369fdeaa51759c
               <img
                 src={arrowImages.asesores}
                 alt="Asesores"

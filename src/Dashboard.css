@@ -26,8 +26,7 @@ html, body {
 }
 
 .dashboard-sidebar {
-  border-right: 1px solid #ddd;
-  background-color: #fff;
+  background-color: #141e58;
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -111,7 +110,7 @@ body.sidebar-open {
 }
 
 .dashboard-header {
-  background-color: #fff;
+  background-color: #021428;
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -121,12 +120,11 @@ body.sidebar-open {
   transition: padding-left 0.3s ease; 
   position: fixed;
   top: 0;
-  left: 260px;
+  left: 280px;
   right: 0;
   z-index: 90;
   height: 50px;
   padding-left: 20px;
-  border-bottom: 1px solid #ddd;
 }
 
 .panel-control-header {
@@ -173,8 +171,7 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button {
-  background-color: transparent;
-  color: #be2213; /* Color del icono SVG por defecto */
+  background-color: #021428;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,32 +180,28 @@ body.sidebar-open {
   height: 40px;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; 
   position: relative;
   z-index: 110;
   flex-shrink: 0;
   margin-left: 10px;
 }
 
-.sidebar-toggle-button svg {
-  color: #be2213;
-  transition: color 0.3s;
-}
-
-.sidebar-toggle-button:hover {
-  background-color: #be2213;
-}
-
-.sidebar-toggle-button:hover svg {
-  color: #fff;
+.panel-control-header svg {
+  color: #eeeeee;
+  border-radius: 10px;
 }
 
 .dashboard-sidebar.collapsed {
   left: -280px;
 }
 
+.sidebar-toggle-button:hover {
+  background-color: #05305f;
+}
+
 .bell-button {
-  background-color: transparent;
+  background-color: #021428;
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -216,22 +209,19 @@ body.sidebar-open {
   border:none;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
 .bell-button:hover {
-  background-color: #be2213;
-  color: #fff;
+  background-color: #05305f;
 }
 
 .bell-button svg {
-  color: #be2213;
-  transition: color 0.3s;
-}
-
-.bell-button:hover svg {
-  color: #fff;
+  width: 30px;
+  height: 30px;
+  color: #eeeeee;
+  cursor: pointer;
 }
 
 .sidebar-header {
@@ -266,7 +256,6 @@ body.sidebar-open {
 .submenu li {
   padding-left: 20px;
   padding-right: 20px;
-  font-size: 15px;
   width: 100%;
 }
 
@@ -292,16 +281,26 @@ body.sidebar-open {
 .submenu {
   list-style: none;
   padding: 0;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .submenu li {
   padding: 8px;
   margin-bottom: 5px;
-  font-size: 15px;
+  font-size: 18px;
   padding-left: 50px;
 }
 
+.submenu li.activo,
+.submenu li.active {
+  background-color: #4256d0;
+  border-radius: 12px;
+}
+
 .submenu li:hover{
+  background-color: #4256d0; 
+  border-radius: 12px;
   padding-left: 50px;
   cursor: pointer;
 }
@@ -337,6 +336,7 @@ body.sidebar-open {
 }
 
 .imagen-header {
+  background-color: #141e58; 
   margin:0;
   width: 100%;
   padding: 20px;
@@ -643,76 +643,6 @@ table .estado-cancelado {
   padding: 20px;
 }
 
-/* Todos los textos e iconos grises por defecto */
-.dashboard-sidebar,
-.dashboard-sidebar * {
-  color: #5c6c7c !important;
-}
-
-/* Iconos en gris por defecto */
-.dashboard-sidebar .menu-item-header img,
-.dashboard-sidebar .menu-item-header i,
-.dashboard-sidebar .submenu li img,
-.dashboard-sidebar .submenu li i {
-  filter: brightness(0) saturate(100%) invert(38%) sepia(8%) saturate(1017%) hue-rotate(172deg) brightness(92%) contrast(92%);
-  transition: filter 0.2s, color 0.2s;
-}
-
-/* Hover en menú principal y submenú */
-.menu-item-header:hover span,
-.menu-item-header:hover i,
-.menu-item-header:hover img,
-.submenu li:hover {
-  color: #e01414 !important;
-  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
-}
-
-/* Franja SOLO en el menú padre seleccionado */
-.main-menu-item.selected {
-  position: relative;
-  border-radius: 10px;
-}
-.main-menu-item.selected::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 6px;
-  background: #e01414;
-  border-radius: 8px;
-  z-index: 1;
-}
-
-/* Submenú activo: letras rojas, fondo suave */
-.submenu li.active,
-.submenu li.activo {
-  color: #e01414 !important;
-  background-color: #fbeaea;
-}
-
-.submenu li.active:hover,
-.submenu li.activo:hover {
-  background-color: #fbeaea !important;
-  color: #e01414 !important;
-  filter: none !important;
-}
-
-/* Otros menús expandidos NO tienen franja ni color especial */
-.main-menu-item.expanded:not(.selected) {
-  background: transparent;
-  border-radius: 10px;
-}
-
-/* Quita color rojo de iconos en submenú activo si usas <i> o <img> */
-.submenu li.active i,
-.submenu li.active img,
-.submenu li.activo i,
-.submenu li.activo img {
-  color: #e01414 !important;
-  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
-}
-
 @media (max-width: 768px) {
   .dashboard-header {
     padding-left: 10px;
@@ -826,31 +756,4 @@ table .estado-cancelado {
     background-color: #e1e5e9;
     color: #090b0d;
     border: 3px solid #cacdd0;
-}
-
-.main-menu-item.selected::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 4px;
-  background: #e01414;
-  border-radius: 10px;
-  z-index: 1;
-}
-
-.main-menu-item.expanded.selected .menu-item-header span,
-.main-menu-item.expanded.selected .menu-item-header i,
-.main-menu-item.expanded.selected .menu-item-header img {
-  color: #e01414 !important;
-  font-weight: 600 !important;
-  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
-}
-
-.panel-control-header h2,
-.panel-control-header h3,
-.panel-control-header img {
-  color: #191d23 !important;
-  filter: none !important;
 }
