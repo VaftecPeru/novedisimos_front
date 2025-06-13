@@ -65,7 +65,7 @@ const Motorizados = () => {
             <button className="btn">Asignar a este motorizado</button>
           </div>
         </div>{" "}
-        {/* Fin de motorista-list */}
+        {}
         {/* Nuevo contenedor para el código de confirmación y el botón final */}
         <div className="bottom-row-desktop">
           <div className="confirmation">
