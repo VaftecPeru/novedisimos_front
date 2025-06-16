@@ -753,13 +753,14 @@ function Dashboard() {
     if (parentSection) {
       return (
         <>
-          <h2>{parentSection}</h2>
+          <h2 style={{ color: "rgb(198, 63, 63" }}>{parentSection}</h2>
           <img
             src="/images/right arrow.png"
             alt="Icono Panel Control"
             className="panel-control-icon"
+            style={{ width: "24px", margin: "0 8px" }}
           />
-          <h3>{activeSectionName}</h3>
+          <h3 style={{ color: "rgb(198, 63, 63)"}}>{activeSectionName}</h3>
         </>
       );
     }
