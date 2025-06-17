@@ -4,6 +4,7 @@ body {
   background-color: #fff;
 }
 
+
 html, body {
   overflow-x: hidden; 
   margin: 0;
@@ -26,7 +27,8 @@ html, body {
 }
 
 .dashboard-sidebar {
-  background-color: #ffffff;
+  border-right: 1px solid #ddd;
+  background-color: #fff;
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -39,8 +41,7 @@ html, body {
   height: 100vh;
   transition: transform 0.3s ease, left 0.3s ease;
   overflow-y: auto;
-  overflow-x: hidde;
-  border-right: 1px solid rgba(0, 0, 0, 0.3);
+  overflow-x: hidden;
 }
 
 .dashboard-sidebar.collapsed {
@@ -111,7 +112,7 @@ body.sidebar-open {
 }
 
 .dashboard-header {
-  background-color: #ffffff;
+  background-color: #fff;
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -126,14 +127,7 @@ body.sidebar-open {
   z-index: 90;
   height: 50px;
   padding-left: 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.dashboard-header.panel-control-header.h2 {
-  color: #4763e4;
-  font-size: 24px;
-  font-weight: 400;
-  margin-left: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
 .panel-control-header {
@@ -153,12 +147,13 @@ body.sidebar-open {
 }
 
 .panel-control-icon {
-  width: 32px; 
-  height: 32px; 
-  margin-left: 15px; 
-  margin-right: 15px; 
-  margin-top: 0px;
-  flex-shrink: 0; 
+  width: 32px;
+  height: 32px;
+  margin: 0; /* Sin márgenes innecesarios */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .panel-control-header h2 {
@@ -184,7 +179,8 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button {
-  background-color: #ffffff;
+  background-color: transparent;
+  color: #be2213; /* Color del icono SVG por defecto */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -200,21 +196,25 @@ body.sidebar-open {
   margin-left: 10px;
 }
 
-.panel-control-header svg {
-  color: #da6367;
-  border-radius: 10px;
+.sidebar-toggle-button svg {
+  color: #be2213;
+  transition: color 0.3s;
+}
+
+.sidebar-toggle-button:hover {
+  background-color: #be2213;
+}
+
+.sidebar-toggle-button:hover svg {
+  color: #fff;
 }
 
 .dashboard-sidebar.collapsed {
   left: -280px;
 }
 
-.sidebar-toggle-button:hover {
-  background-color: #e6babb;
-}
-
 .bell-button {
-  background-color: #ffffff;
+  background-color: transparent;
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -227,14 +227,17 @@ body.sidebar-open {
 }
 
 .bell-button:hover {
-  background-color: #e6babb;
+  background-color: #be2213;
+  color: #fff;
 }
 
 .bell-button svg {
-  width: 30px;
-  height: 30px;
-  color: #e83f45;
-  cursor: pointer;
+  color: #be2213;
+  transition: color 0.3s;
+}
+
+.bell-button:hover svg {
+  color: #fff;
 }
 
 .sidebar-header {
@@ -340,7 +343,6 @@ body.sidebar-open {
 }
 
 .imagen-header {
-  background-color: #ffffff; 
   margin:0;
   width: 100%;
   padding: 20px;
