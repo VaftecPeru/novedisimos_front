@@ -1,10 +1,26 @@
 import React from 'react';
-import { Box, Button, Typography, FormControl, Select, MenuItem, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, Chip } from '@mui/material';
+import {
+  Box,
+  InputAdornment,
+  TextField,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { format } from 'date-fns';
 
 function MovimientoDashboard() {
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [estadoProducto, setEstadoProducto] = React.useState('TODOS');
+  const [search, setSearch] = React.useState('');
   const movimientosInventario = [
     {
       fecha: new Date('2025-05-08T10:00:00'),
@@ -51,6 +67,29 @@ function MovimientoDashboard() {
     }
   };
 
+  // Filtro combinado por estado y texto de búsqueda
+  const movimientosFiltrados = movimientosInventario.filter((movimiento) => {
+    // Filtro por estado
+    const matchesEstado =
+      estadoProducto === 'TODOS' || movimiento.estado === estadoProducto;
+    // Filtro por texto (en producto, almacen, comentario, operación, tipo, estado)
+    const lowerSearch = search.trim().toLowerCase();
+    const matchesSearch =
+      lowerSearch === '' ||
+      [
+        movimiento.producto,
+        movimiento.almacen,
+        movimiento.comentario,
+        movimiento.operacion,
+        movimiento.tipo,
+        movimiento.estado,
+      ]
+        .some(campo =>
+          campo.toLowerCase().includes(lowerSearch)
+        );
+    return matchesEstado && matchesSearch;
+  });
+
   return (
     <div
       className="top-left-container"
@@ -60,44 +99,43 @@ function MovimientoDashboard() {
         alignItems: 'flex-start',
         flexGrow: 1,
         width: '100%',
-        paddingLeft: '20px', 
-        paddingRight: '20px', 
-        boxSizing: 'border-box', 
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        boxSizing: 'border-box',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap', width: '100%' }}> 
-        <Button
-          variant="contained"
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap', width: '100%' }}>
+        {/* Barra de búsqueda con lupa */}
+        <TextField
+          placeholder="Buscar movimiento..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          variant="outlined"
+          size="small"
           sx={{
-            backgroundColor: '#f1f1f1',
-            color: 'black',
+            minWidth: 260,
             borderRadius: '20px',
-            border: '1px solid transparent',
-            borderColor: '#e0e0e0',
-            boxShadow: 'none',
-
-            '&:hover': {
-              backgroundColor: '#e0e0e0',
-              borderColor: '#1972df',
-              boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
+            background: '#fff',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '20px',
+              borderColor: '#4dcaa1',
             },
-            padding: '4px 16px',
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#4dcaa1',
+              borderWidth: '1.5px'
+            },
+            '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#4dcaa1',
+            },
           }}
-          onClick={() => setDrawerOpen(true)}
-          startIcon={
-            <img
-              src="/images/youtube icon.png"
-              alt="Logo de YouTube"
-              style={{
-                height: '20px',
-                width: '20px',
-              }}
-            />
-          }
-          disableTypography
-        >
-          Ver video tutorial
-        </Button>
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: '#4dcaa1' }} />
+              </InputAdornment>
+            ),
+          }}
+        />
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="body2" sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }} className="producto-label">
@@ -130,7 +168,7 @@ function MovimientoDashboard() {
         style={{
           display: 'flex',
           flexGrow: 1,
-          width: '100%', 
+          width: '100%',
           height: '1000px',
         }}
       >
@@ -162,7 +200,7 @@ function MovimientoDashboard() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {movimientosInventario.map((movimiento, index) => (
+              {movimientosFiltrados.map((movimiento) => (
                 <TableRow key={movimiento.fecha.toISOString()} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                   <TableCell
                     sx={{
@@ -234,6 +272,13 @@ function MovimientoDashboard() {
                   </TableCell>
                 </TableRow>
               ))}
+              {movimientosFiltrados.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    No se encontraron movimientos.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>

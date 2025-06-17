@@ -735,12 +735,10 @@ function Dashboard() {
 
     const sectionDisplayNames = {
       productos: "Productos",
-      usuarios: "Usuarios de Tienda",
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
       seguimientoContraentrega: "Seguimiento Contraentrega",
-      enviosAgencia: "Envíos Agencia",
       shopify: "Shopify",
       vista: "Vista Informes",
       cobertura: "Registrar Cobertura",
@@ -773,20 +771,8 @@ function Dashboard() {
         return <PedidosDashboard />;
       case "seguimientoContraentrega":
         return <SeguimientoContraentrega />;
-      case "enviosAgencia":
-        return (
-          <div className="div-dashboard">
-            <h1>Envíos Agencia</h1>
-          </div>
-        );
       case "productos":
         return <ProductosDashboard />;
-      case "usuarios":
-        return (
-          <div className="div-dashboard">
-            <h1>Gestión de Usuarios de Tienda</h1>
-          </div>
-        );
       case "movimiento":
         return <MovimientoDashboard />;
       case "almacenes":

@@ -82,12 +82,7 @@ const MenuPorRol = ({
                 >
                   Seguimiento Contraentrega
                 </li>
-                <li
-                  onClick={() => onMenuItemClick("enviosAgencia")}
-                  className={activeSection === "enviosAgencia" ? "active" : ""}
-                >
-                  Envíos Agencia
-                </li>
+    
               </ul>
             )}
           </li>
@@ -142,13 +137,7 @@ const MenuPorRol = ({
                   className={activeSection === "productos" ? "active" : ""}
                 >
                   Productos
-                </li>
-                <li
-                  onClick={() => onMenuItemClick("usuarios")}
-                  className={activeSection === "usuarios" ? "active" : ""}
-                >
-                  Usuarios de tienda
-                </li>
+                </li>  
                 <li
                   onClick={() => onMenuItemClick("movimiento")}
                   className={activeSection === "movimiento" ? "active" : ""}
@@ -253,34 +242,7 @@ const MenuPorRol = ({
               >
                 Clientes
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.clientes ? "down" : "right"
-                }`}
-              ></i>
-              <img
-                src={arrowImages.clientes}
-                alt="Clientes"
-                className="menu-icon"
-              />
             </div>
-            {expanded.clientes && (
-              <ul className="submenu">
-                {/* Los ítems del submenu se deben hacer clic y resaltar con activeSection */}
-                <li
-                  onClick={() => onMenuItemClick("cliente1")}
-                  className={activeSection === "cliente1" ? "active" : ""}
-                >
-                  Cliente 1
-                </li>
-                <li
-                  onClick={() => onMenuItemClick("cliente2")}
-                  className={activeSection === "cliente2" ? "active" : ""}
-                >
-                  Cliente 2
-                </li>
-              </ul>
-            )}
           </li>
         )}
         {seccionesPermitidas.includes("motorizados") && (
@@ -326,23 +288,6 @@ const MenuPorRol = ({
             </div>
             {/* Si no hay submenú, esta sección no se renderiza. O puedes poner links directos si los hay. */}
             {/* Si 'motorizados' NO tiene un submenu real (links a otras páginas), puedes eliminar este bloque: */}
-            {expanded.motorizados && (
-              <ul className="submenu">
-                {/* Estos deben ser links reales o usar onMenuItemClick si son secciones */}
-                <li
-                  onClick={() => onMenuItemClick("motorizado1")}
-                  className={activeSection === "motorizado1" ? "active" : ""}
-                >
-                  Motorizado 1
-                </li>
-                <li
-                  onClick={() => onMenuItemClick("motorizado2")}
-                  className={activeSection === "motorizado2" ? "active" : ""}
-                >
-                  Motorizado 2
-                </li>
-              </ul>
-            )}
           </li>
         )}
         {seccionesPermitidas.includes("asesores") && (
@@ -377,34 +322,8 @@ const MenuPorRol = ({
               >
                 Asesores
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.asesores ? "down" : "right"
-                }`}
-              ></i>
-              <img
-                src={arrowImages.asesores}
-                alt="Asesores"
-                className="menu-icon"
-              />
+    
             </div>
-            {expanded.asesores && (
-              <ul className="submenu">
-                {/* Los ítems del submenu se deben hacer clic y resaltar con activeSection */}
-                <li
-                  onClick={() => onMenuItemClick("asesor1")}
-                  className={activeSection === "asesor1" ? "active" : ""}
-                >
-                  Asesor 1
-                </li>
-                <li
-                  onClick={() => onMenuItemClick("asesor2")}
-                  className={activeSection === "asesor2" ? "active" : ""}
-                >
-                  Asesor 2
-                </li>
-              </ul>
-            )}
           </li>
         )}
       </ul>
