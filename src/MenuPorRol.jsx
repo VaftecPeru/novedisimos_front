@@ -13,7 +13,7 @@ const MenuPorRol = ({
     Administrador: [
       "pedidos",
       "mantenimiento",
-      "integraciones",
+      // "integraciones",
       "clientes",
       "motorizados",
       "asesores",
