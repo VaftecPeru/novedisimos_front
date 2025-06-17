@@ -26,7 +26,7 @@ html, body {
 }
 
 .dashboard-sidebar {
-  background-color: #141e58;
+  background-color:rgb(255, 255, 255);
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -40,6 +40,7 @@ html, body {
   transition: transform 0.3s ease, left 0.3s ease;
   overflow-y: auto;
   overflow-x: hidden;
+  border-right: 2px solid #ddd;
 }
 
 .dashboard-sidebar.collapsed {
@@ -110,7 +111,7 @@ body.sidebar-open {
 }
 
 .dashboard-header {
-  background-color: #021428;
+  background-color:rgb(255, 255, 255);
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -125,6 +126,7 @@ body.sidebar-open {
   z-index: 90;
   height: 50px;
   padding-left: 20px;
+  border-bottom: 2px solid #ddd;
 }
 
 .panel-control-header {
@@ -150,7 +152,7 @@ body.sidebar-open {
   margin-left: 15px; 
   margin-right: 15px; 
   margin-top: 0px;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .panel-control-header h2 {
@@ -171,7 +173,7 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button {
-  background-color: #021428;
+  background-color:rgb(255, 255, 255);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,7 +190,7 @@ body.sidebar-open {
 }
 
 .panel-control-header svg {
-  color: #eeeeee;
+  color:rgb(198, 63, 63);
   border-radius: 10px;
 }
 
@@ -197,11 +199,11 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button:hover {
-  background-color: #05305f;
+  background-color:rgb(241, 212, 212);
 }
 
 .bell-button {
-  background-color: #021428;
+  background-color:rgb(255, 255, 255);
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -214,13 +216,13 @@ body.sidebar-open {
 }
 
 .bell-button:hover {
-  background-color: #05305f;
+  background-color: rgb(241, 212, 212);
 }
 
 .bell-button svg {
   width: 30px;
   height: 30px;
-  color: #eeeeee;
+  color: rgb(198, 63, 63);
   cursor: pointer;
 }
 
@@ -336,7 +338,7 @@ body.sidebar-open {
 }
 
 .imagen-header {
-  background-color: #141e58; 
+  background-color:rgb(255, 255, 255); 
   margin:0;
   width: 100%;
   padding: 20px;

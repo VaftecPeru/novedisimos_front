@@ -13,6 +13,7 @@ import AlmacenDashboard from './AlmacenDashboard';
 import InformeDashboard from './InformeDashboard';
 import { useUser } from './UserContext';
 import MenuPorRol from './MenuPorRol';
+import DashboardPage from './DashboardPage';
 
 Modal.setAppElement('#root');
 
@@ -31,7 +32,7 @@ function Dashboard() {
     const [mantenimientoSeleccion, setMantenimientoSeleccion] = useState('productos');
 
     const [pedidosSeleccion, setPedidosSeleccion] = useState('ordenDePedido');
-    
+
     const [integracionesSeleccion, setIntegracionesSeleccion] = useState('shopify');
 
     const [configuracionSeleccion, setConfiguracionSeleccion] = useState('cobertura');
@@ -113,20 +114,20 @@ function Dashboard() {
 
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const [sidebarCollapsed, setSidebarCollapsed] = useState(
-        window.innerWidth <= 768 
+        window.innerWidth <= 768
     );
 
     const { usuario } = useUser();
-    
+
     useEffect(() => {
         const path = location.pathname.split('/');
         const lastSegment = path[path.length - 1];
-        
+
         if (lastSegment !== 'dashboard') {
             setActiveSection(lastSegment);
-            
+
             const initialExpandedState = {
                 mantenimiento: false,
                 clientes: false,
@@ -137,7 +138,7 @@ function Dashboard() {
                 integraciones: false,
                 configuracion: false
             };
-            
+
             setArrowImages({
                 mantenimiento: '/images/shadow arrow.png',
                 clientes: '/images/shadow arrow.png',
@@ -148,7 +149,7 @@ function Dashboard() {
                 integraciones: '/images/shadow arrow.png',
                 configuracion: '/images/shadow arrow.png',
             });
-            
+
             setGearImages({
                 mantenimiento: '/images/shadow file.png',
                 pedidos: '/images/shadow file.png',
@@ -159,7 +160,7 @@ function Dashboard() {
                 integraciones: '/images/shadow file.png',
                 configuracion: '/images/shadow file.png',
             });
-            
+
             setSpanColors({
                 mantenimiento: '#555d8b',
                 pedidos: '#555d8b',
@@ -170,21 +171,21 @@ function Dashboard() {
                 integraciones: '#555d8b',
                 configuracion: '#555d8b',
             });
-            
+
             if (lastSegment === 'productos' || lastSegment === 'usuarios') {
                 initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     mantenimiento: 'white'
@@ -194,17 +195,17 @@ function Dashboard() {
             if (lastSegment === 'productos' || lastSegment === 'movimiento') {
                 initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     mantenimiento: 'white'
@@ -214,17 +215,17 @@ function Dashboard() {
             if (lastSegment === 'productos' || lastSegment === 'almacenes') {
                 initialExpandedState.mantenimiento = true;
                 setMantenimientoSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     mantenimiento: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     mantenimiento: 'white'
@@ -234,37 +235,37 @@ function Dashboard() {
             if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
                 initialExpandedState.pedidos = true;
                 setPedidosSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     pedidos: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
-                    pedidos: '/images/file.png'
+                    pedidos: '/images/file.png',
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     pedidos: 'white'
                 }));
             }
-            
+
             if (lastSegment === 'shopify') {
                 initialExpandedState.integraciones = true;
                 setIntegracionesSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     integraciones: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     integraciones: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     integraciones: 'white'
@@ -274,17 +275,17 @@ function Dashboard() {
             if (lastSegment === 'vista') {
                 initialExpandedState.informes = true;
                 setInformesSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     informes: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     informes: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     informes: 'white'
@@ -294,17 +295,17 @@ function Dashboard() {
             if (lastSegment === 'cobertura') {
                 initialExpandedState.configuracion = true;
                 setConfiguracionSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     configuracion: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     configuracion: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     configuracion: 'white'
@@ -314,37 +315,37 @@ function Dashboard() {
             if (lastSegment === 'curier') {
                 initialExpandedState.configuracion = true;
                 setConfiguracionSeleccion(lastSegment);
-                
+
                 setArrowImages(prev => ({
                     ...prev,
                     configuracion: '/images/down arrow.png'
                 }));
-                
+
                 setGearImages(prev => ({
                     ...prev,
                     configuracion: '/images/file.png'
                 }));
-                
+
                 setSpanColors(prev => ({
                     ...prev,
                     configuracion: 'white'
                 }));
             }
-            
+
             setExpanded(initialExpandedState);
         }
-        
+
         if (window.innerWidth <= 768) {
             setSidebarCollapsed(true);
             document.body.classList.remove('sidebar-open');
         }
-        
+
         const handleResize = () => {
             if (window.innerWidth <= 768) {
                 document.body.classList.remove('sidebar-open');
             }
         };
-        
+
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
@@ -354,7 +355,7 @@ function Dashboard() {
     const toggleSidebar = () => {
         const newCollapsedState = !sidebarCollapsed;
         setSidebarCollapsed(newCollapsedState);
-        
+
         if (window.innerWidth <= 768) {
             if (newCollapsedState) {
                 document.body.classList.remove('sidebar-open');
@@ -363,7 +364,7 @@ function Dashboard() {
             }
         }
     };
-    
+
     const handleOverlayClick = () => {
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
@@ -431,15 +432,15 @@ function Dashboard() {
 
     const toggleSection = (section) => {
         const newExpandedState = { ...expanded };
-        
+
         if (!newExpandedState[section]) {
             Object.keys(newExpandedState).forEach(key => {
                 newExpandedState[key] = false;
             });
         }
-        
+
         newExpandedState[section] = !newExpandedState[section];
-        
+
         setExpanded(newExpandedState);
 
         const newArrowImages = {
@@ -452,7 +453,7 @@ function Dashboard() {
             integraciones: '/images/shadow arrow.png',
             configuracion: '/images/shadow arrow.png',
         };
-        
+
         const newGearImages = {
             mantenimiento: '/images/shadow file.png',
             pedidos: '/images/shadow file.png',
@@ -463,7 +464,7 @@ function Dashboard() {
             integraciones: '/images/shadow file.png',
             configuracion: '/images/shadow file.png',
         };
-        
+
         const newSpanColors = {
             mantenimiento: '#555d8b',
             pedidos: '#555d8b',
@@ -474,10 +475,10 @@ function Dashboard() {
             integraciones: '#555d8b',
             configuracion: '#555d8b',
         };
-        
+
         if (newExpandedState[section]) {
             newArrowImages[section] = '/images/down arrow.png';
-            
+
             switch (section) {
                 case 'mantenimiento':
                     newGearImages.mantenimiento = '/images/file.png';
@@ -503,10 +504,10 @@ function Dashboard() {
                 default:
                     break;
             }
-            
+
             newSpanColors[section] = 'white';
         }
-        
+
         setArrowImages(newArrowImages);
         setGearImages(newGearImages);
         setSpanColors(newSpanColors);
@@ -515,7 +516,7 @@ function Dashboard() {
     const handleSectionClick = (section) => {
         setActiveSection(section);
         navigate(`/dashboard/${section}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
@@ -525,7 +526,7 @@ function Dashboard() {
         setMantenimientoSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
@@ -535,17 +536,17 @@ function Dashboard() {
         setPedidosSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
     };
-    
+
     const handleIntegracionesClick = (option) => {
         setIntegracionesSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
@@ -555,7 +556,7 @@ function Dashboard() {
         setInformesSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
@@ -565,7 +566,7 @@ function Dashboard() {
         setConfiguracionSeleccion(option);
         setActiveSection(option);
         navigate(`/dashboard/${option}`);
-        
+
         if (window.innerWidth <= 768 && !sidebarCollapsed) {
             toggleSidebar();
         }
@@ -597,9 +598,9 @@ function Dashboard() {
 
     const renderHeaderTitle = () => {
         if (activeSection === '') return null;
-        
+
         let parentSection = '';
-        
+
         if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
             parentSection = 'Pedidos';
         } else if (['productos', 'usuarios', 'movimiento'].includes(activeSection)) {
@@ -609,17 +610,17 @@ function Dashboard() {
         } else if (['shopify'].includes(activeSection)) {
             parentSection = 'Integraciones';
         } else if (['vista'].includes(activeSection)) {
-            parentSection = 'Informes';  
+            parentSection = 'Informes';
         } else if (['cobertura'].includes(activeSection)) {
-            parentSection = 'Configuracion';  
+            parentSection = 'Configuracion';
         } else if (['curier'].includes(activeSection)) {
-            parentSection = 'Configuracion';  
+            parentSection = 'Configuracion';
         }
 
         const sectionDisplayNames = {
             'productos': 'Productos',
-            'usuarios': 'Usuarios de Tienda', 
-            'movimiento': 'Movimiento', 
+            'usuarios': 'Usuarios de Tienda',
+            'movimiento': 'Movimiento',
             'almacenes': 'Almacen',
             'ordenDePedido': 'Orden de Pedido',
             'seguimientoContraentrega': 'Seguimiento Contraentrega',
@@ -629,19 +630,19 @@ function Dashboard() {
             'cobertura': 'Registrar Cobertura',
             'curier': 'Registrar Currier Nuevos'
         };
-        
+
         const activeSectionName = sectionDisplayNames[activeSection] || activeSection;
-        
+
         if (parentSection) {
             return (
                 <>
-                    <h2>{parentSection}</h2>
+                    <h2 style={{ color: "rgb(36, 33, 33)" }}>{parentSection}</h2>
                     <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
-                    <h3>{activeSectionName}</h3>
+                    <h3 style={{ color: "rgb(36, 33, 33)" }}>{activeSectionName}</h3>
                 </>
             );
         }
-        
+
         return <h2>{activeSectionName}</h2>;
     };
 
@@ -649,9 +650,9 @@ function Dashboard() {
         switch (activeSection) {
             case 'ordenDePedido':
                 return <PedidosDashboard />;
-            case 'seguimientoContraentrega':  
+            case 'seguimientoContraentrega':
                 return <SeguimientoContraentrega />;
-            case 'enviosAgencia': 
+            case 'enviosAgencia':
                 return <div className="div-dashboard"><h1>Envíos Agencia</h1></div>;
             case 'productos':
                 return <ProductosDashboard />;
@@ -670,17 +671,17 @@ function Dashboard() {
             case 'curier':
                 return <div className="div-dashboard"><h1>Curiers Nuevos</h1></div>;
             default:
-                return <div className="welcome-dashboard">Bienvenido al Panel de Control. Selecciona una opción del menú para comenzar.</div>;
+                return <DashboardPage />;
         }
     };
 
     return (
         <div className="dashboard-container">
-            <div 
-                className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? 'active' : ''}`} 
+            <div
+                className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? 'active' : ''}`}
                 onClick={handleOverlayClick}
             />
-            
+
             <header className={`dashboard-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className={`panel-control-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                     <button onClick={toggleSidebar} className="sidebar-toggle-button">
@@ -692,7 +693,7 @@ function Dashboard() {
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="header-icon notificaciones-icon"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
                 </button>
             </header>
-            
+
             <div className={`dashboard-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 {renderContent()}
             </div>
@@ -771,10 +772,10 @@ function Dashboard() {
             <div className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
                 <div className="sidebar-header">
                     <div className="imagen-header">
-                        <img className="img-logo" src="../images/ovedisimos-dashboard.png" alt="Imagen de login" />
+                        <img className="img-logo" src="../images/img.png" alt="Imagen de login" />
                     </div>
                 </div>
-                <MenuPorRol 
+                <MenuPorRol
                     rol={usuario?.rol}
                     expanded={expanded}
                     toggleSection={toggleSection}
@@ -787,22 +788,22 @@ function Dashboard() {
                     pedidosSeleccion={pedidosSeleccion}
                     mantenimientoSeleccion={mantenimientoSeleccion}
                     integracionesSeleccion={integracionesSeleccion}
-                    />
+                />
                 <div className="bottom-section">
-        <div className="user-info">
-            <div className="user-avatar">
-                <img src="../images/avatarejemplo.png" alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-            </div>
-            <div className="user-details">
-                <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#eee', textAlign: 'left', marginLeft: '5px' }}>Prueba Ejemplo</span>
-                <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>prueba@ejemplo.com</span>
-            </div>
-        </div>
-        <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
-            Cerrar Sesión
-        </button>
-    </div>
-                <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" style={{ borderRadius: '50px' }}/>
+                    <div className="user-info">
+                        <div className="user-avatar">
+                            <img src="../images/avatarejemplo.png" alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
+                        </div>
+                        <div className="user-details">
+                            <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>Prueba Ejemplo</span>
+                            <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>prueba@ejemplo.com</span>
+                        </div>
+                    </div>
+                    <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
+                        Cerrar Sesión
+                    </button>
+                </div>
+                <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" style={{ borderRadius: '50px' }} />
             </div>
         </div>
     );
