@@ -26,11 +26,7 @@ html, body {
 }
 
 .dashboard-sidebar {
-<<<<<<< HEAD
-  background-color:rgb(255, 255, 255);
-=======
   background-color: #ffffff;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -43,13 +39,8 @@ html, body {
   height: 100vh;
   transition: transform 0.3s ease, left 0.3s ease;
   overflow-y: auto;
-<<<<<<< HEAD
-  overflow-x: hidden;
-  border-right: 2px solid #ddd;
-=======
   overflow-x: hidde;
   border-right: 1px solid rgba(0, 0, 0, 0.3);
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .dashboard-sidebar.collapsed {
@@ -63,7 +54,7 @@ html, body {
   width: 30px;
   height: 30px;
   cursor: pointer;
-  background-color: #e83f45;
+  background-color: #4763e4;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -120,11 +111,7 @@ body.sidebar-open {
 }
 
 .dashboard-header {
-<<<<<<< HEAD
-  background-color:rgb(255, 255, 255);
-=======
   background-color: #ffffff;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -134,14 +121,11 @@ body.sidebar-open {
   transition: padding-left 0.3s ease; 
   position: fixed;
   top: 0;
-  left: 280px;
+  left: 260px;
   right: 0;
   z-index: 90;
   height: 50px;
   padding-left: 20px;
-<<<<<<< HEAD
-  border-bottom: 2px solid #ddd;
-=======
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 }
 
@@ -150,14 +134,12 @@ body.sidebar-open {
   font-size: 24px;
   font-weight: 400;
   margin-left: 20px;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .panel-control-header {
   display: flex;
   align-items: center;
   transition: margin-left 0.3s ease; 
-  margin-left: 0;
   width: calc(100% - 70px); 
   overflow: hidden; 
 }
@@ -176,7 +158,7 @@ body.sidebar-open {
   margin-left: 15px; 
   margin-right: 15px; 
   margin-top: 0px;
-  flex-shrink: 0;
+  flex-shrink: 0; 
 }
 
 .panel-control-header h2 {
@@ -186,22 +168,23 @@ body.sidebar-open {
   font-weight: 400;
   transition: margin-left 0.3s ease;
   white-space: nowrap;
+  margin-block: initial;
 }
 
 .panel-control-header h3 {
-  margin-left: 10px;
-  color: #eeeeee;
+  margin: 0; /* Elimina márgenes por defecto que desalinean */
+  padding: 0;
   font-size: 20px;
   font-weight: 400;
+  color: #eeeeee;
   white-space: nowrap;
+  line-height: 1; /* Asegura altura uniforme */
+  display: flex;
+  align-items: center; /* Centra verticalmente el contenido */
 }
 
 .sidebar-toggle-button {
-<<<<<<< HEAD
-  background-color:rgb(255, 255, 255);
-=======
   background-color: #ffffff;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,7 +193,7 @@ body.sidebar-open {
   height: 40px;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease; 
+  transition: all 0.3s ease;
   position: relative;
   z-index: 110;
   flex-shrink: 0;
@@ -218,11 +201,7 @@ body.sidebar-open {
 }
 
 .panel-control-header svg {
-<<<<<<< HEAD
-  color:rgb(198, 63, 63);
-=======
   color: #da6367;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   border-radius: 10px;
 }
 
@@ -231,19 +210,11 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button:hover {
-<<<<<<< HEAD
-  background-color:rgb(241, 212, 212);
-}
-
-.bell-button {
-  background-color:rgb(255, 255, 255);
-=======
   background-color: #e6babb;
 }
 
 .bell-button {
   background-color: #ffffff;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -251,26 +222,18 @@ body.sidebar-open {
   border:none;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .bell-button:hover {
-<<<<<<< HEAD
-  background-color: rgb(241, 212, 212);
-=======
   background-color: #e6babb;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .bell-button svg {
   width: 30px;
   height: 30px;
-<<<<<<< HEAD
-  color: rgb(198, 63, 63);
-=======
   color: #e83f45;
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   cursor: pointer;
 }
 
@@ -306,6 +269,7 @@ body.sidebar-open {
 .submenu li {
   padding-left: 20px;
   padding-right: 20px;
+  font-size: 15px;
   width: 100%;
 }
 
@@ -331,26 +295,16 @@ body.sidebar-open {
 .submenu {
   list-style: none;
   padding: 0;
-  padding-left: 10px;
-  padding-right: 10px;
 }
 
 .submenu li {
   padding: 8px;
   margin-bottom: 5px;
-  font-size: 18px;
+  font-size: 15px;
   padding-left: 50px;
 }
 
-.submenu li.activo,
-.submenu li.active {
-  background-color: #da6367; 
-  border-radius: 12px;
-}
-
 .submenu li:hover{
-  background-color: #da6367; 
-  border-radius: 12px;
   padding-left: 50px;
   cursor: pointer;
 }
@@ -375,10 +329,6 @@ body.sidebar-open {
   padding-right: 25px;
 }
 
-.h2 {
-  color: #0b0a0a;
-  
-}
 .mantenimiento-select:focus {
   border-color: #4763e4;
   box-shadow: 0 0 0 2px rgba(71, 99, 228, 0.2);
@@ -390,11 +340,7 @@ body.sidebar-open {
 }
 
 .imagen-header {
-<<<<<<< HEAD
-  background-color:rgb(255, 255, 255); 
-=======
   background-color: #ffffff; 
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   margin:0;
   width: 100%;
   padding: 20px;
@@ -701,6 +647,76 @@ table .estado-cancelado {
   padding: 20px;
 }
 
+/* Todos los textos e iconos grises por defecto */
+.dashboard-sidebar,
+.dashboard-sidebar * {
+  color: #5c6c7c !important;
+}
+
+/* Iconos en gris por defecto */
+.dashboard-sidebar .menu-item-header img,
+.dashboard-sidebar .menu-item-header i,
+.dashboard-sidebar .submenu li img,
+.dashboard-sidebar .submenu li i {
+  filter: brightness(0) saturate(100%) invert(38%) sepia(8%) saturate(1017%) hue-rotate(172deg) brightness(92%) contrast(92%);
+  transition: filter 0.2s, color 0.2s;
+}
+
+/* Hover en menú principal y submenú */
+.menu-item-header:hover span,
+.menu-item-header:hover i,
+.menu-item-header:hover img,
+.submenu li:hover {
+  color: #e01414 !important;
+  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
+}
+
+/* Franja SOLO en el menú padre seleccionado */
+.main-menu-item.selected {
+  position: relative;
+  border-radius: 10px;
+}
+.main-menu-item.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  background: #e01414;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* Submenú activo: letras rojas, fondo suave */
+.submenu li.active,
+.submenu li.activo {
+  color: #e01414 !important;
+  background-color: #fbeaea;
+}
+
+.submenu li.active:hover,
+.submenu li.activo:hover {
+  background-color: #fbeaea !important;
+  color: #e01414 !important;
+  filter: none !important;
+}
+
+/* Otros menús expandidos NO tienen franja ni color especial */
+.main-menu-item.expanded:not(.selected) {
+  background: transparent;
+  border-radius: 10px;
+}
+
+/* Quita color rojo de iconos en submenú activo si usas <i> o <img> */
+.submenu li.active i,
+.submenu li.active img,
+.submenu li.activo i,
+.submenu li.activo img {
+  color: #e01414 !important;
+  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
+}
+
 @media (max-width: 768px) {
   .dashboard-header {
     padding-left: 10px;
@@ -814,4 +830,31 @@ table .estado-cancelado {
     background-color: #e1e5e9;
     color: #090b0d;
     border: 3px solid #cacdd0;
+}
+
+.main-menu-item.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  background: #e01414;
+  border-radius: 10px;
+  z-index: 1;
+}
+
+.main-menu-item.expanded.selected .menu-item-header span,
+.main-menu-item.expanded.selected .menu-item-header i,
+.main-menu-item.expanded.selected .menu-item-header img {
+  color: #e01414 !important;
+  font-weight: 600 !important;
+  filter: brightness(0) saturate(100%) invert(18%) sepia(97%) saturate(7492%) hue-rotate(353deg) brightness(95%) contrast(105%);
+}
+
+.panel-control-header h2,
+.panel-control-header h3,
+.panel-control-header img {
+  color: #191d23 !important;
+  filter: none !important;
 }
