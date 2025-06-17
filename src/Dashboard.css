@@ -26,7 +26,11 @@ html, body {
 }
 
 .dashboard-sidebar {
+<<<<<<< HEAD
   background-color:rgb(255, 255, 255);
+=======
+  background-color: #ffffff;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   color: #fff;
   width: 280px;
   padding: 20px 0;
@@ -39,8 +43,13 @@ html, body {
   height: 100vh;
   transition: transform 0.3s ease, left 0.3s ease;
   overflow-y: auto;
+<<<<<<< HEAD
   overflow-x: hidden;
   border-right: 2px solid #ddd;
+=======
+  overflow-x: hidde;
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .dashboard-sidebar.collapsed {
@@ -54,7 +63,7 @@ html, body {
   width: 30px;
   height: 30px;
   cursor: pointer;
-  background-color: #4763e4;
+  background-color: #e83f45;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -111,7 +120,11 @@ body.sidebar-open {
 }
 
 .dashboard-header {
+<<<<<<< HEAD
   background-color:rgb(255, 255, 255);
+=======
+  background-color: #ffffff;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   color: #4763e4;
   padding: 0 20px;
   text-align: center;
@@ -126,7 +139,18 @@ body.sidebar-open {
   z-index: 90;
   height: 50px;
   padding-left: 20px;
+<<<<<<< HEAD
   border-bottom: 2px solid #ddd;
+=======
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header.panel-control-header.h2 {
+  color: #4763e4;
+  font-size: 24px;
+  font-weight: 400;
+  margin-left: 20px;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .panel-control-header {
@@ -173,7 +197,11 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button {
+<<<<<<< HEAD
   background-color:rgb(255, 255, 255);
+=======
+  background-color: #ffffff;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +218,11 @@ body.sidebar-open {
 }
 
 .panel-control-header svg {
+<<<<<<< HEAD
   color:rgb(198, 63, 63);
+=======
+  color: #da6367;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   border-radius: 10px;
 }
 
@@ -199,11 +231,19 @@ body.sidebar-open {
 }
 
 .sidebar-toggle-button:hover {
+<<<<<<< HEAD
   background-color:rgb(241, 212, 212);
 }
 
 .bell-button {
   background-color:rgb(255, 255, 255);
+=======
+  background-color: #e6babb;
+}
+
+.bell-button {
+  background-color: #ffffff;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   margin-right: 30px;
   display: flex; 
   align-items: center; 
@@ -216,13 +256,21 @@ body.sidebar-open {
 }
 
 .bell-button:hover {
+<<<<<<< HEAD
   background-color: rgb(241, 212, 212);
+=======
+  background-color: #e6babb;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 }
 
 .bell-button svg {
   width: 30px;
   height: 30px;
+<<<<<<< HEAD
   color: rgb(198, 63, 63);
+=======
+  color: #e83f45;
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   cursor: pointer;
 }
 
@@ -296,12 +344,12 @@ body.sidebar-open {
 
 .submenu li.activo,
 .submenu li.active {
-  background-color: #4256d0;
+  background-color: #da6367; 
   border-radius: 12px;
 }
 
 .submenu li:hover{
-  background-color: #4256d0; 
+  background-color: #da6367; 
   border-radius: 12px;
   padding-left: 50px;
   cursor: pointer;
@@ -327,6 +375,10 @@ body.sidebar-open {
   padding-right: 25px;
 }
 
+.h2 {
+  color: #0b0a0a;
+  
+}
 .mantenimiento-select:focus {
   border-color: #4763e4;
   box-shadow: 0 0 0 2px rgba(71, 99, 228, 0.2);
@@ -338,7 +390,11 @@ body.sidebar-open {
 }
 
 .imagen-header {
+<<<<<<< HEAD
   background-color:rgb(255, 255, 255); 
+=======
+  background-color: #ffffff; 
+>>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
   margin:0;
   width: 100%;
   padding: 20px;
