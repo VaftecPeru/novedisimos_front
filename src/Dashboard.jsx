@@ -1,21 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import Modal from 'react-modal';
-import './Dashboard.css';
-import './Modal.css';
-import closeIcon from '/images/close.png';
-import PedidosDashboard from './PedidosDashboard';
-import ProductosDashboard from './ProductosDashboard';
-import SeguimientoContraentrega from './SeguimientoContraentrega';
-import ShopifyDashboard from './ShopifyDashboard';
-import MovimientoDashboard from './MovimientoDashboard';
-import AlmacenDashboard from './AlmacenDashboard';
-import InformeDashboard from './InformeDashboard';
-import { useUser } from './UserContext';
-import MenuPorRol from './MenuPorRol';
-import DashboardPage from './DashboardPage';
-=======
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Modal from "react-modal";
@@ -31,8 +13,7 @@ import AlmacenDashboard from "./AlmacenDashboard";
 import InformeDashboard from "./InformeDashboard";
 import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
-import Motorizados from "./Motorizados";
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
+import Motorizados from "./motorizados";
 
 Modal.setAppElement("#root");
 
@@ -172,11 +153,6 @@ function Dashboard() {
         configuracion: "/images/shadow arrow.png",
       });
 
-<<<<<<< HEAD
-    const [pedidosSeleccion, setPedidosSeleccion] = useState('ordenDePedido');
-
-    const [integracionesSeleccion, setIntegracionesSeleccion] = useState('shopify');
-=======
       setGearImages({
         mantenimiento: "/images/shadow file.png",
         pedidos: "/images/shadow file.png",
@@ -187,7 +163,6 @@ function Dashboard() {
         integraciones: "/images/shadow file.png",
         configuracion: "/images/shadow file.png",
       });
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 
       setSpanColors({
         mantenimiento: "#555d8b",
@@ -240,265 +215,6 @@ function Dashboard() {
         }));
       }
 
-<<<<<<< HEAD
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(
-        window.innerWidth <= 768
-    );
-
-    const { usuario } = useUser();
-
-    useEffect(() => {
-        const path = location.pathname.split('/');
-        const lastSegment = path[path.length - 1];
-
-        if (lastSegment !== 'dashboard') {
-            setActiveSection(lastSegment);
-
-            const initialExpandedState = {
-                mantenimiento: false,
-                clientes: false,
-                pedidos: false,
-                motorizados: false,
-                asesores: false,
-                informes: false,
-                integraciones: false,
-                configuracion: false
-            };
-
-            setArrowImages({
-                mantenimiento: '/images/shadow arrow.png',
-                clientes: '/images/shadow arrow.png',
-                pedidos: '/images/shadow arrow.png',
-                motorizados: '/images/shadow arrow.png',
-                asesores: '/images/shadow arrow.png',
-                informes: '/images/shadow arrow.png',
-                integraciones: '/images/shadow arrow.png',
-                configuracion: '/images/shadow arrow.png',
-            });
-
-            setGearImages({
-                mantenimiento: '/images/shadow file.png',
-                pedidos: '/images/shadow file.png',
-                clientes: '/images/shadow folder.png',
-                motorizados: '/images/shadow file.png',
-                asesores: '/images/shadow tv.png',
-                informes: '/images/shadow report.png',
-                integraciones: '/images/shadow file.png',
-                configuracion: '/images/shadow file.png',
-            });
-
-            setSpanColors({
-                mantenimiento: '#555d8b',
-                pedidos: '#555d8b',
-                clientes: '#555d8b',
-                motorizados: '#555d8b',
-                asesores: '#555d8b',
-                informes: '#555d8b',
-                integraciones: '#555d8b',
-                configuracion: '#555d8b',
-            });
-
-            if (lastSegment === 'productos' || lastSegment === 'usuarios') {
-                initialExpandedState.mantenimiento = true;
-                setMantenimientoSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    mantenimiento: 'white'
-                }));
-            }
-
-            if (lastSegment === 'productos' || lastSegment === 'movimiento') {
-                initialExpandedState.mantenimiento = true;
-                setMantenimientoSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    mantenimiento: 'white'
-                }));
-            }
-
-            if (lastSegment === 'productos' || lastSegment === 'almacenes') {
-                initialExpandedState.mantenimiento = true;
-                setMantenimientoSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    mantenimiento: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    mantenimiento: 'white'
-                }));
-            }
-
-            if (lastSegment === 'ordenDePedido' || lastSegment === 'seguimientoContraentrega' || lastSegment === 'enviosAgencia') {
-                initialExpandedState.pedidos = true;
-                setPedidosSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    pedidos: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    pedidos: '/images/file.png',
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    pedidos: 'white'
-                }));
-            }
-
-            if (lastSegment === 'shopify') {
-                initialExpandedState.integraciones = true;
-                setIntegracionesSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    integraciones: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    integraciones: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    integraciones: 'white'
-                }));
-            }
-
-            if (lastSegment === 'vista') {
-                initialExpandedState.informes = true;
-                setInformesSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    informes: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    informes: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    informes: 'white'
-                }));
-            }
-
-            if (lastSegment === 'cobertura') {
-                initialExpandedState.configuracion = true;
-                setConfiguracionSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    configuracion: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    configuracion: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    configuracion: 'white'
-                }));
-            }
-
-            if (lastSegment === 'curier') {
-                initialExpandedState.configuracion = true;
-                setConfiguracionSeleccion(lastSegment);
-
-                setArrowImages(prev => ({
-                    ...prev,
-                    configuracion: '/images/down arrow.png'
-                }));
-
-                setGearImages(prev => ({
-                    ...prev,
-                    configuracion: '/images/file.png'
-                }));
-
-                setSpanColors(prev => ({
-                    ...prev,
-                    configuracion: 'white'
-                }));
-            }
-
-            setExpanded(initialExpandedState);
-        }
-
-        if (window.innerWidth <= 768) {
-            setSidebarCollapsed(true);
-            document.body.classList.remove('sidebar-open');
-        }
-
-        const handleResize = () => {
-            if (window.innerWidth <= 768) {
-                document.body.classList.remove('sidebar-open');
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [location.pathname]);
-
-    const toggleSidebar = () => {
-        const newCollapsedState = !sidebarCollapsed;
-        setSidebarCollapsed(newCollapsedState);
-
-        if (window.innerWidth <= 768) {
-            if (newCollapsedState) {
-                document.body.classList.remove('sidebar-open');
-            } else {
-                document.body.classList.add('sidebar-open');
-            }
-        }
-    };
-
-    const handleOverlayClick = () => {
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-=======
       if (lastSegment === "productos" || lastSegment === "almacenes") {
         initialExpandedState.mantenimiento = true;
         setMantenimientoSeleccion(lastSegment);
@@ -649,7 +365,6 @@ function Dashboard() {
       if (window.innerWidth <= 768) {
         document.body.classList.remove("sidebar-open");
       }
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
     };
 
     window.addEventListener("resize", handleResize);
@@ -722,190 +437,6 @@ function Dashboard() {
 
       setTimeout(() => {
         setCompletedModalIsOpen(false);
-<<<<<<< HEAD
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewClient({ ...newClient, [name]: value });
-    };
-
-    const handleRegister = (e) => {
-        e.preventDefault();
-        setModalIsOpen(false);
-        setProcessingModalIsOpen(true);
-
-        setTimeout(() => {
-            setProcessingModalIsOpen(false);
-            setCompletedModalIsOpen(true);
-
-            setTimeout(() => {
-                setCompletedModalIsOpen(false);
-                let updatedClients;
-                if (editIndex === -1) {
-                    updatedClients = [...clients, newClient];
-                } else {
-                    updatedClients = [...clients];
-                    updatedClients[editIndex] = newClient;
-                }
-                setClients(updatedClients);
-                localStorage.setItem('clientsData', JSON.stringify(updatedClients));
-                console.log('Registro completado y proceso continuado.');
-            }, 1000);
-        }, 1000);
-    };
-
-    const toggleSection = (section) => {
-        const newExpandedState = { ...expanded };
-
-        if (!newExpandedState[section]) {
-            Object.keys(newExpandedState).forEach(key => {
-                newExpandedState[key] = false;
-            });
-        }
-
-        newExpandedState[section] = !newExpandedState[section];
-
-        setExpanded(newExpandedState);
-
-        const newArrowImages = {
-            mantenimiento: '/images/shadow arrow.png',
-            clientes: '/images/shadow arrow.png',
-            pedidos: '/images/shadow arrow.png',
-            motorizados: '/images/shadow arrow.png',
-            asesores: '/images/shadow arrow.png',
-            informes: '/images/shadow arrow.png',
-            integraciones: '/images/shadow arrow.png',
-            configuracion: '/images/shadow arrow.png',
-        };
-
-        const newGearImages = {
-            mantenimiento: '/images/shadow file.png',
-            pedidos: '/images/shadow file.png',
-            clientes: '/images/shadow folder.png',
-            motorizados: '/images/shadow file.png',
-            asesores: '/images/shadow tv.png',
-            informes: '/images/shadow report.png',
-            integraciones: '/images/shadow file.png',
-            configuracion: '/images/shadow file.png',
-        };
-
-        const newSpanColors = {
-            mantenimiento: '#555d8b',
-            pedidos: '#555d8b',
-            clientes: '#555d8b',
-            motorizados: '#555d8b',
-            asesores: '#555d8b',
-            informes: '#555d8b',
-            integraciones: '#555d8b',
-            configuracion: '#555d8b',
-        };
-
-        if (newExpandedState[section]) {
-            newArrowImages[section] = '/images/down arrow.png';
-
-            switch (section) {
-                case 'mantenimiento':
-                    newGearImages.mantenimiento = '/images/file.png';
-                    break;
-                case 'clientes':
-                    newGearImages.clientes = '/images/folder.png';
-                    break;
-                case 'pedidos':
-                    newGearImages.pedidos = '/images/file.png';
-                    break;
-                case 'motorizados':
-                    newGearImages.motorizados = '/images/file.png';
-                    break;
-                case 'asesores':
-                    newGearImages.asesores = '/images/tv.png';
-                    break;
-                case 'informes':
-                    newGearImages.informes = '/images/report.png';
-                    break;
-                case 'integraciones':
-                    newGearImages.integraciones = '/images/file.png';
-                    break;
-                default:
-                    break;
-            }
-
-            newSpanColors[section] = 'white';
-        }
-
-        setArrowImages(newArrowImages);
-        setGearImages(newGearImages);
-        setSpanColors(newSpanColors);
-    };
-
-    const handleSectionClick = (section) => {
-        setActiveSection(section);
-        navigate(`/dashboard/${section}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handleMantenimientoClick = (option) => {
-        setMantenimientoSeleccion(option);
-        setActiveSection(option);
-        navigate(`/dashboard/${option}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handlePedidosClick = (option) => {
-        setPedidosSeleccion(option);
-        setActiveSection(option);
-        navigate(`/dashboard/${option}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handleIntegracionesClick = (option) => {
-        setIntegracionesSeleccion(option);
-        setActiveSection(option);
-        navigate(`/dashboard/${option}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handleInformesClick = (option) => {
-        setInformesSeleccion(option);
-        setActiveSection(option);
-        navigate(`/dashboard/${option}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handleConfiguracionClick = (option) => {
-        setConfiguracionSeleccion(option);
-        setActiveSection(option);
-        navigate(`/dashboard/${option}`);
-
-        if (window.innerWidth <= 768 && !sidebarCollapsed) {
-            toggleSidebar();
-        }
-    };
-
-    const handleEdit = (index) => {
-        setEditIndex(index);
-        setNewClient(clients[index]);
-        setModalIsOpen(true);
-    };
-
-    const handleDelete = (index) => {
-        const updatedClients = clients.filter((_, i) => i !== index);
-=======
         let updatedClients;
         if (editIndex === -1) {
           updatedClients = [...clients, newClient];
@@ -913,7 +444,6 @@ function Dashboard() {
           updatedClients = [...clients];
           updatedClients[editIndex] = newClient;
         }
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
         setClients(updatedClients);
         localStorage.setItem("clientsData", JSON.stringify(updatedClients));
         console.log("Registro completado y proceso continuado.");
@@ -954,25 +484,28 @@ function Dashboard() {
     Object.keys(newExpandedState).forEach((key) => {
       if (parentSections.includes(key)) {
         newExpandedState[key] = false; // Colapsa la sección padre
-        newArrowImages[key] = "/images/shadow arrow.png"; 
-        
+        newArrowImages[key] = "/images/shadow arrow.png"; // Restablece flecha
+        // Restablece la imagen de engranaje a su estado "shadow" para padres
         if (key === "clientes")
           newGearImages[key] = "/images/shadow folder.png";
         else if (key === "asesores")
           newGearImages[key] = "/images/shadow tv.png";
         else if (key === "informes")
           newGearImages[key] = "/images/shadow report.png";
-        else newGearImages[key] = "/images/shadow file.png"; 
-        newSpanColors[key] = "#555d8b"; 
+        else newGearImages[key] = "/images/shadow file.png"; // Default para otros como mantenimiento, pedidos, integraciones, configuracion
+        newSpanColors[key] = "#555d8b"; // Restablece color de texto
       }
-    
+      // También resetea los ítems de menú de nivel superior que no son padres (como 'motorizados')
+      // para que si se selecciona otro, este se desactive visualmente.
       if (key === "motorizados") {
         newGearImages.motorizados = "/images/shadow file.png";
         newSpanColors.motorizados = "#555d8b";
       }
     });
 
-  
+    // Reinicia también el estado de las "selecciones" de submenú a su valor inicial
+    // Esto es importante para que cuando cambies de sección principal, los submenús por defecto
+    // se activen visualmente, pero sólo si no estás entrando directamente a una subsección específica
     setMantenimientoSeleccion("productos");
     setPedidosSeleccion("ordenDePedido");
     setIntegracionesSeleccion("shopify");
@@ -1205,10 +738,12 @@ function Dashboard() {
 
     const sectionDisplayNames = {
       productos: "Productos",
+      usuarios: "Usuarios de Tienda",
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
       seguimientoContraentrega: "Seguimiento Contraentrega",
+      enviosAgencia: "Envíos Agencia",
       shopify: "Shopify",
       vista: "Vista Informes",
       cobertura: "Registrar Cobertura",
@@ -1221,14 +756,13 @@ function Dashboard() {
     if (parentSection) {
       return (
         <>
-          <h2 style={{ color: "rgb(198, 63, 63" }}>{parentSection}</h2>
+          <h2>{parentSection}</h2>
           <img
             src="/images/right arrow.png"
             alt="Icono Panel Control"
             className="panel-control-icon"
-            style={{ width: "24px", margin: "0 8px" }}
           />
-          <h3 style={{ color: "rgb(198, 63, 63)"}}>{activeSectionName}</h3>
+          <h3>{activeSectionName}</h3>
         </>
       );
     }
@@ -1241,8 +775,20 @@ function Dashboard() {
         return <PedidosDashboard />;
       case "seguimientoContraentrega":
         return <SeguimientoContraentrega />;
+      case "enviosAgencia":
+        return (
+          <div className="div-dashboard">
+            <h1>Envíos Agencia</h1>
+          </div>
+        );
       case "productos":
         return <ProductosDashboard />;
+      case "usuarios":
+        return (
+          <div className="div-dashboard">
+            <h1>Gestión de Usuarios de Tienda</h1>
+          </div>
+        );
       case "movimiento":
         return <MovimientoDashboard />;
       case "almacenes":
@@ -1275,109 +821,6 @@ function Dashboard() {
     }
   };
 
-<<<<<<< HEAD
-    const renderHeaderTitle = () => {
-        if (activeSection === '') return null;
-
-        let parentSection = '';
-
-        if (['ordenDePedido', 'seguimientoContraentrega', 'enviosAgencia'].includes(activeSection)) {
-            parentSection = 'Pedidos';
-        } else if (['productos', 'usuarios', 'movimiento'].includes(activeSection)) {
-            parentSection = 'Mantenimiento';
-        } else if (['productos', 'usuarios', 'almacenes'].includes(activeSection)) {
-            parentSection = 'Mantenimiento';
-        } else if (['shopify'].includes(activeSection)) {
-            parentSection = 'Integraciones';
-        } else if (['vista'].includes(activeSection)) {
-            parentSection = 'Informes';
-        } else if (['cobertura'].includes(activeSection)) {
-            parentSection = 'Configuracion';
-        } else if (['curier'].includes(activeSection)) {
-            parentSection = 'Configuracion';
-        }
-
-        const sectionDisplayNames = {
-            'productos': 'Productos',
-            'usuarios': 'Usuarios de Tienda',
-            'movimiento': 'Movimiento',
-            'almacenes': 'Almacen',
-            'ordenDePedido': 'Orden de Pedido',
-            'seguimientoContraentrega': 'Seguimiento Contraentrega',
-            'enviosAgencia': 'Envíos Agencia',
-            'shopify': 'Shopify',
-            'vista': 'Vista Informes',
-            'cobertura': 'Registrar Cobertura',
-            'curier': 'Registrar Currier Nuevos'
-        };
-
-        const activeSectionName = sectionDisplayNames[activeSection] || activeSection;
-
-        if (parentSection) {
-            return (
-                <>
-                    <h2 style={{ color: "rgb(36, 33, 33)" }}>{parentSection}</h2>
-                    <img src="/images/right arrow.png" alt="Icono Panel Control" className="panel-control-icon" />
-                    <h3 style={{ color: "rgb(36, 33, 33)" }}>{activeSectionName}</h3>
-                </>
-            );
-        }
-
-        return <h2>{activeSectionName}</h2>;
-    };
-
-    const renderContent = () => {
-        switch (activeSection) {
-            case 'ordenDePedido':
-                return <PedidosDashboard />;
-            case 'seguimientoContraentrega':
-                return <SeguimientoContraentrega />;
-            case 'enviosAgencia':
-                return <div className="div-dashboard"><h1>Envíos Agencia</h1></div>;
-            case 'productos':
-                return <ProductosDashboard />;
-            case 'usuarios':
-                return <div className="div-dashboard"><h1>Gestión de Usuarios de Tienda</h1></div>;
-            case 'movimiento':
-                return <MovimientoDashboard />;
-            case 'almacenes':
-                return <AlmacenDashboard />;
-            case 'shopify':
-                return <ShopifyDashboard />;
-            case 'vista':
-                return <InformeDashboard />;
-            case 'cobertura':
-                return <div className="div-dashboard"><h1>Cobertura</h1></div>;
-            case 'curier':
-                return <div className="div-dashboard"><h1>Curiers Nuevos</h1></div>;
-            default:
-                return <DashboardPage />;
-        }
-    };
-
-    return (
-        <div className="dashboard-container">
-            <div
-                className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? 'active' : ''}`}
-                onClick={handleOverlayClick}
-            />
-
-            <header className={`dashboard-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-                <div className={`panel-control-header ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-                    <button onClick={toggleSidebar} className="sidebar-toggle-button">
-                        {sidebarCollapsed ? openIcon : openCloseIcon}
-                    </button>
-                    {renderHeaderTitle()}
-                </div>
-                <button className="bell-button">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="header-icon notificaciones-icon"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
-                </button>
-            </header>
-
-            <div className={`dashboard-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-                {renderContent()}
-            </div>
-=======
   return (
     <div className="dashboard-container">
       <div
@@ -1450,7 +893,6 @@ function Dashboard() {
               value={newClient.notas || ""}
               onChange={handleInputChange}
             />
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
 
             <label>Canal:</label>
             <select
@@ -1554,53 +996,6 @@ function Dashboard() {
         </form>
       </Modal>
 
-<<<<<<< HEAD
-                        <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
-                    </div>
-                    <div className="modal-buttons">
-                        <button type="submit">Guardar</button>
-                        <button type="button" onClick={closeModal}>Cancelar</button>
-                    </div>
-                </form>
-            </Modal>
-
-            <div className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-                <div className="sidebar-header">
-                    <div className="imagen-header">
-                        <img className="img-logo" src="../images/img.png" alt="Imagen de login" />
-                    </div>
-                </div>
-                <MenuPorRol
-                    rol={usuario?.rol}
-                    expanded={expanded}
-                    toggleSection={toggleSection}
-                    handlePedidosClick={handlePedidosClick}
-                    handleMantenimientoClick={handleMantenimientoClick}
-                    handleIntegracionesClick={handleIntegracionesClick}
-                    gearImages={gearImages}
-                    spanColors={spanColors}
-                    arrowImages={arrowImages}
-                    pedidosSeleccion={pedidosSeleccion}
-                    mantenimientoSeleccion={mantenimientoSeleccion}
-                    integracionesSeleccion={integracionesSeleccion}
-                />
-                <div className="bottom-section">
-                    <div className="user-info">
-                        <div className="user-avatar">
-                            <img src="../images/avatarejemplo.png" alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-                        </div>
-                        <div className="user-details">
-                            <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>Prueba Ejemplo</span>
-                            <span style={{ fontSize: '12px', color: '#aaa', textAlign: 'left', marginLeft: '5px' }}>prueba@ejemplo.com</span>
-                        </div>
-                    </div>
-                    <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
-                        Cerrar Sesión
-                    </button>
-                </div>
-                <img src="/images/idea.png" alt="Idea" className="floating-idea-icon" style={{ borderRadius: '50px' }} />
-            </div>
-=======
       <div
         className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}
       >
@@ -1608,7 +1003,7 @@ function Dashboard() {
           <div className="imagen-header">
             <img
               className="img-logo"
-              src="../images/img.png"
+              src="../images/ovedisimos-dashboard.png"
               alt="Imagen de login"
             />
           </div>
@@ -1663,7 +1058,6 @@ function Dashboard() {
           <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
             Cerrar Sesión
           </button>
->>>>>>> 0f3dc103ab358ad6f66aeb1a9fc1e50784e8c480
         </div>
         <img
           src="/images/idea.png"
