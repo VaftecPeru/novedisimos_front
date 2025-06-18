@@ -6,11 +6,11 @@ import { FaShoppingCart, FaClock, FaBox, FaTruck } from "react-icons/fa";
 
 const DashboardPage = () => {
     const statsTop = [
-        { title: "Pedidos de hoy", amount: "$2169.85", details: "Efectivo: $2169.85", color: "#10B981", icon: <FaCalendarDay /> },
-        { title: "Pedidos de ayer", amount: "$732.35", details: "Efectivo: $732.35", color: "#F97316", icon: <FaCalendarMinus /> },
-        { title: "Este mes", amount: "$5708.93", details: "", color: "#3B82F6", icon: <FaCalendarAlt /> },
-        { title: "Mes pasado", amount: "$182709.65", details: "", color: "#0EA5E9", icon: <FaCalendarCheck /> },
-        { title: "Ventas de todos los tiempos", amount: "$819882.80", details: "", color: "#059669", icon: <FaChartBar /> },
+        { icon: <FaCalendarDay />, title: "Today Orders", amount: "$0.00", details: { cash: "$0.00", card: "$0.00", credit: "$0.00" }, color: "#0f9d8a" },
+        { icon: <FaCalendarMinus />, title: "Yesterday Orders", amount: "$429.58", details: { cash: "$429.58", card: "$0.00", credit: "$0.00" }, color: "#f97316" },
+        { icon: <FaCalendarAlt />, title: "This Month",amount: "$9227.46", details: null, color: "#3b82f6" },
+        { icon: <FaCalendarCheck />, title: "Last Month", amount: "$182709.65", details: null, color: "#0ea5e9" },
+        { icon: <FaChartBar />, title: "All-Time Sales", amount: "$820546.16", details: null, color: "#059669" },
     ];
 
     const statsMiddle = [
@@ -47,13 +47,17 @@ const DashboardPage = () => {
 
             <div className="top-cards">
                 {statsTop.map((item, idx) => (
-                    <div key={idx} className="card" style={{ backgroundColor: item.color }}>
-                        <div className="card-header">
-                            <h4>{item.title}</h4>
-                            <span className="icon-top">{item.icon}</span>
-                        </div>
-                        <h3>{item.amount}</h3>
-                        <p>{item.details}</p>
+                    <div key={idx} className="top-card" style={{ backgroundColor: item.color }}>
+                        <div className="icon">{item.icon}</div>
+                        <h4>{item.title}</h4>
+                        <h2>{item.amount}</h2>
+                        {item.details && (
+                            <div className="details">
+                                <p>Cash : {item.details.cash}</p>
+                                <p>Card : {item.details.card}</p>
+                                <p>Credit : {item.details.credit}</p>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -61,9 +65,14 @@ const DashboardPage = () => {
             <div className="middle-cards">
                 {statsMiddle.map((item, idx) => (
                     <div key={idx} className="card small">
-                        <h4><span className="icon-middle">{item.icon}</span> {item.title}</h4>
-                        <h2 style={{ color: item.color || "#111" }}>{item.value}</h2>
-                        {item.extra && <p style={{ color: "red" }}>( {item.extra} )</p>}
+                        <div className="card-content">
+                            <div className="icon-middle">{item.icon}</div>
+                            <div className="text-content">
+                                <h4>{item.title}</h4>
+                                <h2>{item.value}</h2>
+                                {item.extra && <p style={{ color: "red" }}>( {item.extra} )</p>}
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>

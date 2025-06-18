@@ -14,6 +14,7 @@ import InformeDashboard from "./InformeDashboard";
 import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
 import Motorizados from "./Motorizados";
+import DashboardPage from "./DashboardPage";
 
 Modal.setAppElement("#root");
 
@@ -796,12 +797,7 @@ function Dashboard() {
       case "motorizados": // Este es el valor que 'activeSection' tendrá cuando se active esta vista
         return <Motorizados />; // Esto renderiza el componente que importaste
       default:
-        return (
-          <div className="welcome-dashboard">
-            Bienvenido al Panel de Control. Selecciona una opción del menú para
-            comenzar es aquí? .
-          </div>
-        );
+        return <DashboardPage />;
     }
   };
 
