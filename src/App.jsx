@@ -8,7 +8,7 @@ import ProtectedRoute from './ProtectedRoute';
 import { useState } from 'react';
 import axios from 'axios';
 import { useUser } from './UserContext';
-
+import DetalleMotorizado from './DetalleMotorizados';
 
 import { Box, TextField, Button, Typography, IconButton, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
@@ -220,6 +220,7 @@ function MainApp() {
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/motorizados/:id" element={<DetalleMotorizado />} /> {/* <-- agrega esto */}
       </Routes>
     </Router>
   );

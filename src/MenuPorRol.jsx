@@ -82,12 +82,10 @@ const MenuPorRol = ({
                 >
                   Seguimiento Contraentrega
                 </li>
-    
               </ul>
             )}
           </li>
         )}
-
         {seccionesPermitidas.includes("mantenimiento") && (
           <li
             className={`main-menu-item ${
@@ -137,7 +135,7 @@ const MenuPorRol = ({
                   className={activeSection === "productos" ? "active" : ""}
                 >
                   Productos
-                </li>  
+                </li>
                 <li
                   onClick={() => onMenuItemClick("movimiento")}
                   className={activeSection === "movimiento" ? "active" : ""}
@@ -154,7 +152,6 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-
         {seccionesPermitidas.includes("integraciones") && (
           <li
             className={`main-menu-item ${
@@ -209,7 +206,6 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-
         {seccionesPermitidas.includes("clientes") && (
           <li
             className={`main-menu-item ${expanded.clientes ? "expanded" : ""} ${
@@ -245,15 +241,13 @@ const MenuPorRol = ({
             </div>
           </li>
         )}
+
         {seccionesPermitidas.includes("motorizados") && (
           <li
             className={`main-menu-item ${
-              activeSection === "motorizados" ? "active" : ""
+              expanded.motorizados ? "expanded" : ""
             }`}
           >
-            {" "}
-            {/* <-- ¡CAMBIO AQUÍ! */}
-            {/* Usamos onMenuItemClick aquí */}
             <div
               className="menu-item-header"
               onClick={() => onMenuItemClick("motorizados")}
@@ -264,7 +258,6 @@ const MenuPorRol = ({
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-motorcycle"></i>
-              {/* Resaltado del TÍTULO de Motorizados */}
               <span
                 style={{
                   fontWeight: 400,
@@ -277,19 +270,32 @@ const MenuPorRol = ({
               >
                 Motorizados
               </span>
-              {/* Ya no hay flecha de expansión si no hay submenú real */}
-              {/* <i className={`fas fa-chevron-${expanded.motorizados ? 'down' : 'right'}`}></i> */}
-              {/* La imagen de la flecha podría ocultarse o no ser necesaria */}
-              {/* <img
+              <i
+                className={`fas fa-chevron-${
+                  expanded.motorizados ? "down" : "right"
+                }`}
+              ></i>
+              <img
                 src={arrowImages.motorizados}
                 alt="Motorizados"
                 className="menu-icon"
-            /> */}
+              />
             </div>
-            {/* Si no hay submenú, esta sección no se renderiza. O puedes poner links directos si los hay. */}
-            {/* Si 'motorizados' NO tiene un submenu real (links a otras páginas), puedes eliminar este bloque: */}
+            {expanded.motorizados && (
+              <ul className="submenu">
+                <li
+                  onClick={() => onMenuItemClick("detallemotorizados")}
+                  className={
+                    activeSection === "detallemotorizados" ? "active" : ""
+                  }
+                >
+                  Detalle Motorizados
+                </li>
+              </ul>
+            )}
           </li>
         )}
+        
         {seccionesPermitidas.includes("asesores") && (
           <li
             className={`main-menu-item ${expanded.asesores ? "expanded" : ""} ${
@@ -322,7 +328,6 @@ const MenuPorRol = ({
               >
                 Asesores
               </span>
-    
             </div>
           </li>
         )}
