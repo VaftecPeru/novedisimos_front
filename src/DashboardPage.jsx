@@ -6,11 +6,11 @@ import { FaShoppingCart, FaClock, FaBox, FaTruck } from "react-icons/fa";
 
 const DashboardPage = () => {
     const statsTop = [
-        { icon: <FaCalendarDay />, title: "Today Orders", amount: "$0.00", details: { cash: "$0.00", card: "$0.00", credit: "$0.00" }, color: "#0f9d8a" },
-        { icon: <FaCalendarMinus />, title: "Yesterday Orders", amount: "$429.58", details: { cash: "$429.58", card: "$0.00", credit: "$0.00" }, color: "#f97316" },
-        { icon: <FaCalendarAlt />, title: "This Month",amount: "$9227.46", details: null, color: "#3b82f6" },
-        { icon: <FaCalendarCheck />, title: "Last Month", amount: "$182709.65", details: null, color: "#0ea5e9" },
-        { icon: <FaChartBar />, title: "All-Time Sales", amount: "$820546.16", details: null, color: "#059669" },
+        { icon: <FaCalendarDay />, title: "Pedidos de hoy", amount: "S/ 0.00", details: { cash: "S/ 24.90", card: "S/ 162.70", credit: "S/ 50.10" }, color: "#0f9d8a" },
+        { icon: <FaCalendarMinus />, title: "Pedidos de ayer", amount: "S/ 429.58", details: { cash: "S/ 429.58", card: "S/ 232.60", credit: "S/ 79.80" }, color: "#f97316" },
+        { icon: <FaCalendarAlt />, title: "Este mes",amount: "S/ 9227.46", details: null, color: "#3b82f6" },
+        { icon: <FaCalendarCheck />, title: "Ultimo mes", amount: "S/ 182709.65", details: null, color: "#0ea5e9" },
+        { icon: <FaChartBar />, title: "Venatas totales", amount: "S/ 820546.16", details: null, color: "#059669" },
     ];
 
     const statsMiddle = [
@@ -21,22 +21,22 @@ const DashboardPage = () => {
     ];
 
     const lineData = [
-        { name: "", Sales: 700 },
-        { name: "13-06", Sales: 2200 },
-        { name: "14-06", Sales: 1500 },
-        { name: "15-06", Sales: 3000 },
-        { name: "16-06", Sales: 2000 },
-        { name: "17-06", Sales: 2780 },
-        { name: "18-06", Sales: 1890 },
-        { name: "19-06", Sales: 2390 },
-        { name: "20-06", Sales: 3490 },
+        { name: "", Ventas: 700 },
+        { name: "13-06", Ventas: 2200 },
+        { name: "18-06", Ventas: 1500 },
+        { name: "23-06", Ventas: 3000 },
+        { name: "28-06", Ventas: 2000 },
+        { name: "03-07", Ventas: 2780 },
+        { name: "08-07", Ventas: 1890 },
+        { name: "13-07", Ventas: 2390 },
+        { name: "18-07", Ventas: 3490 },
     ];
 
     const pieData = [
-        { name: "Mint", value: 400 },
-        { name: "Lettuce", value: 500 },
-        { name: "Organic", value: 300 },
-        { name: "Sweet Corn", value: 350 },
+        { name: "Ropa", value: 500 },
+        { name: "Calzado", value: 400 },
+        { name: "Accesorios", value: 350 },
+        { name: "Electrónica", value: 300 },
     ];
 
     const COLORS = ["#10B981", "#3B82F6", "#F97316", "#6366F1"];
@@ -53,9 +53,9 @@ const DashboardPage = () => {
                         <h2>{item.amount}</h2>
                         {item.details && (
                             <div className="details">
-                                <p>Cash : {item.details.cash}</p>
-                                <p>Card : {item.details.card}</p>
-                                <p>Credit : {item.details.credit}</p>
+                                <p>Efectivo : {item.details.cash}</p>
+                                <p>Tarjeta : {item.details.card}</p>
+                                <p>Credito : {item.details.credit}</p>
                             </div>
                         )}
                     </div>
@@ -80,18 +80,18 @@ const DashboardPage = () => {
             <div className="charts-section">
                 <div className="chart-card">
                     <h4>Ventas semanales 2025</h4>
-                    <LineChart width={350} height={200} data={lineData}>
+                    <LineChart width={500} height={250} data={lineData} margin={{ top: 5, right: 5, left: 0, bottom: 15 }}>
                         <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                        <XAxis dataKey="name" />
+                        <XAxis dataKey="name" angle={-45} textAnchor="end" />
                         <YAxis />
                         <Tooltip />
-                        <Line type="monotone" dataKey="Sales" stroke="#10B981" />
+                        <Line type="monotone" dataKey="Ventas" stroke="#10B981" />
                     </LineChart>
                 </div>
 
                 <div className="chart-card">
                     <h4>Productos más vendidos</h4>
-                    <PieChart width={350} height={200}>
+                    <PieChart width={500} height={250}>
                         <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
                             {pieData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
