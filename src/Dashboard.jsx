@@ -15,6 +15,7 @@ import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
 import Motorizados from "./Motorizados";
 import DetalleMotorizados from "./DetalleMotorizados";
+import DashboardPage from "./DashboardPage";
 
 Modal.setAppElement("#root");
 
@@ -802,12 +803,8 @@ function Dashboard() {
       case "detallemotorizados":
         return <DetalleMotorizados />; // Asegúrate de que este componente esté importado correctamente
         default:
-        return (
-          <div className="welcome-dashboard">
-            Bienvenido al Panel de Control. Selecciona una opción del menú para
-            comenzar es aquí? .
-          </div>
-        );
+      
+        return <DashboardPage />;
     }
   };
 
