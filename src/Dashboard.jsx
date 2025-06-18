@@ -9,14 +9,15 @@ import ProductosDashboard from "./ProductosDashboard";
 import SeguimientoContraentrega from "./SeguimientoContraentrega";
 import ShopifyDashboard from "./ShopifyDashboard";
 import MovimientoDashboard from "./MovimientoDashboard";
-import AlmacenDashboard from "./Pages/Almacen/AlmacenDashboard";
+import AlmacenDashboard from "./AlmacenDashboard";
 import InformeDashboard from "./InformeDashboard";
 import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
-import Motorizados from "./Pages/Motorizado/Motorizados";
+import Motorizados from "./Motorizados";
 import DetalleMotorizados from "./DetalleMotorizados";
-
 import DashboardPage from "./DashboardPage";
+
+
 Modal.setAppElement("#root");
 
 function Dashboard() {
