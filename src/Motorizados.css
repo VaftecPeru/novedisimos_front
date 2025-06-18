@@ -1,212 +1,234 @@
-body {
-  background-color: #f8f9fc;
- width: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.container {
-  margin: 30px 0;
-  width: 100%;
-  max-width: none;
-  background: #fff;
-  padding: 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  font-family: Arial, sans-serif;
-  box-sizing: border-box;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 5px;
-}
-
-h3 {
-  text-align: center;
-  color: #555;
-  font-weight: 400;
-  margin-top: 0;
-}
-
-.subtitulo {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.box {
-  border: 1px solid #eee;
-  border-radius: 10px;
+/* Contenedor principal de la tabla */
+.historial-pedidos-container {
+  background-color: #fff;
   padding: 20px;
-  margin-bottom: 20px;
-  box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
-}
-
-.bold {
-  font-weight: bold;
-}
-
-.dropdown {
-  margin-top: 8px;
-  padding: 6px;
-  width: 100%; /* Ya estaba al 100% */
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
-}
-
-/* Estilos actuales para .motorista (comportamiento móvil por defecto) */
-.motorista {
-  display: flex;
-  flex-direction: column; /* Apila info y botón en móvil */
-  align-items: flex-start; /* Alinea los ítems al inicio en móvil */
-  justify-content: space-between;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 10px 0;
-  box-sizing: border-box;
-  width: 100%; /* Asegura que cada tarjeta motorista ocupe el 100% del ancho en móvil */
-}
-
-.motorista-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px; /* Espacio entre info y botón en móvil */
-  width: 100%; /* Asegura que la info ocupe todo el ancho disponible */
-}
-
-.motorista img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-right: 15px;
-}
-
-.status {
-  font-size: 14px;
-  padding: 2px 8px;
   border-radius: 8px;
-  margin-top: 4px;
-  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px; /* Para separarlo de elementos superiores */
 }
 
-.disponible {
-  background-color: #d4f8d4;
-  color: #1b7c1b;
+.historial-pedidos-container h3 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: left;
 }
 
-.ocupado {
-  background-color: #ffe1e1;
-  color: #b20000;
+/* Sección de Filtros */
+.filters-section,
+.date-filters-section {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+  gap: 15px; /* Espacio entre los elementos de filtro */
+  margin-bottom: 20px;
+  align-items: flex-end; /* Alinea los elementos en la parte inferior */
 }
 
-.btn {
-  padding: 10px 16px;
-  background-color: #b20000;
+.filter-input,
+.filter-select,
+.filter-date {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  min-width: 150px; /* Ancho mínimo para inputs/selects */
+  flex-grow: 1; /* Permite que crezcan para ocupar espacio disponible */
+  max-width: 250px; /* Ancho máximo para inputs/selects */
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.date-input-group label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+.btn-descargar,
+.btn-filter,
+.btn-reset {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.btn-descargar {
+  background-color: #28a745; /* Verde */
+  color: white;
+}
+.btn-descargar:hover {
+  background-color: #218838;
+}
+
+.btn-filter {
+  background-color: #007bff; /* Azul */
+  color: white;
+}
+.btn-filter:hover {
+  background-color: #0056b3;
+}
+
+.btn-reset {
+  background-color: #6c757d; /* Gris */
+  color: white;
+}
+.btn-reset:hover {
+  background-color: #5a6268;
+}
+
+/* Tabla */
+.table-wrapper {
+  overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
+  max-width: 100%; /* Asegura que no se desborde */
+}
+
+.pedidos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.pedidos-table th,
+.pedidos-table td {
+  border: 1px solid #eee;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.pedidos-table th {
+  background-color: #f8f9fa;
+  color: #333;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pedidos-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.pedidos-table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Estilos para las nuevas columnas de Motorizado y Vendedor */
+.pedidos-table th:nth-child(3), /* Motorizado */
+.pedidos-table td:nth-child(3),
+.pedidos-table th:nth-child(4), /* Vendedor */
+.pedidos-table td:nth-child(4) {
+  min-width: 120px; /* Ajusta el ancho mínimo según necesites para el contenido */
+  text-align: left;
+  /*padding: 8px; /* Ya definido en .pedidos-table th, .pedidos-table td */
+  /*border-bottom: 1px solid #ddd; /* Ya definido en .pedidos-table th, .pedidos-table td */
+}
+
+/* Estilos para los badges de estado */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  display: inline-block; /* Para que no ocupe todo el ancho */
+  min-width: 80px; /* Ancho mínimo para que todos tengan tamaño similar */
+}
+
+.status-badge.pendiente {
+  background-color: #ffc107; /* Amarillo */
+}
+
+.status-badge.tratamiento {
+  background-color: #007bff; /* Azul */
+}
+
+.status-badge.entregado {
+  background-color: #28a745; /* Verde */
+}
+
+.status-badge.cancelar {
+  /* Asumiendo que "Cancelar" es un estado */
+  background-color: #dc3545; /* Rojo */
+}
+
+/* Botones de acción dentro de la tabla */
+.action-button-cancelar {
+  background-color: #dc3545; /* Rojo */
   color: white;
   border: none;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  box-sizing: border-box;
+  font-size: 13px;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
-/* Este estilo para el botón dentro de .motorista */
-.motorista .btn {
-  width: 100%; /* ¡NUEVO! Hace que el botón "Asignar a motorizado" sea 100% en móvil */
+.action-button-cancelar:hover {
+  background-color: #c82333;
 }
 
-/* Estilo para que el botón final ocupe todo el ancho en móvil */
-.btn.full-width {
-  width: 100%; /* Ya estaba al 100% */
-  margin-top: 20px;
+/* Contenedor para los iconos de acción (nueva clase para flexbox) */
+.action-icons-cell {
+  display: flex; /* Para que los iconos se muestren en línea */
+  gap: 5px; /* Espacio entre los iconos */
+  justify-content: center; /* Centra los iconos si la columna es más ancha */
+  align-items: center;
 }
 
-/* Estilo para el contenedor de confirmación en móvil (apilado) */
-.confirmation {
-  display: flex;
-  flex-direction: column; /* Apila etiqueta y input en móvil */
-  align-items: flex-start; /* Alinea a la izquierda en móvil */
-  margin-top: 15px;
-  margin-bottom: 15px;
-  width: 100%; /* Asegura que el contenedor de confirmación sea 100% */
-  box-sizing: border-box;
+/* Estilos base para los botones de icono (Imprimir, Ver/Ojo, Buscar/Maximizar) */
+.action-icons-cell .action-button-print,
+.action-icons-cell .action-button-view {
+  background-color: transparent; /* Fondo transparente */
+  border: none; /* Sin borde */
+  color: #007bff; /* Color de icono predeterminado, puedes ajustar */
+  cursor: pointer;
+  font-size: 1.2em; /* Tamaño base del icono */
+  padding: 5px; /* Espaciado alrededor del icono para clic fácil */
+  transition: color 0.3s ease; /* Transición suave al pasar el ratón */
+  display: flex; /* Asegura que el icono esté centrado si hay padding */
+  align-items: center;
+  justify-content: center;
 }
 
-.confirmation label {
-  margin-bottom: 5px; /* Espacio entre label e input en móvil */
+.action-icons-cell .action-button-print:hover,
+.action-icons-cell .action-button-view:hover {
+  color: #0056b3; /* Color al pasar el ratón */
 }
 
-.confirmation input {
-  width: 100%; /* ¡CAMBIO! Hace que el input sea 100% de su contenedor en móvil */
-  padding: 8px;
-  font-size: 16px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-sizing: border-box; /* Asegura que padding y border se incluyan en el ancho */
+/* Ajustes específicos para los tamaños de los iconos */
+.action-icons-cell .fa-print,
+.action-icons-cell .fa-eye,
+.action-icons-cell .fa-search {
+  font-size: 1.1em; /* Un poco más grande para visibilidad, puedes ajustar */
 }
 
-/* --- MEDIA QUERIES para PC (Pantallas grandes) --- */
-@media (min-width: 768px) {
-  /* Contenedor principal de los Motoristas - para ponerlos en fila */
-  .motorista-list {
-    display: flex;
-    gap: 20px; /* Espacio entre los elementos de la fila */
-    flex-wrap: wrap; /* Permite que los elementos se envuelvan si no caben (por si hay más de 2) */
-    justify-content: flex-start; /* Alinea los elementos al inicio */
-    margin-top: 20px; /* Espacio después del dropdown */
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filters-section,
+  .date-filters-section {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  /* Estilos para cada 'motorista' (Luis, Carlos) en PC */
-  .motorista {
-    flex: 1; /* Permite que los motoristas crezcan y ocupen el espacio disponible */
-    min-width: 280px; /* Ancho mínimo para cada tarjeta de motorista */
-    max-width: calc(50% - 10px); /* Para dos columnas con un gap de 20px */
-    flex-direction: row; /* Vuelve a poner info y botón en fila para PC */
-    align-items: center; /* Centra verticalmente en la fila */
-    justify-content: space-between; /* Espacio entre info y botón */
-    margin: 0; /* Elimina márgenes verticales cuando están en fila */
+  .filter-input,
+  .filter-select,
+  .filter-date,
+  .btn-descargar,
+  .btn-filter,
+  .btn-reset {
+    width: 100%;
+    max-width: none;
   }
 
-  .motorista-info {
-    margin-bottom: 0; /* Elimina margen inferior de móvil */
-    width: auto; /* Permite que ocupe solo el espacio necesario en PC */
-  }
-
-  .motorista .btn {
-    width: auto; /* ¡NUEVO! El botón vuelve a su ancho automático en PC */
-  }
-
-  /* Contenedor del Código de Confirmación y el Botón Final en PC */
-  .bottom-row-desktop {
-    display: flex; /* Coloca los elementos en fila */
-    align-items: center; /* Alinea verticalmente al centro */
-    justify-content: space-between; /* Empuja el botón a la derecha */
-    margin-top: 20px; /* Espacio superior */
-  }
-
-  .confirmation {
-    margin-bottom: 0; /* Elimina el margen inferior del móvil */
-    flex-direction: row; /* Pone la etiqueta y el input en fila */
-    align-items: center; /* Centra verticalmente */
-    gap: 10px; /* Espacio entre label e input */
-    width: auto; /* Vuelve a su ancho automático en PC */
-  }
-
-  .confirmation label {
-    margin-bottom: 0; /* Elimina el margen inferior de móvil */
-  }
-
-  .confirmation input {
-    width: 80px; /* ¡CAMBIO! Vuelve a su ancho fijo en PC (como en la imagen) */
-  }
-
-  .btn.full-width {
-    width: auto; /* El botón ya no ocupa todo el ancho en PC */
-    margin-top: 0; /* Elimina el margen superior del móvil */
+  .date-input-group {
+    width: 100%;
   }
 }
