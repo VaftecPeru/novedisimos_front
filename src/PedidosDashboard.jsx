@@ -34,7 +34,6 @@ function EstadoBadge({ label, color }) {
   );
 }
 
-// Ícono de nota tipo papel y lápiz (SVG similar a tu imagen)
 function NotaIcono(props) {
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
@@ -261,7 +260,6 @@ function PedidosDashboard() {
 
   const handleExportar = () => {
     const csvRows = [];
-    // Encabezados CSV: pon los campos que desees exportar
     csvRows.push("ID,Cliente,Estado de Pago,Estado de Entrega,Total");
 
     pedidosFiltrados.forEach(pedido => {
