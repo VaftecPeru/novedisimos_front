@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Modal from "react-modal";
@@ -14,7 +15,9 @@ import InformeDashboard from "./InformeDashboard";
 import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
 import Motorizados from "./Motorizados";
+import DetalleMotorizados from "./DetalleMotorizados";
 import DashboardPage from "./DashboardPage";
+
 
 Modal.setAppElement("#root");
 
@@ -42,6 +45,8 @@ function Dashboard() {
     useState("cobertura");
 
   const [informesSeleccion, setInformesSeleccion] = useState("vista");
+
+  const [motorizadosSeleccion, setMotorizadosSeleccion] = useState("asignacion");
 
   const [arrowImages, setArrowImages] = useState({
     mantenimiento: "/images/shadow arrow.png",
@@ -479,6 +484,7 @@ function Dashboard() {
       "configuracion",
       "clientes",
       "asesores",
+      "motorizados",
     ];
 
     // Primero, colapsa *todas* las secciones padre y resetea sus estilos a "inactivos"
@@ -796,7 +802,10 @@ function Dashboard() {
         );
       case "motorizados": // Este es el valor que 'activeSection' tendrá cuando se active esta vista
         return <Motorizados />; // Esto renderiza el componente que importaste
-      default:
+      case "detallemotorizados":
+        return <DetalleMotorizados />; // Asegúrate de que este componente esté importado correctamente
+        default:
+      
         return <DashboardPage />;
     }
   };
