@@ -7,6 +7,87 @@ import {
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
 import { fetchOrders, getShopInfo } from './components/services/shopifyService';
 import './PedidosDashboard.css';
+import NoteIcon from '@mui/icons-material/Note';
+import SaveIcon from '@mui/icons-material/Save';
+import TablePagination from '@mui/material/TablePagination';
+
+function EstadoBadge({ label, color }) {
+  return (
+    <Box
+      sx={{
+        display: 'inline-block',
+        px: 2,
+        py: 0.5,
+        bgcolor: color,
+        color: '#fff',
+        borderRadius: '6px',
+        fontWeight: 'bold',
+        fontSize: '0.98em',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        minWidth: 110,
+        boxShadow: '0 1px 3px rgba(60,60,60,0.08)'
+      }}
+    >
+      {label}
+    </Box>
+  );
+}
+
+// Ícono de nota tipo papel y lápiz (SVG similar a tu imagen)
+function NotaIcono(props) {
+  return (
+    <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" stroke="#222" strokeWidth="2" fill="none"/>
+      <rect x="7" y="8" width="10" height="2" rx="1" fill="#222" />
+      <rect x="7" y="12" width="10" height="2" rx="1" fill="#222" />
+      <rect x="7" y="16" width="7" height="2" rx="1" fill="#222" />
+      <path d="M17 19l2.5-2.5M18.5 18.5l-1-1" stroke="#222" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Componente de nota editable
+function NotaEditable({ nota, onSave, Icono }) {
+  const [editando, setEditando] = useState(false);
+  const [valor, setValor] = useState(nota || '');
+
+  const handleSave = () => {
+    setEditando(false);
+    if (onSave) onSave(valor);
+  };
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {editando ? (
+        <>
+          <TextField
+            value={valor}
+            onChange={e => setValor(e.target.value)}
+            size="small"
+            variant="outlined"
+            sx={{ minWidth: 100 }}
+          />
+          <IconButton size="small" color="primary" onClick={handleSave}>
+            <SaveIcon />
+          </IconButton>
+        </>
+      ) : (
+        <>
+          <IconButton size="small" onClick={() => setEditando(true)}>
+            {Icono ? <Icono /> : <NoteIcon />}
+          </IconButton>
+          <Box
+            onClick={() => setEditando(true)}
+            sx={{ cursor: 'pointer', minWidth: 60, color: '#333', fontSize: '0.9em' }}
+          >
+            {nota || <span style={{ color: '#aaa' }}>Sin nota</span>}
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+}
 
 
 const formatDate = (dateString) => {
@@ -178,9 +259,38 @@ function PedidosDashboard() {
   searchTerm: ''
 });
 
+  const handleExportar = () => {
+    const csvRows = [];
+    // Encabezados CSV: pon los campos que desees exportar
+    csvRows.push("ID,Cliente,Estado de Pago,Estado de Entrega,Total");
+
+    pedidosFiltrados.forEach(pedido => {
+      const row = [
+        pedido.id,
+        pedido.cliente || "",
+        pedido.financial_status === "paid" ? "Pagado" : "Pago pendiente",
+        pedido.fulfillment_status === "fulfilled" ? "Preparado" : "No preparado",
+        pedido.total || ""
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+      csvRows.push(row);
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'pedidos.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
   
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const estadoInicial = {
     numeroOrden: '',
     canal: 'Shopify',
@@ -212,7 +322,9 @@ function PedidosDashboard() {
   const [pedidosOriginales, setPedidosOriginales] = useState([]);  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [filtroPago, setFiltroPago] = useState("pendiente");     
+  const [filtroPreparado, setFiltroPreparado] = useState(""); 
+
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
     { value: 'Bongará', label: 'Bongará' },
@@ -1369,11 +1481,13 @@ function PedidosDashboard() {
   };
 
 const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-  const { estado, almacen, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+  const { estadoPago, estadoEntrega, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+  if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
+  if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
 
-  if (estado && estado !== '' && pedido.estado !== estado) return false;
-  if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
-  
+  if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
+  if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
+
   if (fechaInicio || fechaFin) {
     let fechaComparar = null;
     
@@ -1431,6 +1545,11 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
   
   return true;
 });
+
+const pedidosPaginados = pedidosFiltrados.slice(
+  page * rowsPerPage,
+  page * rowsPerPage + rowsPerPage
+);
   if (loading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1451,14 +1570,22 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Pedidos</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {[MusicNote, Instagram, WhatsApp].map((Icon, idx) => (
-            <IconButton key={idx} color="primary"><Icon /></IconButton>
-          ))}
-        </Box>
-      </Box>
+      <Button
+        variant="outlined"
+        sx={{
+          color: "#09C46B",
+          borderColor: "#09C46B",
+          backgroundColor: "#fff",
+          fontWeight: 'bold',
+          '&:hover': {
+            borderColor: "#09C46B",
+            backgroundColor: "#E9FBF2",
+          }
+        }}
+        onClick={handleExportar}
+      >
+        Exportar
+      </Button>
 
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Button
@@ -1480,19 +1607,16 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
           InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
         />
 
-       <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
+       <FormControl size="small">
         <Select
-          value={filtros.estado}
-          onChange={(e) => handleFiltroChange('estado', e.target.value)}
+          value={filtroPago}
+          onChange={(e) => setFiltroPago(e.target.value)}
           displayEmpty
-          renderValue={selected => selected || "Estados"}  
-          sx={{ height: 40 }}
         >
-          <MenuItem value="">Todos los estados</MenuItem>
-          {estadosDisponibles.map(estado => (
-            <MenuItem key={estado} value={estado}>{estado}</MenuItem>
-          ))}
+          <MenuItem value="pendiente">Pago pendiente</MenuItem>
+          <MenuItem value="pagado">Pagado</MenuItem>
         </Select>
+        <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
       </FormControl>
         {/*
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
@@ -1511,18 +1635,17 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
         </FormControl>
         */}
 
-        <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
+         <FormControl size="small">
           <Select
-            value={filtros.almacen}
-            onChange={(e) => handleFiltroChange('almacen', e.target.value)}
+            value={filtroPreparado}
+            onChange={(e) => setFiltroPreparado(e.target.value)}
             displayEmpty
-            renderValue={selected => selected || "Seleccion un estado"}
-            sx={{ height: 40 }}
           >
-            {almacenesDisponibles.map(almacen => (
-              <MenuItem key={almacen} value={almacen}>{almacen}</MenuItem>
-            ))}
+            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="preparado">Preparado</MenuItem>
+            <MenuItem value="no_preparado">No preparado</MenuItem>
           </Select>
+          <Typography variant="caption" sx={{ ml: 1 }}>Estado de entrega</Typography>
         </FormControl>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1581,64 +1704,92 @@ const pedidosFiltrados = pedidosOriginales.filter(pedido => {
 
       <TableContainer component={Paper} sx={{ mb: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
         <Table sx={{ minWidth: 650 }} size="small">
-          <TableHead>
-            <TableRow sx={{ bgcolor: '#f3f4f6' }}>
-              {['Order', 'Actions', 'Delivery', 'Trazabilidad', 'Importes', 'Pagos', 'Products', 'Nota', 'Cliente', 'Ubicación', 'Fechas']
-                .map(header => <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>)}
+         <TableHead>
+          <TableRow sx={{ bgcolor: '#f3f4f6' }}>
+            <TableCell sx={{ fontWeight: 'bold' }}>Orden Pedido</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Cliente</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Estado de Pago</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Estado Preparación Pedido</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Detalle de Pedido</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Dirección</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Nota</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {pedidosFiltrados.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} align="center">
+                No hay pedidos encontrados.
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {pedidosFiltrados.map((pedido) => (
+          ) : (
+            pedidosPaginados.map((pedido) => (
               <TableRow key={pedido.id} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                 <TableCell>{pedido.id}</TableCell>
                 <TableCell>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton size="small" sx={{ color: '#10b981' }}><WhatsApp fontSize="small" /></IconButton>
-                    <IconButton size="small" sx={{ color: '#6b7280' }}><Search fontSize="small" /></IconButton>
+                  <Box sx={{ fontSize: '0.75rem' }}>
+                    <FechaItem label="Ingreso" fecha={pedido.fechas?.ingreso || '-'} />
+                    <FechaItem label="Registro" fecha={pedido.fechas?.registro || '-'} />
+                    <FechaItem label="Despacho" fecha={pedido.fechas?.despacho || '-'} />
+                    <FechaItem label="Entrega" fecha={pedido.fechas?.entrega || '-'} />
                   </Box>
                 </TableCell>
-                
+                <TableCell sx={{ maxWidth: 150 }}><Typography noWrap>{pedido.cliente || '-'}</Typography></TableCell>
                 <TableCell>
-                   <EstadoChip 
-                    estado={pedido.estado} 
-                    estadoAdicional={pedido.estadoAdicional}
-                    trazabilidad={pedido.trazabilidad}
-                    pedidoId={pedido.id}
-                    onTrazabilidadChange={handleTrazabilidadChange}
+                  {pedido.financial_status === 'paid' ? (
+                    <EstadoBadge label="Pagado" color="#4D68E6" />
+                  ) : (
+                    <EstadoBadge label="Pago pendiente" color="#FFB300" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {pedido.fulfillment_status === 'fulfilled' ? (
+                    <EstadoBadge label="Preparado" color="#09C46B" />
+                  ) : (
+                    <EstadoBadge label="No preparado" color="#E33B3B" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    sx={{ borderColor: '#4763e4', color: '#4763e4' }}
+                    onClick={() => {}}
+                  >
+                    Ver detalle
+                  </Button>
+                </TableCell>
+                <TableCell>{pedido.ubicacion || '-'}</TableCell>
+                <TableCell>
+                  <NotaEditable
+                    nota={pedido.note}
+                    onSave={(nuevaNota) => {
+                      setPedidos(prev =>
+                        prev.map(p => p.id === pedido.id ? { ...p, note: nuevaNota } : p)
+                      );
+                    }}
+                    Icono={NotaIcono}
                   />
                 </TableCell>
-              
-                <TableCell><IconButton size="small" sx={{ color: '#f59e0b' }}><FilterList fontSize="small" /></IconButton></TableCell>
-                <TableCell>
-                  <Box>{pedido.importes.total}
-                    <Box sx={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                      {pedido.importes.detalles.map((detalle, idx) => (
-                        <Typography key={idx} variant="caption" display="block">{detalle.descripcion}</Typography>
-                      ))}
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell>-</TableCell>
-                <TableCell sx={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {pedido.importes.detalles.map((detalle, idx) => (
-                    <Typography key={idx} variant="caption" display="block">{detalle.descripcion}</Typography>
-                  ))}
-                </TableCell>
-                <TableCell>-</TableCell>
-                <TableCell sx={{ maxWidth: 150 }}><Typography noWrap>{pedido.cliente}</Typography></TableCell>
-                <TableCell sx={{ maxWidth: 200 }}><Typography variant="body2" noWrap>{pedido.ubicacion}</Typography></TableCell>
-                <TableCell>
-                  <Box sx={{ fontSize: '0.75rem' }}>
-                    <FechaItem label="Ingreso" fecha={pedido.fechas.ingreso} />
-                    <FechaItem label="Registro" fecha={pedido.fechas.registro} />
-                    <FechaItem label="Despacho" fecha={pedido.fechas.despacho} />
-                    <FechaItem label="Entrega" fecha={pedido.fechas.entrega} />
-                  </Box>
-                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
+            ))
+          )}
+        </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          count={pedidosFiltrados.length}
+          page={page}
+          onPageChange={(event, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={event => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          labelRowsPerPage="Pedidos por página"
+          rowsPerPageOptions={[5, 10, 25, 50, 100]}
+        />
       </TableContainer>
 
       <Drawer
