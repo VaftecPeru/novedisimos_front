@@ -10,7 +10,6 @@ import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
-import Swal from 'sweetalert2';
 
 function EstadoBadge({ label, color }) {
   return (
@@ -157,90 +156,90 @@ const getAlmacenFromLocation = (location) => {
   return 'PROVINCIA';
 };
 
-// const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabilidadChange }) => {
-//   const [anchorEl, setAnchorEl] = useState(null);
+const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabilidadChange }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
 
-//   const estadosTrazabilidad = [
-//     { value: 'PENDIENTE', label: 'Pendiente', color: '#f59e0b' },
-//     { value: 'PREPARANDO_PEDIDO', label: 'Preparando pedido', color: '#3b82f6' },
-//     { value: 'LISTO_PARA_ENVIAR', label: 'Listo para enviar', color: '#8b5cf6' },
-//     { value: 'EN_TRANSITO', label: 'En tránsito', color: '#06b6d4' },
-//     { value: 'ENTREGADO', label: 'Entregado', color: '#10b981' },
-//     { value: 'ANULADO', label: 'Anulado / Reprogramado', color: '#ef4444' }
-//   ];
+  const estadosTrazabilidad = [
+    { value: 'PENDIENTE', label: 'Pendiente', color: '#f59e0b' },
+    { value: 'PREPARANDO_PEDIDO', label: 'Preparando pedido', color: '#3b82f6' },
+    { value: 'LISTO_PARA_ENVIAR', label: 'Listo para enviar', color: '#8b5cf6' },
+    { value: 'EN_TRANSITO', label: 'En tránsito', color: '#06b6d4' },
+    { value: 'ENTREGADO', label: 'Entregado', color: '#10b981' },
+    { value: 'ANULADO', label: 'Anulado / Reprogramado', color: '#ef4444' }
+  ];
 
-//   const estadoTrazabilidadActual = estadosTrazabilidad.find(e => e.value === trazabilidad) || estadosTrazabilidad[0];
+  const estadoTrazabilidadActual = estadosTrazabilidad.find(e => e.value === trazabilidad) || estadosTrazabilidad[0];
 
-//   const colorMap = {
-//     'IN-WOW': '#3884f7',
-//     'ADMITIDO': '#10b981',
-//     'POR DERIVAR': '#f59e0b',
-//     'FINAL DE ENTREGA': '#8b5cf6',
-//     'default': '#4763e4'
-//   };
+  const colorMap = {
+    'IN-WOW': '#3884f7',
+    'ADMITIDO': '#10b981',
+    'POR DERIVAR': '#f59e0b',
+    'FINAL DE ENTREGA': '#8b5cf6',
+    'default': '#4763e4'
+  };
 
-// const handleClick = (event) => {
-//   setAnchorEl(event.currentTarget);
-// };
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-// const handleClose = () => {
-//   setAnchorEl(null);
-// };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-// const handleEstadoSelect = (nuevoEstado) => {
-//   if (onTrazabilidadChange) {
-//     onTrazabilidadChange(pedidoId, nuevoEstado);
-//   }
-//   handleClose();
-// };
+  const handleEstadoSelect = (nuevoEstado) => {
+    if (onTrazabilidadChange) {
+      onTrazabilidadChange(pedidoId, nuevoEstado);
+    }
+    handleClose();
+  };
 
-// return (
-//   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-//     <Chip
-//       label={estado}
-//       sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
-//     />
-//     {estadoAdicional && (
-//       <Chip
-//         label={estadoAdicional}
-//         sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
-//       />
-//     )}
-//     <Chip
-//       label={estadoTrazabilidadActual.label}
-//       onClick={handleClick}
-//       sx={{
-//         bgcolor: estadoTrazabilidadActual.color,
-//         color: 'white',
-//         borderRadius: '4px',
-//         fontWeight: 'bold',
-//         fontSize: '0.75rem',
-//         cursor: 'pointer',
-//         '&:hover': { opacity: 0.8 }
-//       }}
-//     />
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Chip
+        label={estado}
+        sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
+      />
+      {estadoAdicional && (
+        <Chip
+          label={estadoAdicional}
+          sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
+        />
+      )}
+      <Chip
+        label={estadoTrazabilidadActual.label}
+        onClick={handleClick}
+        sx={{
+          bgcolor: estadoTrazabilidadActual.color,
+          color: 'white',
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+          '&:hover': { opacity: 0.8 }
+        }}
+      />
 
-//     <Menu
-//       anchorEl={anchorEl}
-//       open={Boolean(anchorEl)}
-//       onClose={handleClose}
-//     >
-//       {estadosTrazabilidad.map((estado) => (
-//         <MenuItem
-//           key={estado.value}
-//           onClick={() => handleEstadoSelect(estado.value)}
-//           sx={{
-//             color: estado.color,
-//             fontWeight: trazabilidad === estado.value ? 'bold' : 'normal'
-//           }}
-//         >
-//           {estado.label}
-//         </MenuItem>
-//       ))}
-//     </Menu>
-//   </Box>
-// );
-// };
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+      >
+        {estadosTrazabilidad.map((estado) => (
+          <MenuItem
+            key={estado.value}
+            onClick={() => handleEstadoSelect(estado.value)}
+            sx={{
+              color: estado.color,
+              fontWeight: trazabilidad === estado.value ? 'bold' : 'normal'
+            }}
+          >
+            {estado.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </Box>
+  );
+};
 
 const FechaItem = ({ label, fecha }) => (
   <Box sx={{ display: 'flex', gap: 1 }}>
@@ -323,56 +322,6 @@ function PedidosDashboard() {
   const [error, setError] = useState(null);
   const [filtroPago, setFiltroPago] = useState("pendiente");
   const [filtroPreparado, setFiltroPreparado] = useState("");
-
-  const confirmarPreparado = (pedidoId, locationId) => {
-    Swal.fire({
-      title: '¿Confirmar preparación?',
-      text: '¿Estás seguro de que deseas marcar este pedido como preparado?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#09C46B',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, preparar',
-      cancelButtonText: 'Cancelar',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await axios.post(`/api/shopify/fulfill`, {
-            order_id: pedidoId,
-            location_id: locationId, // se puede enviar aunque sea fijo, para evitar errores
-          });
-
-          if (response.data.success) {
-            Swal.fire('¡Actualizado!', 'El pedido ha sido marcado como preparado.', 'success');
-            // Aquí puedes hacer una recarga de pedidos
-          } else {
-            Swal.fire('Error', 'No se pudo actualizar el pedido.', 'error');
-          }
-        } catch (error) {
-          console.error(error);
-          Swal.fire('Error', 'Error en el servidor.', 'error');
-        }
-      }
-    });
-  };
-
-
-  const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
-    const nuevoEstado = estadoActual === 'paid' ? 'pending' : 'paid';
-    try {
-      const response = await axios.post(`/api/pedidos/${pedidoId}/estado`, {
-        financial_status: nuevoEstado,
-        location_id: locationId
-      });
-
-      if (response.data.success) {
-        // actualizar pedidos localmente
-      }
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Error', 'No se pudo cambiar el estado de pago', 'error');
-    }
-  };
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -1290,6 +1239,7 @@ function PedidosDashboard() {
   const [distritosSeleccionados, setDistritosSeleccionados] = useState([]);
   const [estadosDisponibles, setEstadosDisponibles] = useState([]);
   const [estadosEntregaDisponibles, setEstadosEntregaDisponibles] = useState([]);
+  const [almacenesDisponibles, setAlmacenesDisponibles] = useState(['TODOS', 'LIMA', 'PROVINCIA']);
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros({ ...filtros, [campo]: valor });
@@ -1666,6 +1616,22 @@ function PedidosDashboard() {
           </Select>
           <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
         </FormControl>
+        {/*
+        <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
+          <Select
+            value={filtros.estadoEntrega}
+            onChange={(e) => handleFiltroChange('estadoEntrega', e.target.value)}
+            displayEmpty
+            renderValue={selected => selected || "Estados de entrega"}
+            sx={{ height: 40 }}
+            >
+            <MenuItem value="">Estados de entrega</MenuItem>
+            {estadosEntregaDisponibles.map(estado => (
+              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        */}
 
         <FormControl size="small">
           <Select
@@ -1769,59 +1735,19 @@ function PedidosDashboard() {
                   </TableCell>
                   <TableCell sx={{ maxWidth: 150 }}><Typography noWrap>{pedido.cliente || '-'}</Typography></TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => actualizarEstadoPago(pedido.id, pedido.financial_status, pedido.location_id)}
-                      sx={{
-                        backgroundColor: pedido.financial_status === 'paid' ? '#4D68E6' : '#FFB300',
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        boxShadow: 'none',
-                        color: '#fff',
-                        '&:hover': {
-                          backgroundColor: pedido.financial_status === 'paid' ? '#395AD6' : '#E6A700',
-                        },
-                      }}
-                    >
-                      {pedido.financial_status === 'paid' ? 'Pagado' : 'Pago pendiente'}
-                    </Button>
-                  </TableCell>
-
-                  <TableCell>
-                    {pedido.fulfillment_status === 'fulfilled' ? (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#09C46B",
-                          textTransform: 'none',
-                          fontWeight: 'bold',
-                          boxShadow: 'none',
-                          '&:hover': { backgroundColor: '#07A65B' }
-                        }}
-                        disabled
-                      >
-                        Preparado
-                      </Button>
+                    {pedido.financial_status === 'paid' ? (
+                      <EstadoBadge label="Pagado" color="#4D68E6" />
                     ) : (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#E33B3B",
-                          textTransform: 'none',
-                          fontWeight: 'bold',
-                          boxShadow: 'none',
-                          '&:hover': { backgroundColor: '#C32B2B' }
-                        }}
-                        onClick={() => confirmarPreparado(pedido.id, pedido.location_id)}
-                      >
-                        No preparado
-                      </Button>
+                      <EstadoBadge label="Pago pendiente" color="#FFB300" />
                     )}
                   </TableCell>
-
+                  <TableCell>
+                    {pedido.fulfillment_status === 'fulfilled' ? (
+                      <EstadoBadge label="Preparado" color="#09C46B" />
+                    ) : (
+                      <EstadoBadge label="No preparado" color="#E33B3B" />
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
@@ -2073,6 +1999,21 @@ function PedidosDashboard() {
                 ))}
               </RadioGroup>
             </FormControl>
+
+            {/*
+            // DROPDOWN OCULTO - Estado Adicional
+            <FormControl fullWidth size="small">
+              <Select
+                name="estadoAdicional"
+                value={nuevoPedido.estadoAdicional}
+                onChange={handleFormChange}
+              >
+                {['IN-WOW', 'ADMITIDO', 'POR DERIVAR', 'FINAL DE ENTREGA'].map(opt => (
+                  <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            */}
 
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Productos</Typography>
 
