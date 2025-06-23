@@ -10,6 +10,7 @@ import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
+import Swal from 'sweetalert2';
 
 function EstadoBadge({ label, color }) {
   return (
@@ -320,8 +321,59 @@ function PedidosDashboard() {
   const [pedidosOriginales, setPedidosOriginales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filtroPago, setFiltroPago] = useState("pendiente");
-  const [filtroPreparado, setFiltroPreparado] = useState("");
+  const [filtroPago, setFiltroPago] = useState("pendiente");     
+  const [filtroPreparado, setFiltroPreparado] = useState(""); 
+
+  const confirmarPreparado = (pedidoId, locationId) => {
+  Swal.fire({
+    title: '¿Confirmar preparación?',
+    text: '¿Estás seguro de que deseas marcar este pedido como preparado?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#09C46B',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, preparar',
+    cancelButtonText: 'Cancelar',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.post(`/api/shopify/fulfill`, {
+          order_id: pedidoId,
+          location_id: locationId || 68011983070,
+        });
+
+        if (response.data.success) {
+          Swal.fire('¡Actualizado!', 'El pedido ha sido marcado como preparado.', 'success');
+          // recargar pedidos aquí si es necesario
+        } else {
+          Swal.fire('Error', 'No se pudo actualizar el pedido.', 'error');
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'Error en el servidor.', 'error');
+      }
+    }
+  });
+};
+
+const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
+  const nuevoEstado = estadoActual === 'paid' ? 'pending' : 'paid';
+
+  try {
+    const response = await axios.post(`/api/pedidos/${pedidoId}/estado`, {
+      financial_status: nuevoEstado,
+      location_id: locationId || 68011983070,
+    });
+
+    if (response.data.success) {
+      // actualizar pedidos localmente si usas estado
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire('Error', 'No se pudo cambiar el estado de pago', 'error');
+  }
+};
+
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -1567,28 +1619,49 @@ function PedidosDashboard() {
   }
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>
+    <Box
+      sx={{
+        p: 3,
+        bgcolor: "#f9fafb",
+        minHeight: "100vh",
+        width: "100%",
+        boxSizing: "border-box",
+        overflowX: "auto",
+      }}
+    >
       <Button
         variant="outlined"
         sx={{
           color: "#09C46B",
           borderColor: "#09C46B",
           backgroundColor: "#fff",
-          fontWeight: 'bold',
-          '&:hover': {
+          fontWeight: "bold",
+          "&:hover": {
             borderColor: "#09C46B",
             backgroundColor: "#E9FBF2",
-          }
+          },
         }}
         onClick={handleExportar}
       >
         Exportar
       </Button>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 3,
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
         <Button
           variant="contained"
-          sx={{ bgcolor: '#4f46e5', borderRadius: '20px', '&:hover': { bgcolor: '#4338ca' } }}
+          sx={{
+            bgcolor: "#4f46e5",
+            borderRadius: "20px",
+            "&:hover": { bgcolor: "#4338ca" },
+          }}
           onClick={() => setDrawerOpen(true)}
           startIcon={<Add />}
         >
@@ -1600,22 +1673,28 @@ function PedidosDashboard() {
           variant="outlined"
           size="small"
           value={filtros.searchTerm}
-          onChange={(e) => handleFiltroChange('searchTerm', e.target.value)}
-          sx={{ minWidth: 250, bgcolor: 'white' }}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
+          onChange={(e) => handleFiltroChange("searchTerm", e.target.value)}
+          sx={{ minWidth: 250, bgcolor: "white" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
         />
 
-        <FormControl size="small">
-          <Select
-            value={filtroPago}
-            onChange={(e) => setFiltroPago(e.target.value)}
-            displayEmpty
-          >
-            <MenuItem value="pendiente">Pago pendiente</MenuItem>
-            <MenuItem value="pagado">Pagado</MenuItem>
-          </Select>
-          <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
-        </FormControl>
+       <FormControl size="small">
+        <Select
+          value={filtroPago}
+          onChange={(e) => setFiltroPago(e.target.value)}
+          displayEmpty
+        >
+          <MenuItem value="pendiente">Pago pendiente</MenuItem>
+          <MenuItem value="pagado">Pagado</MenuItem>
+        </Select>
+        <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
+      </FormControl>
         {/*
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
           <Select
@@ -1643,15 +1722,19 @@ function PedidosDashboard() {
             <MenuItem value="preparado">Preparado</MenuItem>
             <MenuItem value="no_preparado">No preparado</MenuItem>
           </Select>
-          <Typography variant="caption" sx={{ ml: 1 }}>Estado de entrega</Typography>
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Estado de entrega
+          </Typography>
         </FormControl>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por:</Typography>
-          <FormControl size="small" sx={{ minWidth: 140, bgcolor: 'white' }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
+            Filtrar por:
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 140, bgcolor: "white" }}>
             <Select
               value={filtros.tipoFecha}
-              onChange={(e) => handleFiltroChange('tipoFecha', e.target.value)}
+              onChange={(e) => handleFiltroChange("tipoFecha", e.target.value)}
               sx={{ height: 40 }}
             >
               <MenuItem value="ingreso">Fecha Ingreso</MenuItem>
@@ -1665,8 +1748,8 @@ function PedidosDashboard() {
             type="date"
             size="small"
             value={filtros.fechaInicio}
-            onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
-            sx={{ width: 160, bgcolor: 'white' }}
+            onChange={(e) => handleFiltroChange("fechaInicio", e.target.value)}
+            sx={{ width: 160, bgcolor: "white" }}
             InputLabelProps={{ shrink: true }}
           />
 
@@ -1675,8 +1758,8 @@ function PedidosDashboard() {
             type="date"
             size="small"
             value={filtros.fechaFin}
-            onChange={(e) => handleFiltroChange('fechaFin', e.target.value)}
-            sx={{ width: 160, bgcolor: 'white' }}
+            onChange={(e) => handleFiltroChange("fechaFin", e.target.value)}
+            sx={{ width: 160, bgcolor: "white" }}
             InputLabelProps={{ shrink: true }}
           />
         </Box>
@@ -1684,15 +1767,15 @@ function PedidosDashboard() {
         <Button
           variant="outlined"
           startIcon={<FilterList />}
-          sx={{ bgcolor: 'white', borderColor: '#4763e4', color: '#4763e4' }}
+          sx={{ bgcolor: "white", borderColor: "#4763e4", color: "#4763e4" }}
           onClick={() => {
             setFiltros({
-              estado: 'PENDIENTE',
-              almacen: 'TODOS',
-              tipoFecha: 'ingreso',
-              fechaInicio: '',
-              fechaFin: '',
-              searchTerm: ''
+              estado: "PENDIENTE",
+              almacen: "TODOS",
+              tipoFecha: "ingreso",
+              fechaInicio: "",
+              fechaFin: "",
+              searchTerm: "",
             });
           }}
         >
@@ -1700,7 +1783,10 @@ function PedidosDashboard() {
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ mb: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+      <TableContainer
+        component={Paper}
+        sx={{ mb: 4, boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+      >
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#f3f4f6' }}>
@@ -1781,7 +1867,7 @@ function PedidosDashboard() {
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={event => {
+          onRowsPerPageChange={(event) => {
             setRowsPerPage(parseInt(event.target.value, 10));
             setPage(0);
           }}
@@ -1794,18 +1880,33 @@ function PedidosDashboard() {
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ '& .MuiDrawer-paper': { width: '500px', boxSizing: 'border-box', padding: 3 } }}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: "500px",
+            boxSizing: "border-box",
+            padding: 3,
+          },
+        }}
       >
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" fontWeight="bold">Nuevo Pedido</Typography>
-            <IconButton onClick={() => setDrawerOpen(false)}><Close /></IconButton>
+        <Box sx={{ width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="h6" fontWeight="bold">
+              Nuevo Pedido
+            </Typography>
+            <IconButton onClick={() => setDrawerOpen(false)}>
+              <Close />
+            </IconButton>
           </Box>
 
           <Divider sx={{ mb: 3 }} />
 
-          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Nueva Orden</Typography>
+          <Box
+            component="form"
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
+            <Typography variant="subtitle1" fontWeight="bold">
+              Nueva Orden
+            </Typography>
 
             <TextField
               label="Nota"
@@ -1819,8 +1920,14 @@ function PedidosDashboard() {
             />
 
             <FormControl fullWidth size="small">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  component="span"
+                  color="error"
+                  sx={{ minWidth: "8px" }}
+                >
+                  *
+                </Typography>
                 <Typography variant="body2">Canal:</Typography>
               </Box>
               <Select
@@ -1836,8 +1943,14 @@ function PedidosDashboard() {
             </FormControl>
 
             <FormControl fullWidth size="small">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  component="span"
+                  color="error"
+                  sx={{ minWidth: "8px" }}
+                >
+                  *
+                </Typography>
                 <Typography variant="body2">Vendedor:</Typography>
               </Box>
               <Select
@@ -1852,10 +1965,18 @@ function PedidosDashboard() {
               </Select>
             </FormControl>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Cliente</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Cliente
+            </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Nombres y Apellidos:</Typography>
             </Box>
             <TextField
@@ -1866,8 +1987,14 @@ function PedidosDashboard() {
               size="small"
             />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Móvil:</Typography>
             </Box>
             <TextField
@@ -1878,10 +2005,18 @@ function PedidosDashboard() {
               size="small"
             />
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Entrega</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Entrega
+            </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Departamento:</Typography>
             </Box>
             <FormControl fullWidth size="small">
@@ -1917,8 +2052,14 @@ function PedidosDashboard() {
                 <MenuItem value="Ucayali">Ucayali</MenuItem>
               </Select>
             </FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Provincia:</Typography>
             </Box>
             <FormControl fullWidth size="small">
@@ -1936,23 +2077,23 @@ function PedidosDashboard() {
               </Select>
             </FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
-              <Typography variant="body2">Distrito:</Typography>
-            </Box>
-            <FormControl fullWidth size="small">
-              <Select
-                name="distrito"
-                value={nuevoPedido.distrito}
-                onChange={handleFormChange}
-                disabled={!nuevoPedido.provincia}
-              >
-                {distritosSeleccionados.map((distrito) => (
-                  <MenuItem key={distrito.value} value={distrito.value}>
-                    {distrito.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+  <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+  <Typography variant="body2">Distrito:</Typography>
+</Box>
+<FormControl fullWidth size="small">
+  <Select
+    name="distrito"
+    value={nuevoPedido.distrito}
+    onChange={handleFormChange}
+    disabled={!nuevoPedido.provincia} 
+  >
+    {distritosSeleccionados.map((distrito) => (
+      <MenuItem key={distrito.value} value={distrito.value}>
+        {distrito.label}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Dirección:</Typography>
@@ -1964,7 +2105,7 @@ function PedidosDashboard() {
               fullWidth
               size="small"
             />
-
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">Referencia:</Typography>
@@ -1976,7 +2117,7 @@ function PedidosDashboard() {
               fullWidth
               size="small"
             />
-
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
               <Typography variant="body2">GPS:</Typography>
@@ -1993,9 +2134,19 @@ function PedidosDashboard() {
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Estado del Pedido</Typography>
 
             <FormControl component="fieldset">
-              <RadioGroup row name="estado" value={nuevoPedido.estado} onChange={handleFormChange}>
-                {['CONFIRMADO', 'PENDIENTE', 'CANCELADO'].map(opt => (
-                  <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />
+              <RadioGroup
+                row
+                name="estado"
+                value={nuevoPedido.estado}
+                onChange={handleFormChange}
+              >
+                {["CONFIRMADO", "PENDIENTE", "CANCELADO"].map((opt) => (
+                  <FormControlLabel
+                    key={opt}
+                    value={opt}
+                    control={<Radio />}
+                    label={opt}
+                  />
                 ))}
               </RadioGroup>
             </FormControl>
@@ -2025,7 +2176,7 @@ function PedidosDashboard() {
                 value={nuevoProducto.cantidad}
                 onChange={handleProductoChange}
                 size="small"
-                sx={{ width: '100px' }}
+                sx={{ width: "100px" }}
               />
               <TextField
                 label="Descripción"
@@ -2042,13 +2193,17 @@ function PedidosDashboard() {
                 value={nuevoProducto.precio}
                 onChange={handleProductoChange}
                 size="small"
-                sx={{ width: '100px' }}
-                InputProps={{ startAdornment: <InputAdornment position="start">S/</InputAdornment> }}
+                sx={{ width: "100px" }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">S/</InputAdornment>
+                  ),
+                }}
               />
               <Button
                 variant="contained"
                 onClick={agregarProducto}
-                sx={{ width: '40px', minWidth: '40px', height: '40px', p: 0 }}
+                sx={{ width: "40px", minWidth: "40px", height: "40px", p: 0 }}
               >
                 <Add />
               </Button>
@@ -2059,14 +2214,23 @@ function PedidosDashboard() {
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Productos añadidos:</Typography>
 
                 {nuevoPedido.productos.map((producto, index) => (
-                  <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-                    <Typography variant="body2">{producto.descripcion}</Typography>
+                  <Box
+                    key={index}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      py: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">
+                      {producto.descripcion}
+                    </Typography>
                     <Typography variant="body2">{producto.valor}</Typography>
                   </Box>
                 ))}
 
                 <Divider sx={{ my: 1 }} />
-
+                
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                   <TextField
                     label="Total"
@@ -2074,22 +2238,26 @@ function PedidosDashboard() {
                     value={nuevoPedido.total}
                     onChange={handleFormChange}
                     size="small"
-                    sx={{ width: '100px' }}
-                    InputProps={{ startAdornment: <InputAdornment position="start">S/</InputAdornment> }}
+                    sx={{ width: "100px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">S/</InputAdornment>
+                      ),
+                    }}
                   />
                 </Box>
               </Paper>
             )}
-
-
-
+            
+      
+            
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
               <Button variant="outlined" onClick={() => setDrawerOpen(false)}>Cancelar</Button>
-              <Button
-                variant="contained"
+              <Button 
+                variant="contained" 
                 onClick={guardarPedido}
                 startIcon={<Save />}
-                sx={{ bgcolor: '#4f46e5' }}
+                sx={{ bgcolor: "#4f46e5" }}
               >
                 Guardar Pedido
               </Button>
