@@ -1841,7 +1841,7 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                       />
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 150 }}>
+                  {/* <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
                    <TableCell>
@@ -1857,8 +1857,8 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                     ) : (
                       <EstadoBadge label="No preparado" color="#E33B3B" />
                     )}
-                  </TableCell>
-                  {/* <TableCell>
+                  </TableCell> */}
+                  <TableCell>
                     <Button
                       size="small"
                       variant="contained"
@@ -1935,7 +1935,7 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                         No preparado
                       </Button>
                     )}
-                  </TableCell> */}
+                  </TableCell> 
 
                   <TableCell>
                     <Button
