@@ -1844,7 +1844,21 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
+                   <TableCell>
+                    {pedido.financial_status === 'paid' ? (
+                      <EstadoBadge label="Pagado" color="#4D68E6" />
+                    ) : (
+                      <EstadoBadge label="Pago pendiente" color="#FFB300" />
+                    )}
+                  </TableCell>
                   <TableCell>
+                    {pedido.fulfillment_status === 'fulfilled' ? (
+                      <EstadoBadge label="Preparado" color="#09C46B" />
+                    ) : (
+                      <EstadoBadge label="No preparado" color="#E33B3B" />
+                    )}
+                  </TableCell>
+                  {/* <TableCell>
                     <Button
                       size="small"
                       variant="contained"
@@ -1921,7 +1935,7 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                         No preparado
                       </Button>
                     )}
-                  </TableCell>
+                  </TableCell> */}
 
                   <TableCell>
                     <Button
