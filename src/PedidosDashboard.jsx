@@ -12,6 +12,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
 import Swal from 'sweetalert2';
 
+
 function EstadoBadge({ label, color }) {
   return (
     <Box
@@ -1684,17 +1685,19 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
           }}
         />
 
-       <FormControl size="small">
-        <Select
-          value={filtroPago}
-          onChange={(e) => setFiltroPago(e.target.value)}
-          displayEmpty
-        >
-          <MenuItem value="pendiente">Pago pendiente</MenuItem>
-          <MenuItem value="pagado">Pagado</MenuItem>
-        </Select>
-        <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
-      </FormControl>
+        <FormControl size="small">
+          <Select
+            value={filtroPago}
+            onChange={(e) => setFiltroPago(e.target.value)}
+            displayEmpty
+          >
+            <MenuItem value="pendiente">Pago pendiente</MenuItem>
+            <MenuItem value="pagado">Pagado</MenuItem>
+          </Select>
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Estado de pago
+          </Typography>
+        </FormControl>
         {/*
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
           <Select
@@ -1789,15 +1792,19 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
       >
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f3f4f6' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Orden Pedido</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Cliente</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Estado de Pago</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Estado Preparación Pedido</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Detalle de Pedido</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Dirección</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Nota</TableCell>
+            <TableRow sx={{ bgcolor: "#f3f4f6" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Estado Preparación Pedido
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Detalle de Pedido
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1809,48 +1816,132 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
               </TableRow>
             ) : (
               pedidosPaginados.map((pedido) => (
-                <TableRow key={pedido.id} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
+                <TableRow
+                  key={pedido.id}
+                  sx={{ "&:hover": { bgcolor: "#f9fafb" } }}
+                >
                   <TableCell>{pedido.id}</TableCell>
                   <TableCell>
-                    <Box sx={{ fontSize: '0.75rem' }}>
-                      <FechaItem label="Ingreso" fecha={pedido.fechas?.ingreso || '-'} />
-                      <FechaItem label="Registro" fecha={pedido.fechas?.registro || '-'} />
-                      <FechaItem label="Despacho" fecha={pedido.fechas?.despacho || '-'} />
-                      <FechaItem label="Entrega" fecha={pedido.fechas?.entrega || '-'} />
+                    <Box sx={{ fontSize: "0.75rem" }}>
+                      <FechaItem
+                        label="Ingreso"
+                        fecha={pedido.fechas?.ingreso || "-"}
+                      />
+                      <FechaItem
+                        label="Registro"
+                        fecha={pedido.fechas?.registro || "-"}
+                      />
+                      <FechaItem
+                        label="Despacho"
+                        fecha={pedido.fechas?.despacho || "-"}
+                      />
+                      <FechaItem
+                        label="Entrega"
+                        fecha={pedido.fechas?.entrega || "-"}
+                      />
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 150 }}><Typography noWrap>{pedido.cliente || '-'}</Typography></TableCell>
-                  <TableCell>
-                    {pedido.financial_status === 'paid' ? (
-                      <EstadoBadge label="Pagado" color="#4D68E6" />
-                    ) : (
-                      <EstadoBadge label="Pago pendiente" color="#FFB300" />
-                    )}
+                  <TableCell sx={{ maxWidth: 150 }}>
+                    <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
                   <TableCell>
-                    {pedido.fulfillment_status === 'fulfilled' ? (
-                      <EstadoBadge label="Preparado" color="#09C46B" />
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() =>
+                        actualizarEstadoPago(
+                          pedido.id,
+                          pedido.financial_status,
+                          pedido.location_id
+                        )
+                      }
+                      sx={{
+                        backgroundColor:
+                          pedido.financial_status === "paid"
+                            ? "#4D68E6"
+                            : "#f0c47c", // piel
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        boxShadow: "none",
+                        color:
+                          pedido.financial_status === "paid" ? "#fff" : "#000",
+                        "&:hover": {
+                          backgroundColor:
+                            pedido.financial_status === "paid"
+                              ? "#395AD6"
+                              : "#e6a05d", // piel más oscuro
+                          color:
+                            pedido.financial_status === "paid"
+                              ? "#fff"
+                              : "#000",
+                        },
+                      }}
+                    >
+                      {pedido.financial_status === "paid"
+                        ? "Pagado"
+                        : "Pago pendiente"}
+                    </Button>
+                  </TableCell>
+
+                  <TableCell>
+                    {pedido.fulfillment_status === "fulfilled" ? (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#09C46B",
+                          textTransform: "none",
+                          fontWeight: "bold",
+                          boxShadow: "none",
+                          "&:hover": { backgroundColor: "#07A65B" },
+                        }}
+                        disabled
+                      >
+                        Preparado
+                      </Button>
                     ) : (
-                      <EstadoBadge label="No preparado" color="#E33B3B" />
+                      <Button
+                        size="small"
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#faea88", // amarillo
+                          color: "#000", // texto negro
+                          textTransform: "none",
+                          fontWeight: "bold",
+                          boxShadow: "none",
+                          "&:hover": {
+                            backgroundColor: "#f5d94f", // hover amarillo más intenso
+                            color: "#000",
+                          },
+                        }}
+                        onClick={() =>
+                          confirmarPreparado(pedido.id, pedido.location_id)
+                        }
+                      >
+                        No preparado
+                      </Button>
                     )}
                   </TableCell>
+
                   <TableCell>
                     <Button
                       variant="outlined"
                       size="small"
-                      sx={{ borderColor: '#4763e4', color: '#4763e4' }}
-                      onClick={() => { }}
+                      sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                      onClick={() => {}}
                     >
                       Ver detalle
                     </Button>
                   </TableCell>
-                  <TableCell>{pedido.ubicacion || '-'}</TableCell>
+                  <TableCell>{pedido.ubicacion || "-"}</TableCell>
                   <TableCell>
                     <NotaEditable
                       nota={pedido.note}
                       onSave={(nuevaNota) => {
-                        setPedidos(prev =>
-                          prev.map(p => p.id === pedido.id ? { ...p, note: nuevaNota } : p)
+                        setPedidos((prev) =>
+                          prev.map((p) =>
+                            p.id === pedido.id ? { ...p, note: nuevaNota } : p
+                          )
                         );
                       }}
                       Icono={NotaIcono}
@@ -2076,26 +2167,38 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                 ))}
               </Select>
             </FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-  <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
-  <Typography variant="body2">Distrito:</Typography>
-</Box>
-<FormControl fullWidth size="small">
-  <Select
-    name="distrito"
-    value={nuevoPedido.distrito}
-    onChange={handleFormChange}
-    disabled={!nuevoPedido.provincia} 
-  >
-    {distritosSeleccionados.map((distrito) => (
-      <MenuItem key={distrito.value} value={distrito.value}>
-        {distrito.label}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
+              <Typography variant="body2">Distrito:</Typography>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                name="distrito"
+                value={nuevoPedido.distrito}
+                onChange={handleFormChange}
+                disabled={!nuevoPedido.provincia}
+              >
+                {distritosSeleccionados.map((distrito) => (
+                  <MenuItem key={distrito.value} value={distrito.value}>
+                    {distrito.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Dirección:</Typography>
             </Box>
             <TextField
@@ -2105,9 +2208,15 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
               fullWidth
               size="small"
             />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Referencia:</Typography>
             </Box>
             <TextField
@@ -2117,9 +2226,15 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
               fullWidth
               size="small"
             />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">GPS:</Typography>
             </Box>
             <TextField
@@ -2131,7 +2246,9 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
               placeholder="Latitud,Longitud"
             />
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Estado del Pedido</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Estado del Pedido
+            </Typography>
 
             <FormControl component="fieldset">
               <RadioGroup
@@ -2166,9 +2283,11 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
             </FormControl>
             */}
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Productos</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Productos
+            </Typography>
 
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               <TextField
                 label="Cantidad"
                 name="cantidad"
@@ -2211,7 +2330,9 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
 
             {nuevoPedido.productos.length > 0 && (
               <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Productos añadidos:</Typography>
+                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                  Productos añadidos:
+                </Typography>
 
                 {nuevoPedido.productos.map((producto, index) => (
                   <Box
@@ -2230,8 +2351,10 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                 ))}
 
                 <Divider sx={{ my: 1 }} />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}
+                >
                   <TextField
                     label="Total"
                     name="total"
@@ -2248,13 +2371,20 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                 </Box>
               </Paper>
             )}
-            
-      
-            
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-              <Button variant="outlined" onClick={() => setDrawerOpen(false)}>Cancelar</Button>
-              <Button 
-                variant="contained" 
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+                mt: 3,
+              }}
+            >
+              <Button variant="outlined" onClick={() => setDrawerOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
                 onClick={guardarPedido}
                 startIcon={<Save />}
                 sx={{ bgcolor: "#4f46e5" }}
