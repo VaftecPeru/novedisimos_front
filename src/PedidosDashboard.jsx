@@ -11,7 +11,7 @@ import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
 import Swal from 'sweetalert2';
-
+import { useNavigate } from "react-router-dom";
 
 function EstadoBadge({ label, color }) {
   return (
@@ -48,7 +48,6 @@ function NotaIcono(props) {
   );
 }
 
-// Componente de nota editable
 function NotaEditable({ nota, onSave, Icono }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(nota || '');
@@ -260,6 +259,7 @@ function PedidosDashboard() {
     searchTerm: ''
   });
 
+  const navigate = useNavigate();
   const handleExportar = () => {
     const csvRows = [];
     csvRows.push("ID,Cliente,Estado de Pago,Estado de Entrega,Total");
@@ -1937,16 +1937,16 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                     )}
                   </TableCell> 
 
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                      onClick={() => {}}
-                    >
-                      Ver detalle
-                    </Button>
-                  </TableCell>
+             <TableCell>
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                onClick={() => navigate(`/pedidos/${pedido.shopifyId}`)}
+              >
+                Ver detalle
+              </Button>
+            </TableCell>
                   <TableCell>{pedido.ubicacion || "-"}</TableCell>
                   <TableCell>
                     <NotaEditable

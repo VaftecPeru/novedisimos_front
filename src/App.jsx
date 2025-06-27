@@ -8,6 +8,7 @@ import ProtectedRoute from './ProtectedRoute';
 import { useState } from 'react';
 import axios from 'axios';
 import { useUser } from './UserContext';
+import DetallePedido from "./DetallePedido";
 import DetalleMotorizado from './DetalleMotorizados';
 
 import { Box, TextField, Button, Typography, IconButton, InputAdornment } from '@mui/material';
@@ -221,6 +222,7 @@ function MainApp() {
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/motorizados/:id" element={<DetalleMotorizado />} /> {/* <-- agrega esto */}
+        <Route path="/pedidos/:orderId" element={<DetallePedido />} />
       </Routes>
     </Router>
   );
