@@ -14,8 +14,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import { useState } from "react";
 import axios from "axios";
 import { useUser } from "./UserContext";
+import DetallePedido from "./DetallePedido";
 import DetalleMotorizado from "./DetalleMotorizados";
-
 import {
   Box,
   TextField,
@@ -292,10 +292,7 @@ function MainApp() {
         <Route path="/" element={<App />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
-        <Route
-          path="/registro/correo/final"
-          element={<RegistroCorreoFinal />}
-        />
+        <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
         <Route
           path="/dashboard/*"
           element={
@@ -304,8 +301,8 @@ function MainApp() {
             </ProtectedRoute>
           }
         />
-        <Route path="/motorizados/:id" element={<DetalleMotorizado />} />{" "}
-        {/* <-- agrega esto */}
+        <Route path="/motorizados/:id" element={<DetalleMotorizado />} />
+        <Route path="/pedidos/:orderId" element={<DetallePedido />} />
       </Routes>
     </Router>
   );

@@ -2,15 +2,15 @@ import React from 'react';
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Fecha no disponible';
-  
-  const options = { 
-    year: 'numeric', 
-    month: 'short', 
+
+  const options = {
+    year: 'numeric',
+    month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   };
-  
+
   try {
     return new Date(dateString).toLocaleDateString('es-ES', options);
   } catch (error) {
@@ -21,7 +21,7 @@ const formatDate = (dateString) => {
 
 const getOrderStatus = (order) => {
   if (!order) return 'Desconocido';
-  
+
   if (order.cancelled_at) return 'Cancelado';
   if (order.closed_at) return 'Cerrado';
   if (order.fulfilled_at) return 'Entregado';
@@ -47,7 +47,7 @@ const OrdersList = ({ orders, loading, error, onViewOrder }) => {
       <p>Cargando pedidos...</p>
     </div>
   );
-  
+
   if (error) return (
     <div className="error-container">
       <h3>Error al cargar pedidos</h3>
@@ -55,7 +55,7 @@ const OrdersList = ({ orders, loading, error, onViewOrder }) => {
       <p>Verificar que el servidor backend esté en ejecución y que las credenciales de Shopify sean correctas.</p>
     </div>
   );
-  
+
   if (!orders || orders.length === 0) return (
     <div className="empty-container">
       <p>No hay pedidos disponibles</p>
@@ -81,13 +81,13 @@ const OrdersList = ({ orders, loading, error, onViewOrder }) => {
               <td>#{order.name || order.order_number || 'Sin número'}</td>
               <td>{formatDate(order.created_at)}</td>
               <td>
-                {order.customer ? 
-                  `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() || 'Sin nombre' : 
+                {order.customer ?
+                  `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() || 'Sin nombre' :
                   'Cliente no registrado'}
               </td>
               <td>
-                {new Intl.NumberFormat('es-ES', { 
-                  style: 'currency', 
+                {new Intl.NumberFormat('es-ES', {
+                  style: 'currency',
                   currency: order.currency || 'USD'
                 }).format(order.total_price || 0)}
               </td>
@@ -97,7 +97,7 @@ const OrdersList = ({ orders, loading, error, onViewOrder }) => {
                 </span>
               </td>
               <td>
-                <button 
+                <button
                   className="btn-view"
                   onClick={() => onViewOrder && onViewOrder(order.id)}
                 >

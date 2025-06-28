@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, Button, TextField, InputAdornment, Table, TableBody, TableCell, 
+import {
+  Box, Button, TextField, InputAdornment, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem,
   IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
 } from '@mui/material';
@@ -10,6 +10,8 @@ import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
+import Swal from 'sweetalert2';
+import { useNavigate } from "react-router-dom";
 
 function EstadoBadge({ label, color }) {
   return (
@@ -37,16 +39,15 @@ function EstadoBadge({ label, color }) {
 function NotaIcono(props) {
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
-      <rect x="4" y="4" width="16" height="16" rx="2" stroke="#222" strokeWidth="2" fill="none"/>
+      <rect x="4" y="4" width="16" height="16" rx="2" stroke="#222" strokeWidth="2" fill="none" />
       <rect x="7" y="8" width="10" height="2" rx="1" fill="#222" />
       <rect x="7" y="12" width="10" height="2" rx="1" fill="#222" />
       <rect x="7" y="16" width="7" height="2" rx="1" fill="#222" />
-      <path d="M17 19l2.5-2.5M18.5 18.5l-1-1" stroke="#222" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M17 19l2.5-2.5M18.5 18.5l-1-1" stroke="#222" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
 
-// Componente de nota editable
 function NotaEditable({ nota, onSave, Icono }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(nota || '');
@@ -134,21 +135,21 @@ const getTrazabilidadStatus = (order) => {
 const getLocationFromOrder = (order) => {
   const provincia = getNoteAttributeValue(order, 'Provincia y Distrito:');
   const direccion = getNoteAttributeValue(order, 'Dirección');
-  
+
   if (provincia !== 'No disponible') {
     return provincia;
   }
-  
+
   if (order.shipping_address) {
     return `${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}`.trim();
   }
-  
+
   return direccion !== 'No disponible' ? direccion : 'Sin ubicación';
 };
 
 const getAlmacenFromLocation = (location) => {
   if (!location || location === 'Sin ubicación') return 'TODOS';
-  
+
   const locationLower = location.toLowerCase();
   if (locationLower.includes('lima') || locationLower.includes('callao')) {
     return 'LIMA';
@@ -158,7 +159,7 @@ const getAlmacenFromLocation = (location) => {
 
 const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabilidadChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  
+
   const estadosTrazabilidad = [
     { value: 'PENDIENTE', label: 'Pendiente', color: '#f59e0b' },
     { value: 'PREPARANDO_PEDIDO', label: 'Preparando pedido', color: '#3b82f6' },
@@ -167,9 +168,9 @@ const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabi
     { value: 'ENTREGADO', label: 'Entregado', color: '#10b981' },
     { value: 'ANULADO', label: 'Anulado / Reprogramado', color: '#ef4444' }
   ];
-  
+
   const estadoTrazabilidadActual = estadosTrazabilidad.find(e => e.value === trazabilidad) || estadosTrazabilidad[0];
-  
+
   const colorMap = {
     'IN-WOW': '#3884f7',
     'ADMITIDO': '#10b981',
@@ -177,58 +178,58 @@ const EstadoChip = ({ estado, estadoAdicional, trazabilidad, pedidoId, onTrazabi
     'FINAL DE ENTREGA': '#8b5cf6',
     'default': '#4763e4'
   };
-  
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleEstadoSelect = (nuevoEstado) => {
     if (onTrazabilidadChange) {
       onTrazabilidadChange(pedidoId, nuevoEstado);
     }
     handleClose();
   };
-  
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Chip 
-        label={estado} 
-        sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }} 
+      <Chip
+        label={estado}
+        sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
       />
       {estadoAdicional && (
-        <Chip 
-          label={estadoAdicional} 
-          sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }} 
+        <Chip
+          label={estadoAdicional}
+          sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
         />
       )}
-      <Chip 
+      <Chip
         label={estadoTrazabilidadActual.label}
         onClick={handleClick}
-        sx={{ 
-          bgcolor: estadoTrazabilidadActual.color, 
-          color: 'white', 
-          borderRadius: '4px', 
-          fontWeight: 'bold', 
+        sx={{
+          bgcolor: estadoTrazabilidadActual.color,
+          color: 'white',
+          borderRadius: '4px',
+          fontWeight: 'bold',
           fontSize: '0.75rem',
           cursor: 'pointer',
           '&:hover': { opacity: 0.8 }
-        }} 
+        }}
       />
-      
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
       >
         {estadosTrazabilidad.map((estado) => (
-          <MenuItem 
-            key={estado.value} 
+          <MenuItem
+            key={estado.value}
             onClick={() => handleEstadoSelect(estado.value)}
-            sx={{ 
+            sx={{
               color: estado.color,
               fontWeight: trazabilidad === estado.value ? 'bold' : 'normal'
             }}
@@ -250,14 +251,15 @@ const FechaItem = ({ label, fecha }) => (
 
 function PedidosDashboard() {
   const [filtros, setFiltros] = useState({
-  estado: 'PENDIENTE',
-  almacen: 'TODOS',
-  tipoFecha: 'ingreso',
-  fechaInicio: '',
-  fechaFin: '',
-  searchTerm: ''
-});
+    estado: 'PENDIENTE',
+    almacen: 'TODOS',
+    tipoFecha: 'ingreso',
+    fechaInicio: '',
+    fechaFin: '',
+    searchTerm: ''
+  });
 
+  const navigate = useNavigate();
   const handleExportar = () => {
     const csvRows = [];
     csvRows.push("ID,Cliente,Estado de Pago,Estado de Entrega,Total");
@@ -284,7 +286,7 @@ function PedidosDashboard() {
     a.click();
     document.body.removeChild(a);
   };
-  
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -294,17 +296,17 @@ function PedidosDashboard() {
     canal: 'Shopify',
     nota: '',
     vendedor: '',
-    
+
     cliente: '',
     telefono: '',
-    
+
     departamento: '',
     provincia: '',
     distrito: '',
     direccion: '',
     referencia: '',
     gps: '',
-    
+
     productos: [],
     estado: 'CONFIRMADO',
     estadoAdicional: 'IN-WOW',
@@ -312,16 +314,67 @@ function PedidosDashboard() {
     total: '',
     notaAdicional: ''
   };
-  
+
   const [nuevoPedido, setNuevoPedido] = useState(estadoInicial);
   const [nuevoProducto, setNuevoProducto] = useState({ descripcion: '', cantidad: 1, precio: '' });
 
   const [pedidos, setPedidos] = useState([]);
-  const [pedidosOriginales, setPedidosOriginales] = useState([]);  
+  const [pedidosOriginales, setPedidosOriginales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtroPago, setFiltroPago] = useState("pendiente");     
   const [filtroPreparado, setFiltroPreparado] = useState(""); 
+
+  const confirmarPreparado = (pedidoId, locationId) => {
+  Swal.fire({
+    title: '¿Confirmar preparación?',
+    text: '¿Estás seguro de que deseas marcar este pedido como preparado?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#09C46B',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, preparar',
+    cancelButtonText: 'Cancelar',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.post(`/api/shopify/fulfill`, {
+          order_id: pedidoId,
+          location_id: locationId || 68011983070,
+        });
+
+        if (response.data.success) {
+          Swal.fire('¡Actualizado!', 'El pedido ha sido marcado como preparado.', 'success');
+          // recargar pedidos aquí si es necesario
+        } else {
+          Swal.fire('Error', 'No se pudo actualizar el pedido.', 'error');
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'Error en el servidor.', 'error');
+      }
+    }
+  });
+};
+
+const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
+  const nuevoEstado = estadoActual === 'paid' ? 'pending' : 'paid';
+
+  try {
+    const response = await axios.post(`/api/pedidos/${pedidoId}/estado`, {
+      financial_status: nuevoEstado,
+      location_id: locationId || 68011983070,
+    });
+
+    if (response.data.success) {
+      // actualizar pedidos localmente si usas estado
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire('Error', 'No se pudo cambiar el estado de pago', 'error');
+  }
+};
+
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -694,7 +747,7 @@ function PedidosDashboard() {
       { value: 'El Parco', label: 'El Parco' },
       { value: 'Imaza', label: 'Imaza' },
       { value: 'La Peca', label: 'La Peca' },
-    ]    
+    ]
   };
 
   const distritosAncashData = {
@@ -761,7 +814,7 @@ function PedidosDashboard() {
       { value: 'Cusca', label: 'Cusca' },
       { value: 'La Pampa', label: 'La Pampa' },
       { value: 'Pichincha', label: 'Pichincha' },
-    ],    
+    ],
     Huaraz: [
       { value: 'Huaraz', label: 'Huaraz' },
       { value: 'Cochabamba', label: 'Cochabamba' },
@@ -788,7 +841,7 @@ function PedidosDashboard() {
       { value: 'San Marcos', label: 'San Marcos' },
       { value: 'San Pedro de Chana', label: 'San Pedro de Chana' },
       { value: 'Uco', label: 'Uco' },
-    ],    
+    ],
     Huarmey: [
       { value: 'Huarmey', label: 'Huarmey' },
       { value: 'Cochapetí', label: 'Cochapetí' },
@@ -857,7 +910,7 @@ function PedidosDashboard() {
       { value: 'Cachín', label: 'Cachín' },
       { value: 'Matara', label: 'Matara' },
       { value: 'Pira', label: 'Pira' },
-    ]                        
+    ]
   };
 
   const distritosApurímacData = {
@@ -929,7 +982,7 @@ function PedidosDashboard() {
       { value: 'Pachachaca', label: 'Pachachaca' },
       { value: 'San Pedro de Castrovirreyna', label: 'San Pedro de Castrovirreyna' },
       { value: 'San Juan de Chancay', label: 'San Juan de Chancay' },
-    ],                        
+    ],
   };
 
   const distritosArequipaData = {
@@ -1018,7 +1071,7 @@ function PedidosDashboard() {
       { value: 'Andahuaylas', label: 'Andahuaylas' },
       { value: 'Condorcanqui', label: 'Condorcanqui' },
       { value: 'Uctubamba', label: 'Uctubamba' },
-    ]                                
+    ]
   };
 
   const distritosCallaoData = {
@@ -1040,14 +1093,14 @@ function PedidosDashboard() {
       { value: 'Pativilca', label: 'Pativilca' },
       { value: 'Supe', label: 'Supe' },
       { value: 'Supe Puerto', label: 'Supe Puerto' },
-    ],    
+    ],
     Cajatambo: [
       { value: 'Cajatambo', label: 'Cajatambo' },
       { value: 'Copa', label: 'Copa' },
       { value: 'Gorgor', label: 'Gorgor' },
       { value: 'Huancapon', label: 'Huancapon' },
       { value: 'Manas', label: 'Manas' },
-    ],    
+    ],
     Canta: [
       { value: 'Canta', label: 'Canta' },
       { value: 'Arahuay', label: 'Arahuay' },
@@ -1056,7 +1109,7 @@ function PedidosDashboard() {
       { value: 'Lachaqui', label: 'Lachaqui' },
       { value: 'San Buenaventura', label: 'San Buenaventura' },
       { value: 'Santa Rosa de Quives', label: 'Santa Rosa de Quives' },
-    ],    
+    ],
     Cañete: [
       { value: 'San Vicente de Cañete', label: 'San Vicente de Cañete' },
       { value: 'Asia', label: 'Asia' },
@@ -1073,7 +1126,7 @@ function PedidosDashboard() {
       { value: 'San Antonio', label: 'San Antonio' },
       { value: 'Santa Cruz de Flores', label: 'Santa Cruz de Flores' },
       { value: 'Zúñiga', label: 'Zúñiga' },
-    ],    
+    ],
     Huaral: [
       { value: 'Huaral', label: 'Huaral' },
       { value: 'Atavillos Alto', label: 'Atavillos Alto' },
@@ -1087,7 +1140,7 @@ function PedidosDashboard() {
       { value: 'Santa Cruz de Andamarca', label: 'Santa Cruz de Andamarca' },
       { value: 'Sumbilca', label: 'Sumbilca' },
       { value: 'Veintisiete de Noviembre', label: 'Veintisiete de Noviembre' },
-    ],    
+    ],
     Huarochirí: [
       { value: 'Matucana', label: 'Matucana' },
       { value: 'Antioquia', label: 'Antioquia' },
@@ -1121,7 +1174,7 @@ function PedidosDashboard() {
       { value: 'Santiago de Tuna', label: 'Santiago de Tuna' },
       { value: 'Santo Domingo de los Olleros', label: 'Santo Domingo de los Olleros' },
       { value: 'Surco', label: 'Surco' },
-    ],    
+    ],
     Huaura: [
       { value: 'Huacho', label: 'Huacho' },
       { value: 'Ambar', label: 'Ambar' },
@@ -1223,7 +1276,7 @@ function PedidosDashboard() {
       { value: 'Tupe', label: 'Tupe' },
       { value: 'Viñac', label: 'Viñac' },
       { value: 'Vitis', label: 'Vitis' },
-    ],  
+    ],
   };
 
   const distritosPorDepartamentoProvincia = {
@@ -1246,56 +1299,56 @@ function PedidosDashboard() {
   };
 
   const getNoteAttributeValue = (order, attributeName) => {
-  if (!order.note_attributes) return 'No disponible';
-  
-  const attribute = order.note_attributes.find(attr => attr.name === attributeName);
-  return attribute ? attribute.value : 'No disponible';
-};
+    if (!order.note_attributes) return 'No disponible';
+
+    const attribute = order.note_attributes.find(attr => attr.name === attributeName);
+    return attribute ? attribute.value : 'No disponible';
+  };
 
   useEffect(() => {
     const cargarTodosLosPedidos = async () => {
       try {
         setLoading(true);
         console.log('Cargando TODOS los pedidos desde Shopify...');
-        
+
         let allOrders = [];
         let hasMore = true;
         let page = 1;
-        const limit = 250; 
-        
-        while (hasMore && page <= 10) { 
+        const limit = 250;
+
+        while (hasMore && page <= 10) {
           try {
             console.log(`Cargando página ${page} de pedidos...`);
-            
+
             const response = await fetchOrdersWithPagination(page, limit);
-            
+
             let ordersData = [];
             if (response && response.orders) {
               ordersData = response.orders;
             } else if (Array.isArray(response)) {
               ordersData = response;
             }
-            
+
             if (ordersData.length === 0) {
               hasMore = false;
             } else {
               allOrders = [...allOrders, ...ordersData];
-              hasMore = ordersData.length === limit; 
+              hasMore = ordersData.length === limit;
               page++;
             }
-            
+
             console.log(`Página ${page - 1}: ${ordersData.length} pedidos. Total acumulado: ${allOrders.length}`);
-            
+
           } catch (pageError) {
             console.error(`Error en página ${page}:`, pageError);
             hasMore = false;
           }
         }
-        
+
         if (allOrders.length === 0) {
           console.log('Fallback: Cargando con método original...');
           const response = await fetchOrders();
-          
+
           if (response && response.orders) {
             allOrders = response.orders;
           } else if (Array.isArray(response)) {
@@ -1306,38 +1359,38 @@ function PedidosDashboard() {
             return;
           }
         }
-        
+
         console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
-        
+
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
           const trazabilidad = getTrazabilidadStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
-          
+
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
-            
-            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible' 
+
+            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
-            
-            telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible' 
+
+            telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Celular')
               : (order.phone || 'Sin teléfono'),
-            
+
             ubicacion: ubicacion,
             almacen: almacen,
-            
+
             estado: estado,
             estadoAdicional: estadoAdicional,
-            
+
             financial_status: order.financial_status,
             fulfillment_status: order.fulfillment_status,
-            
+
             importes: {
               total: `${order.presentment_currency || 'PEN'} ${order.current_total_price || order.total_price || '0.00'}`,
               subtotal: order.subtotal_price || '0.00',
@@ -1347,41 +1400,41 @@ function PedidosDashboard() {
                 valor: `${order.presentment_currency || 'PEN'} ${item.price || '0.00'}`
               })) : []
             },
-            
+
             fechas: {
               ingreso: formatDate(order.created_at),
               registro: formatDate(order.processed_at),
               despacho: formatDate(order.shipped_at) || '-',
-              entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) : 
-                      (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
+              entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) :
+                (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
             },
 
-            
+
             medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
-            
+
             tags: order.tags || '',
             note: order.note || '',
-            
+
             fechaCreacion: new Date(order.created_at),
             fechaActualizacion: new Date(order.updated_at),
-            
+
             originalOrder: order
           };
         });
-        
+
         setPedidos(pedidosFormateados);
         setPedidosOriginales(pedidosFormateados);
-        
+
         const estadosUnicos = [...new Set(pedidosFormateados.map(p => p.estado))].filter(Boolean);
         const estadosEntregaUnicos = [...new Set(pedidosFormateados.map(p => p.estadoAdicional))].filter(Boolean);
-        
+
         setEstadosDisponibles(estadosUnicos);
         setEstadosEntregaDisponibles(estadosEntregaUnicos);
-        
+
         console.log('✅ Pedidos procesados exitosamente:', pedidosFormateados.length);
         console.log('📊 Estados disponibles:', estadosUnicos);
         console.log('🚚 Estados de entrega disponibles:', estadosEntregaUnicos);
-        
+
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
         setError(err.message || 'Error al cargar pedidos');
@@ -1399,9 +1452,9 @@ function PedidosDashboard() {
         `${API_BASE_URL}/orders?limit=${limit}&page=${page}`,
         `${API_BASE_URL}/orders?limit=${limit}&page_info=${page}`,
         `${API_BASE_URL}/orders?per_page=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders`  
+        `${API_BASE_URL}/orders`
       ];
-      
+
       for (const url of urls) {
         try {
           console.log(`Intentando URL: ${url}`);
@@ -1413,7 +1466,7 @@ function PedidosDashboard() {
           console.warn(`Error con URL ${url}:`, urlError.message);
         }
       }
-      
+
       throw new Error('No se pudo cargar con ninguna URL de paginación');
     } catch (error) {
       console.error('Error en fetchOrdersWithPagination:', error);
@@ -1423,7 +1476,7 @@ function PedidosDashboard() {
 
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
-  
+
     if (e.target.name === 'departamento') {
       const departamentoSeleccionado = e.target.value;
       const provincias = provinciasPorDepartamento[departamentoSeleccionado] || [];
@@ -1434,7 +1487,7 @@ function PedidosDashboard() {
       const departamentoSeleccionado = nuevoPedido.departamento;
       const provinciaSeleccionada = e.target.value;
       const distritos = distritosPorDepartamentoProvincia[departamentoSeleccionado]?.[provinciaSeleccionada] || [];
-  
+
       setDistritosSeleccionados(distritos);
       setNuevoPedido(prevState => ({ ...prevState, distrito: '' }));
     }
@@ -1442,20 +1495,20 @@ function PedidosDashboard() {
 
   const handleTrazabilidadChange = (pedidoId, nuevoEstado) => {
     console.log(`Cambiando trazabilidad de ${pedidoId} a ${nuevoEstado}`);
-    
-    setPedidos(prev => prev.map(pedido => 
-      pedido.id === pedidoId 
+
+    setPedidos(prev => prev.map(pedido =>
+      pedido.id === pedidoId
         ? { ...pedido, trazabilidad: nuevoEstado }
         : pedido
     ));
-    
-    setPedidosOriginales(prev => prev.map(pedido => 
-      pedido.id === pedidoId 
+
+    setPedidosOriginales(prev => prev.map(pedido =>
+      pedido.id === pedidoId
         ? { ...pedido, trazabilidad: nuevoEstado }
         : pedido
     ));
   };
-  
+
   const handleProductoChange = (e) => {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
   };
@@ -1478,76 +1531,76 @@ function PedidosDashboard() {
     setNuevoPedido(estadoInicial);
   };
 
-const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-  const { estadoPago, estadoEntrega, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
-  if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
-  if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
+  const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+    const { estadoPago, estadoEntrega, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+    if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
+    if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
 
-  if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
-  if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
+    if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
+    if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
 
-  if (fechaInicio || fechaFin) {
-    let fechaComparar = null;
-    
-    switch(tipoFecha) {
-      case 'ingreso':
-        fechaComparar = pedido.originalOrder.created_at;
-        break;
-      case 'registro':
-        fechaComparar = pedido.originalOrder.processed_at || pedido.originalOrder.created_at;
-        break;
-      case 'despacho':
-        fechaComparar = pedido.originalOrder.shipped_at;
-        if (!fechaComparar) return false; 
-        break;
-      case 'entrega':
-        fechaComparar = pedido.originalOrder.fulfilled_at;
-        if (!fechaComparar && pedido.originalOrder.fulfillment_status === 'fulfilled') {
-          fechaComparar = pedido.originalOrder.updated_at;
-        }
-        if (!fechaComparar) return false;
-        break;
-      default:
-        fechaComparar = pedido.originalOrder.created_at;
-    }
-    
-    if (!fechaComparar) return false;
-    
-    const fechaPedido = new Date(fechaComparar);
-    const fechaPedidoSoloFecha = new Date(fechaPedido.getFullYear(), fechaPedido.getMonth(), fechaPedido.getDate());
-    
-    if (fechaInicio) {
-      const fechaInicioComparar = new Date(fechaInicio);
-      if (fechaPedidoSoloFecha < fechaInicioComparar) return false;
-    }
-    
-    if (fechaFin) {
-      const fechaFinComparar = new Date(fechaFin);
-      if (fechaPedidoSoloFecha > fechaFinComparar) return false;
-    }
-  }
-  
-  if (searchTerm && searchTerm.trim() !== '') {
-    const searchLower = searchTerm.toLowerCase().trim();
-    const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
-    const matchesId = pedido.id && pedido.id.toLowerCase().includes(searchLower);
-    const matchesTelefono = pedido.telefono && pedido.telefono.toLowerCase().includes(searchLower);
-    const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
-    const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
-    const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
-    
-    if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
-      return false;
-    }
-  }
-  
-  return true;
-});
+    if (fechaInicio || fechaFin) {
+      let fechaComparar = null;
 
-const pedidosPaginados = pedidosFiltrados.slice(
-  page * rowsPerPage,
-  page * rowsPerPage + rowsPerPage
-);
+      switch (tipoFecha) {
+        case 'ingreso':
+          fechaComparar = pedido.originalOrder.created_at;
+          break;
+        case 'registro':
+          fechaComparar = pedido.originalOrder.processed_at || pedido.originalOrder.created_at;
+          break;
+        case 'despacho':
+          fechaComparar = pedido.originalOrder.shipped_at;
+          if (!fechaComparar) return false;
+          break;
+        case 'entrega':
+          fechaComparar = pedido.originalOrder.fulfilled_at;
+          if (!fechaComparar && pedido.originalOrder.fulfillment_status === 'fulfilled') {
+            fechaComparar = pedido.originalOrder.updated_at;
+          }
+          if (!fechaComparar) return false;
+          break;
+        default:
+          fechaComparar = pedido.originalOrder.created_at;
+      }
+
+      if (!fechaComparar) return false;
+
+      const fechaPedido = new Date(fechaComparar);
+      const fechaPedidoSoloFecha = new Date(fechaPedido.getFullYear(), fechaPedido.getMonth(), fechaPedido.getDate());
+
+      if (fechaInicio) {
+        const fechaInicioComparar = new Date(fechaInicio);
+        if (fechaPedidoSoloFecha < fechaInicioComparar) return false;
+      }
+
+      if (fechaFin) {
+        const fechaFinComparar = new Date(fechaFin);
+        if (fechaPedidoSoloFecha > fechaFinComparar) return false;
+      }
+    }
+
+    if (searchTerm && searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
+      const matchesId = pedido.id && pedido.id.toLowerCase().includes(searchLower);
+      const matchesTelefono = pedido.telefono && pedido.telefono.toLowerCase().includes(searchLower);
+      const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
+      const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
+      const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
+
+      if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const pedidosPaginados = pedidosFiltrados.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
   if (loading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1567,28 +1620,49 @@ const pedidosPaginados = pedidosFiltrados.slice(
   }
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>
+    <Box
+      sx={{
+        p: 3,
+        bgcolor: "#f9fafb",
+        minHeight: "100vh",
+        width: "100%",
+        boxSizing: "border-box",
+        overflowX: "auto",
+      }}
+    >
       <Button
         variant="outlined"
         sx={{
           color: "#09C46B",
           borderColor: "#09C46B",
           backgroundColor: "#fff",
-          fontWeight: 'bold',
-          '&:hover': {
+          fontWeight: "bold",
+          "&:hover": {
             borderColor: "#09C46B",
             backgroundColor: "#E9FBF2",
-          }
+          },
         }}
         onClick={handleExportar}
       >
         Exportar
       </Button>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 3,
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
         <Button
           variant="contained"
-          sx={{ bgcolor: '#4f46e5', borderRadius: '20px', '&:hover': { bgcolor: '#4338ca' } }}
+          sx={{
+            bgcolor: "#4f46e5",
+            borderRadius: "20px",
+            "&:hover": { bgcolor: "#4338ca" },
+          }}
           onClick={() => setDrawerOpen(true)}
           startIcon={<Add />}
         >
@@ -1600,22 +1674,30 @@ const pedidosPaginados = pedidosFiltrados.slice(
           variant="outlined"
           size="small"
           value={filtros.searchTerm}
-          onChange={(e) => handleFiltroChange('searchTerm', e.target.value)}
-          sx={{ minWidth: 250, bgcolor: 'white' }}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><Search /></InputAdornment>) }}
+          onChange={(e) => handleFiltroChange("searchTerm", e.target.value)}
+          sx={{ minWidth: 250, bgcolor: "white" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
         />
 
-       <FormControl size="small">
-        <Select
-          value={filtroPago}
-          onChange={(e) => setFiltroPago(e.target.value)}
-          displayEmpty
-        >
-          <MenuItem value="pendiente">Pago pendiente</MenuItem>
-          <MenuItem value="pagado">Pagado</MenuItem>
-        </Select>
-        <Typography variant="caption" sx={{ ml: 1 }}>Estado de pago</Typography>
-      </FormControl>
+        <FormControl size="small">
+          <Select
+            value={filtroPago}
+            onChange={(e) => setFiltroPago(e.target.value)}
+            displayEmpty
+          >
+            <MenuItem value="pendiente">Pago pendiente</MenuItem>
+            <MenuItem value="pagado">Pagado</MenuItem>
+          </Select>
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Estado de pago
+          </Typography>
+        </FormControl>
         {/*
         <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
           <Select
@@ -1633,7 +1715,7 @@ const pedidosPaginados = pedidosFiltrados.slice(
         </FormControl>
         */}
 
-         <FormControl size="small">
+        <FormControl size="small">
           <Select
             value={filtroPreparado}
             onChange={(e) => setFiltroPreparado(e.target.value)}
@@ -1643,15 +1725,19 @@ const pedidosPaginados = pedidosFiltrados.slice(
             <MenuItem value="preparado">Preparado</MenuItem>
             <MenuItem value="no_preparado">No preparado</MenuItem>
           </Select>
-          <Typography variant="caption" sx={{ ml: 1 }}>Estado de entrega</Typography>
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Estado de entrega
+          </Typography>
         </FormControl>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Filtrar por:</Typography>
-          <FormControl size="small" sx={{ minWidth: 140, bgcolor: 'white' }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
+            Filtrar por:
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 140, bgcolor: "white" }}>
             <Select
               value={filtros.tipoFecha}
-              onChange={(e) => handleFiltroChange('tipoFecha', e.target.value)}
+              onChange={(e) => handleFiltroChange("tipoFecha", e.target.value)}
               sx={{ height: 40 }}
             >
               <MenuItem value="ingreso">Fecha Ingreso</MenuItem>
@@ -1663,10 +1749,10 @@ const pedidosPaginados = pedidosFiltrados.slice(
           <TextField
             label="Desde"
             type="date"
-            size="small" 
+            size="small"
             value={filtros.fechaInicio}
-            onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
-            sx={{ width: 160, bgcolor: 'white' }}
+            onChange={(e) => handleFiltroChange("fechaInicio", e.target.value)}
+            sx={{ width: 160, bgcolor: "white" }}
             InputLabelProps={{ shrink: true }}
           />
 
@@ -1675,8 +1761,8 @@ const pedidosPaginados = pedidosFiltrados.slice(
             type="date"
             size="small"
             value={filtros.fechaFin}
-            onChange={(e) => handleFiltroChange('fechaFin', e.target.value)}
-            sx={{ width: 160, bgcolor: 'white' }}
+            onChange={(e) => handleFiltroChange("fechaFin", e.target.value)}
+            sx={{ width: 160, bgcolor: "white" }}
             InputLabelProps={{ shrink: true }}
           />
         </Box>
@@ -1684,15 +1770,15 @@ const pedidosPaginados = pedidosFiltrados.slice(
         <Button
           variant="outlined"
           startIcon={<FilterList />}
-          sx={{ bgcolor: 'white', borderColor: '#4763e4', color: '#4763e4' }}
+          sx={{ bgcolor: "white", borderColor: "#4763e4", color: "#4763e4" }}
           onClick={() => {
             setFiltros({
-              estado: 'PENDIENTE',
-              almacen: 'TODOS',
-              tipoFecha: 'ingreso',
-              fechaInicio: '',
-              fechaFin: '',
-              searchTerm: ''
+              estado: "PENDIENTE",
+              almacen: "TODOS",
+              tipoFecha: "ingreso",
+              fechaInicio: "",
+              fechaFin: "",
+              searchTerm: "",
             });
           }}
         >
@@ -1700,80 +1786,185 @@ const pedidosPaginados = pedidosFiltrados.slice(
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ mb: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+      <TableContainer
+        component={Paper}
+        sx={{ mb: 4, boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+      >
         <Table sx={{ minWidth: 650 }} size="small">
-         <TableHead>
-          <TableRow sx={{ bgcolor: '#f3f4f6' }}>
-            <TableCell sx={{ fontWeight: 'bold' }}>Orden Pedido</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Cliente</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Estado de Pago</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Estado Preparación Pedido</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Detalle de Pedido</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Dirección</TableCell>
-            <TableCell sx={{ fontWeight: 'bold' }}>Nota</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {pedidosFiltrados.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} align="center">
-                No hay pedidos encontrados.
+          <TableHead>
+            <TableRow sx={{ bgcolor: "#f3f4f6" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Estado Preparación Pedido
               </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Detalle de Pedido
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
             </TableRow>
-          ) : (
-            pedidosPaginados.map((pedido) => (
-              <TableRow key={pedido.id} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
-                <TableCell>{pedido.id}</TableCell>
-                <TableCell>
-                  <Box sx={{ fontSize: '0.75rem' }}>
-                    <FechaItem label="Ingreso" fecha={pedido.fechas?.ingreso || '-'} />
-                    <FechaItem label="Registro" fecha={pedido.fechas?.registro || '-'} />
-                    <FechaItem label="Despacho" fecha={pedido.fechas?.despacho || '-'} />
-                    <FechaItem label="Entrega" fecha={pedido.fechas?.entrega || '-'} />
-                  </Box>
-                </TableCell>
-                <TableCell sx={{ maxWidth: 150 }}><Typography noWrap>{pedido.cliente || '-'}</Typography></TableCell>
-                <TableCell>
-                  {pedido.financial_status === 'paid' ? (
-                    <EstadoBadge label="Pagado" color="#4D68E6" />
-                  ) : (
-                    <EstadoBadge label="Pago pendiente" color="#FFB300" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {pedido.fulfillment_status === 'fulfilled' ? (
-                    <EstadoBadge label="Preparado" color="#09C46B" />
-                  ) : (
-                    <EstadoBadge label="No preparado" color="#E33B3B" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ borderColor: '#4763e4', color: '#4763e4' }}
-                    onClick={() => {}}
-                  >
-                    Ver detalle
-                  </Button>
-                </TableCell>
-                <TableCell>{pedido.ubicacion || '-'}</TableCell>
-                <TableCell>
-                  <NotaEditable
-                    nota={pedido.note}
-                    onSave={(nuevaNota) => {
-                      setPedidos(prev =>
-                        prev.map(p => p.id === pedido.id ? { ...p, note: nuevaNota } : p)
-                      );
-                    }}
-                    Icono={NotaIcono}
-                  />
+          </TableHead>
+          <TableBody>
+            {pedidosFiltrados.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">
+                  No hay pedidos encontrados.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
+            ) : (
+              pedidosPaginados.map((pedido) => (
+                <TableRow
+                  key={pedido.id}
+                  sx={{ "&:hover": { bgcolor: "#f9fafb" } }}
+                >
+                  <TableCell>{pedido.id}</TableCell>
+                  <TableCell>
+                    <Box sx={{ fontSize: "0.75rem" }}>
+                      <FechaItem
+                        label="Ingreso"
+                        fecha={pedido.fechas?.ingreso || "-"}
+                      />
+                      <FechaItem
+                        label="Registro"
+                        fecha={pedido.fechas?.registro || "-"}
+                      />
+                      <FechaItem
+                        label="Despacho"
+                        fecha={pedido.fechas?.despacho || "-"}
+                      />
+                      <FechaItem
+                        label="Entrega"
+                        fecha={pedido.fechas?.entrega || "-"}
+                      />
+                    </Box>
+                  </TableCell>
+                  {/* <TableCell sx={{ maxWidth: 150 }}>
+                    <Typography noWrap>{pedido.cliente || "-"}</Typography>
+                  </TableCell>
+                   <TableCell>
+                    {pedido.financial_status === 'paid' ? (
+                      <EstadoBadge label="Pagado" color="#4D68E6" />
+                    ) : (
+                      <EstadoBadge label="Pago pendiente" color="#FFB300" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {pedido.fulfillment_status === 'fulfilled' ? (
+                      <EstadoBadge label="Preparado" color="#09C46B" />
+                    ) : (
+                      <EstadoBadge label="No preparado" color="#E33B3B" />
+                    )}
+                  </TableCell> */}
+                  <TableCell>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() =>
+                        actualizarEstadoPago(
+                          pedido.id,
+                          pedido.financial_status,
+                          pedido.location_id
+                        )
+                      }
+                      sx={{
+                        backgroundColor:
+                          pedido.financial_status === "paid"
+                            ? "#4D68E6"
+                            : "#f0c47c", // piel
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        boxShadow: "none",
+                        color:
+                          pedido.financial_status === "paid" ? "#fff" : "#000",
+                        "&:hover": {
+                          backgroundColor:
+                            pedido.financial_status === "paid"
+                              ? "#395AD6"
+                              : "#e6a05d", // piel más oscuro
+                          color:
+                            pedido.financial_status === "paid"
+                              ? "#fff"
+                              : "#000",
+                        },
+                      }}
+                    >
+                      {pedido.financial_status === "paid"
+                        ? "Pagado"
+                        : "Pago pendiente"}
+                    </Button>
+                  </TableCell>
+
+                  <TableCell>
+                    {pedido.fulfillment_status === "fulfilled" ? (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#09C46B",
+                          textTransform: "none",
+                          fontWeight: "bold",
+                          boxShadow: "none",
+                          "&:hover": { backgroundColor: "#07A65B" },
+                        }}
+                        disabled
+                      >
+                        Preparado
+                      </Button>
+                    ) : (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#faea88", // amarillo
+                          color: "#000", // texto negro
+                          textTransform: "none",
+                          fontWeight: "bold",
+                          boxShadow: "none",
+                          "&:hover": {
+                            backgroundColor: "#f5d94f", // hover amarillo más intenso
+                            color: "#000",
+                          },
+                        }}
+                        onClick={() =>
+                          confirmarPreparado(pedido.id, pedido.location_id)
+                        }
+                      >
+                        No preparado
+                      </Button>
+                    )}
+                  </TableCell> 
+
+             <TableCell>
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                onClick={() => navigate(`/pedidos/${pedido.shopifyId}`)}
+              >
+                Ver detalle
+              </Button>
+            </TableCell>
+                  <TableCell>{pedido.ubicacion || "-"}</TableCell>
+                  <TableCell>
+                    <NotaEditable
+                      nota={pedido.note}
+                      onSave={(nuevaNota) => {
+                        setPedidos((prev) =>
+                          prev.map((p) =>
+                            p.id === pedido.id ? { ...p, note: nuevaNota } : p
+                          )
+                        );
+                      }}
+                      Icono={NotaIcono}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
         </Table>
         <TablePagination
           component="div"
@@ -1781,7 +1972,7 @@ const pedidosPaginados = pedidosFiltrados.slice(
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={event => {
+          onRowsPerPageChange={(event) => {
             setRowsPerPage(parseInt(event.target.value, 10));
             setPage(0);
           }}
@@ -1794,18 +1985,33 @@ const pedidosPaginados = pedidosFiltrados.slice(
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ '& .MuiDrawer-paper': { width: '500px', boxSizing: 'border-box', padding: 3 } }}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: "500px",
+            boxSizing: "border-box",
+            padding: 3,
+          },
+        }}
       >
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" fontWeight="bold">Nuevo Pedido</Typography>
-            <IconButton onClick={() => setDrawerOpen(false)}><Close /></IconButton>
+        <Box sx={{ width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="h6" fontWeight="bold">
+              Nuevo Pedido
+            </Typography>
+            <IconButton onClick={() => setDrawerOpen(false)}>
+              <Close />
+            </IconButton>
           </Box>
 
           <Divider sx={{ mb: 3 }} />
 
-          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Nueva Orden</Typography>
+          <Box
+            component="form"
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
+            <Typography variant="subtitle1" fontWeight="bold">
+              Nueva Orden
+            </Typography>
 
             <TextField
               label="Nota"
@@ -1819,8 +2025,14 @@ const pedidosPaginados = pedidosFiltrados.slice(
             />
 
             <FormControl fullWidth size="small">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  component="span"
+                  color="error"
+                  sx={{ minWidth: "8px" }}
+                >
+                  *
+                </Typography>
                 <Typography variant="body2">Canal:</Typography>
               </Box>
               <Select
@@ -1836,8 +2048,14 @@ const pedidosPaginados = pedidosFiltrados.slice(
             </FormControl>
 
             <FormControl fullWidth size="small">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  component="span"
+                  color="error"
+                  sx={{ minWidth: "8px" }}
+                >
+                  *
+                </Typography>
                 <Typography variant="body2">Vendedor:</Typography>
               </Box>
               <Select
@@ -1852,10 +2070,18 @@ const pedidosPaginados = pedidosFiltrados.slice(
               </Select>
             </FormControl>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Cliente</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Cliente
+            </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Nombres y Apellidos:</Typography>
             </Box>
             <TextField
@@ -1866,8 +2092,14 @@ const pedidosPaginados = pedidosFiltrados.slice(
               size="small"
             />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Móvil:</Typography>
             </Box>
             <TextField
@@ -1878,10 +2110,18 @@ const pedidosPaginados = pedidosFiltrados.slice(
               size="small"
             />
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Entrega</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Entrega
+            </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Departamento:</Typography>
             </Box>
             <FormControl fullWidth size="small">
@@ -1917,8 +2157,14 @@ const pedidosPaginados = pedidosFiltrados.slice(
                 <MenuItem value="Ucayali">Ucayali</MenuItem>
               </Select>
             </FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Provincia:</Typography>
             </Box>
             <FormControl fullWidth size="small">
@@ -1935,26 +2181,38 @@ const pedidosPaginados = pedidosFiltrados.slice(
                 ))}
               </Select>
             </FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-  <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
-  <Typography variant="body2">Distrito:</Typography>
-</Box>
-<FormControl fullWidth size="small">
-  <Select
-    name="distrito"
-    value={nuevoPedido.distrito}
-    onChange={handleFormChange}
-    disabled={!nuevoPedido.provincia} 
-  >
-    {distritosSeleccionados.map((distrito) => (
-      <MenuItem key={distrito.value} value={distrito.value}>
-        {distrito.label}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
+              <Typography variant="body2">Distrito:</Typography>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                name="distrito"
+                value={nuevoPedido.distrito}
+                onChange={handleFormChange}
+                disabled={!nuevoPedido.provincia}
+              >
+                {distritosSeleccionados.map((distrito) => (
+                  <MenuItem key={distrito.value} value={distrito.value}>
+                    {distrito.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Dirección:</Typography>
             </Box>
             <TextField
@@ -1964,9 +2222,15 @@ const pedidosPaginados = pedidosFiltrados.slice(
               fullWidth
               size="small"
             />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">Referencia:</Typography>
             </Box>
             <TextField
@@ -1976,9 +2240,15 @@ const pedidosPaginados = pedidosFiltrados.slice(
               fullWidth
               size="small"
             />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography component="span" color="error" sx={{ minWidth: '8px' }}>*</Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ minWidth: "8px" }}
+              >
+                *
+              </Typography>
               <Typography variant="body2">GPS:</Typography>
             </Box>
             <TextField
@@ -1989,17 +2259,29 @@ const pedidosPaginados = pedidosFiltrados.slice(
               size="small"
               placeholder="Latitud,Longitud"
             />
-            
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Estado del Pedido</Typography>
-            
+
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Estado del Pedido
+            </Typography>
+
             <FormControl component="fieldset">
-              <RadioGroup row name="estado" value={nuevoPedido.estado} onChange={handleFormChange}>
-                {['CONFIRMADO', 'PENDIENTE', 'CANCELADO'].map(opt => (
-                  <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />
+              <RadioGroup
+                row
+                name="estado"
+                value={nuevoPedido.estado}
+                onChange={handleFormChange}
+              >
+                {["CONFIRMADO", "PENDIENTE", "CANCELADO"].map((opt) => (
+                  <FormControlLabel
+                    key={opt}
+                    value={opt}
+                    control={<Radio />}
+                    label={opt}
+                  />
                 ))}
               </RadioGroup>
             </FormControl>
-            
+
             {/*
             // DROPDOWN OCULTO - Estado Adicional
             <FormControl fullWidth size="small">
@@ -2015,9 +2297,11 @@ const pedidosPaginados = pedidosFiltrados.slice(
             </FormControl>
             */}
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>Productos</Typography>
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
+              Productos
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 1 }}>
               <TextField
                 label="Cantidad"
                 name="cantidad"
@@ -2025,7 +2309,7 @@ const pedidosPaginados = pedidosFiltrados.slice(
                 value={nuevoProducto.cantidad}
                 onChange={handleProductoChange}
                 size="small"
-                sx={{ width: '100px' }}
+                sx={{ width: "100px" }}
               />
               <TextField
                 label="Descripción"
@@ -2042,54 +2326,82 @@ const pedidosPaginados = pedidosFiltrados.slice(
                 value={nuevoProducto.precio}
                 onChange={handleProductoChange}
                 size="small"
-                sx={{ width: '100px' }}
-                InputProps={{ startAdornment: <InputAdornment position="start">S/</InputAdornment> }}
+                sx={{ width: "100px" }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">S/</InputAdornment>
+                  ),
+                }}
               />
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={agregarProducto}
-                sx={{ width: '40px', minWidth: '40px', height: '40px', p: 0 }}
+                sx={{ width: "40px", minWidth: "40px", height: "40px", p: 0 }}
               >
                 <Add />
               </Button>
             </Box>
-            
+
             {nuevoPedido.productos.length > 0 && (
               <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Productos añadidos:</Typography>
-                
+                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                  Productos añadidos:
+                </Typography>
+
                 {nuevoPedido.productos.map((producto, index) => (
-                  <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-                    <Typography variant="body2">{producto.descripcion}</Typography>
+                  <Box
+                    key={index}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      py: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">
+                      {producto.descripcion}
+                    </Typography>
                     <Typography variant="body2">{producto.valor}</Typography>
                   </Box>
                 ))}
-                
+
                 <Divider sx={{ my: 1 }} />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}
+                >
                   <TextField
                     label="Total"
                     name="total"
                     value={nuevoPedido.total}
                     onChange={handleFormChange}
                     size="small"
-                    sx={{ width: '100px' }}
-                    InputProps={{ startAdornment: <InputAdornment position="start">S/</InputAdornment> }}
+                    sx={{ width: "100px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">S/</InputAdornment>
+                      ),
+                    }}
                   />
                 </Box>
               </Paper>
             )}
-            
-      
-            
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-              <Button variant="outlined" onClick={() => setDrawerOpen(false)}>Cancelar</Button>
-              <Button 
-                variant="contained" 
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+                mt: 3,
+              }}
+            >
+              <Button variant="outlined" onClick={() => setDrawerOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
                 onClick={guardarPedido}
                 startIcon={<Save />}
-                sx={{ bgcolor: '#4f46e5' }}
+                sx={{ bgcolor: "#4f46e5" }}
               >
                 Guardar Pedido
               </Button>
