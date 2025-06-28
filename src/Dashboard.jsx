@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Modal from "react-modal";
@@ -18,10 +17,18 @@ import Motorizados from "./Motorizados";
 import DetalleMotorizados from "./DetalleMotorizados";
 import DashboardPage from "./DashboardPage";
 
-
 Modal.setAppElement("#root");
 
 function Dashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { usuario, setUsuario } = useUser();
+  console.log("Objeto usuario en Dashboard:", usuario);
+  const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    window.innerWidth <= 768
+  );
   const [expanded, setExpanded] = useState({
     mantenimiento: false,
     clientes: false,
@@ -46,7 +53,8 @@ function Dashboard() {
 
   const [informesSeleccion, setInformesSeleccion] = useState("vista");
 
-  const [motorizadosSeleccion, setMotorizadosSeleccion] = useState("asignacion");
+  const [motorizadosSeleccion, setMotorizadosSeleccion] =
+    useState("asignacion");
 
   const [arrowImages, setArrowImages] = useState({
     mantenimiento: "/images/shadow arrow.png",
@@ -119,16 +127,6 @@ function Dashboard() {
     rangoHora: "",
     notas: "",
   });
-  const [editIndex, setEditIndex] = useState(-1);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    window.innerWidth <= 768
-  );
-
-  const { usuario } = useUser();
 
   useEffect(() => {
     const path = location.pathname.split("/");
@@ -491,25 +489,24 @@ function Dashboard() {
     Object.keys(newExpandedState).forEach((key) => {
       if (parentSections.includes(key)) {
         newExpandedState[key] = false; // Colapsa la sección padre
-        newArrowImages[key] = "/images/shadow arrow.png"; 
-        
+        newArrowImages[key] = "/images/shadow arrow.png";
+
         if (key === "clientes")
           newGearImages[key] = "/images/shadow folder.png";
         else if (key === "asesores")
           newGearImages[key] = "/images/shadow tv.png";
         else if (key === "informes")
           newGearImages[key] = "/images/shadow report.png";
-        else newGearImages[key] = "/images/shadow file.png"; 
-        newSpanColors[key] = "#555d8b"; 
+        else newGearImages[key] = "/images/shadow file.png";
+        newSpanColors[key] = "#555d8b";
       }
-    
+
       if (key === "motorizados") {
         newGearImages.motorizados = "/images/shadow file.png";
         newSpanColors.motorizados = "#555d8b";
       }
     });
 
-  
     setMantenimientoSeleccion("productos");
     setPedidosSeleccion("ordenDePedido");
     setIntegracionesSeleccion("shopify");
@@ -672,6 +669,7 @@ function Dashboard() {
   };
 
   const handleCerrarSesion = () => {
+    setUsuario(null); // Limpia el usuario del contexto
     navigate("/");
   };
 
@@ -765,7 +763,7 @@ function Dashboard() {
             className="panel-control-icon"
             style={{ width: "24px", margin: "0 8px" }}
           />
-          <h3 style={{ color: "rgb(198, 63, 63)"}}>{activeSectionName}</h3>
+          <h3 style={{ color: "rgb(198, 63, 63)" }}>{activeSectionName}</h3>
         </>
       );
     }
@@ -804,8 +802,7 @@ function Dashboard() {
         return <Motorizados />; // Esto renderiza el componente que importaste
       case "detallemotorizados":
         return <DetalleMotorizados />; // Asegúrate de que este componente esté importado correctamente
-        default:
-      
+      default:
         return <DashboardPage />;
     }
   };
@@ -1025,12 +1022,25 @@ function Dashboard() {
                 style={{
                   fontWeight: "bold",
                   fontSize: "16px",
+                  color: "#eee", // Mantuve el color que tenías en tu código
+                  textAlign: "left",
+                  marginLeft: "5px",
+                }}
+              >
+                {/* Reemplaza 'Prueba Ejemplo' con el nombre del usuario */}
+                {usuario ? usuario.name : "Cargando..."}
+              </span>
+              <span
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "16px",
                   color: "#eee",
                   textAlign: "left",
                   marginLeft: "5px",
                 }}
               >
-                Prueba Ejemplo
+                {/* Mostramos el rol como si fuera el "nombre" si así lo prefieres */}
+                {usuario ? usuario.rol : ""}
               </span>
               <span
                 style={{
@@ -1040,7 +1050,8 @@ function Dashboard() {
                   marginLeft: "5px",
                 }}
               >
-                prueba@ejemplo.com
+                {/* Mostramos el correo que ahora sí guardamos en el contexto */}
+                {usuario ? usuario.email : ""}
               </span>
             </div>
           </div>
