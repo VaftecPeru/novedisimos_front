@@ -5,13 +5,15 @@ import {
   IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
-import { fetchOrders, getShopInfo } from './components/services/shopifyService';
+import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
 import TablePagination from '@mui/material/TablePagination';
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
+import { useConfirmDialog } from './components/Modals/useConfirmDialog';
+
 
 function EstadoBadge({ label, color }) {
   return (
@@ -258,6 +260,7 @@ function PedidosDashboard() {
     fechaFin: '',
     searchTerm: ''
   });
+  const { confirm } = useConfirmDialog();
 
   const navigate = useNavigate();
   const handleExportar = () => {
@@ -325,55 +328,7 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("pendiente");     
   const [filtroPreparado, setFiltroPreparado] = useState(""); 
 
-  const confirmarPreparado = (pedidoId, locationId) => {
-  Swal.fire({
-    title: '¿Confirmar preparación?',
-    text: '¿Estás seguro de que deseas marcar este pedido como preparado?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#09C46B',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, preparar',
-    cancelButtonText: 'Cancelar',
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const response = await axios.post(`/api/shopify/fulfill`, {
-          order_id: pedidoId,
-          location_id: locationId || 68011983070,
-        });
-
-        if (response.data.success) {
-          Swal.fire('¡Actualizado!', 'El pedido ha sido marcado como preparado.', 'success');
-          // recargar pedidos aquí si es necesario
-        } else {
-          Swal.fire('Error', 'No se pudo actualizar el pedido.', 'error');
-        }
-      } catch (error) {
-        console.error(error);
-        Swal.fire('Error', 'Error en el servidor.', 'error');
-      }
-    }
-  });
-};
-
-const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
-  const nuevoEstado = estadoActual === 'paid' ? 'pending' : 'paid';
-
-  try {
-    const response = await axios.post(`/api/pedidos/${pedidoId}/estado`, {
-      financial_status: nuevoEstado,
-      location_id: locationId || 68011983070,
-    });
-
-    if (response.data.success) {
-      // actualizar pedidos localmente si usas estado
-    }
-  } catch (error) {
-    console.error(error);
-    Swal.fire('Error', 'No se pudo cambiar el estado de pago', 'error');
-  }
-};
+ 
 
 
   const [provinciasAmazonas] = useState([
@@ -1361,18 +1316,20 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
         }
 
         console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
-
+        const estadosInternos = await fetchEstadosPedidos(); 
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
           const trazabilidad = getTrazabilidadStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
-
+          const estadoInterno = estadosInternos.find(e => e.shopify_order_id === order.id);
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
+            estado_pago: estadoInterno?.estado_pago, // <-- agrega esto
+            estado_preparacion: estadoInterno?.estado_preparacion, // <-- agrega esto
 
             cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
@@ -1532,12 +1489,24 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
   };
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-    const { estadoPago, estadoEntrega, fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
-    if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
-    if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
+    const {  fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+    // if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
+    // if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
 
-    if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
-    if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
+    // if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
+    // if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
+    
+    
+    // Estado de pago: prioriza el interno, si no existe usa Shopify
+    const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
+    if (filtroPago === "pendiente" && estadoPago === "pagado") return false;
+    if (filtroPago === "pagado" && estadoPago !== "pagado") return false;
+
+    // Estado de preparación: prioriza el interno, si no existe usa Shopify
+    const estadoPreparacion = pedido.estado_preparacion || (pedido.fulfillment_status === 'fulfilled' ? 'preparado' : 'no_preparado');
+    if (filtroPreparado === "preparado" && estadoPreparacion !== "preparado") return false;
+    if (filtroPreparado === "no_preparado" && estadoPreparacion !== "no_preparado") return false;
+
 
     if (fechaInicio || fechaFin) {
       let fechaComparar = null;
@@ -1841,101 +1810,205 @@ const actualizarEstadoPago = async (pedidoId, estadoActual, locationId) => {
                       />
                     </Box>
                   </TableCell>
-                  {/* <TableCell sx={{ maxWidth: 150 }}>
+                  <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
-                   <TableCell>
-                    {pedido.financial_status === 'paid' ? (
-                      <EstadoBadge label="Pagado" color="#4D68E6" />
-                    ) : (
-                      <EstadoBadge label="Pago pendiente" color="#FFB300" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {pedido.fulfillment_status === 'fulfilled' ? (
-                      <EstadoBadge label="Preparado" color="#09C46B" />
-                    ) : (
-                      <EstadoBadge label="No preparado" color="#E33B3B" />
-                    )}
-                  </TableCell> */}
+
                   <TableCell>
                     <Button
                       size="small"
                       variant="contained"
-                      onClick={() =>
-                        actualizarEstadoPago(
-                          pedido.id,
-                          pedido.financial_status,
-                          pedido.location_id
-                        )
+                      disabled={
+                        (pedido.estado_pago ||
+                          (pedido.financial_status === "paid"
+                            ? "pagado"
+                            : "pendiente")) === "pagado"
                       }
+                      onClick={async () => {
+                        const estadoActual =
+                          pedido.estado_pago ||
+                          (pedido.financial_status === "paid"
+                            ? "pagado"
+                            : "pendiente");
+                        const nuevoEstado =
+                          estadoActual === "pagado" ? "pendiente" : "pagado";
+
+                        const ok = await confirm({
+                          title: "¿Confirmar cambio de estado de pago?",
+                          text: `¿Estás seguro de que deseas marcar este pedido como ${
+                            nuevoEstado === "pagado" ? "pagado" : "pendiente"
+                          }?`,
+                          confirmButtonColor: "#4D68E6",
+                          confirmButtonText: "Sí, cambiar",
+                        });
+                        if (!ok) return;
+
+                        const res = await actualizarEstadoInternoPago(
+                          pedido.shopifyId,
+                          nuevoEstado
+                        );
+                        if (res?.data && res.data.message) {
+                          setPedidos((prev) =>
+                            prev.map((p) =>
+                              p.shopifyId === pedido.shopifyId
+                                ? { ...p, estado_pago: nuevoEstado }
+                                : p
+                            )
+                          );
+                          setPedidosOriginales((prev) =>
+                            prev.map((p) =>
+                              p.shopifyId === pedido.shopifyId
+                                ? { ...p, estado_pago: nuevoEstado }
+                                : p
+                            )
+                          );
+                        }
+                      }}
                       sx={{
                         backgroundColor:
-                          pedido.financial_status === "paid"
-                            ? "#4D68E6"
-                            : "#f0c47c", // piel
+                          (pedido.estado_pago ||
+                            (pedido.financial_status === "paid"
+                              ? "pagado"
+                              : "pendiente")) === "pagado"
+                            ? "#4D68E6 !important"
+                            : "#f0c47c",
+                        color:
+                          (pedido.estado_pago ||
+                            (pedido.financial_status === "paid"
+                              ? "pagado"
+                              : "pendiente")) === "pagado"
+                            ? "#fff !important"
+                            : "#000",
                         textTransform: "none",
                         fontWeight: "bold",
                         boxShadow: "none",
-                        color:
-                          pedido.financial_status === "paid" ? "#fff" : "#000",
+                        opacity: 1,
                         "&:hover": {
                           backgroundColor:
-                            pedido.financial_status === "paid"
-                              ? "#395AD6"
-                              : "#e6a05d", // piel más oscuro
+                            (pedido.estado_pago ||
+                              (pedido.financial_status === "paid"
+                                ? "pagado"
+                                : "pendiente")) === "pagado"
+                              ? "#4D68E6 !important"
+                              : "#e6a05d",
                           color:
-                            pedido.financial_status === "paid"
-                              ? "#fff"
+                            (pedido.estado_pago ||
+                              (pedido.financial_status === "paid"
+                                ? "pagado"
+                                : "pendiente")) === "pagado"
+                              ? "#fff !important"
                               : "#000",
                         },
                       }}
                     >
-                      {pedido.financial_status === "paid"
+                      {(pedido.estado_pago ||
+                        (pedido.financial_status === "paid"
+                          ? "pagado"
+                          : "pendiente")) === "pagado"
                         ? "Pagado"
                         : "Pago pendiente"}
                     </Button>
                   </TableCell>
 
                   <TableCell>
-                    {pedido.fulfillment_status === "fulfilled" ? (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#09C46B",
-                          textTransform: "none",
-                          fontWeight: "bold",
-                          boxShadow: "none",
-                          "&:hover": { backgroundColor: "#07A65B" },
-                        }}
-                        disabled
-                      >
-                        Preparado
-                      </Button>
-                    ) : (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#faea88", // amarillo
-                          color: "#000", // texto negro
-                          textTransform: "none",
-                          fontWeight: "bold",
-                          boxShadow: "none",
-                          "&:hover": {
-                            backgroundColor: "#f5d94f", // hover amarillo más intenso
-                            color: "#000",
-                          },
-                        }}
-                        onClick={() =>
-                          confirmarPreparado(pedido.id, pedido.location_id)
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={
+                        (pedido.estado_preparacion ||
+                          (pedido.fulfillment_status === "fulfilled"
+                            ? "preparado"
+                            : "no_preparado")) === "preparado"
+                      }
+                      onClick={async () => {
+                        const estadoActual =
+                          pedido.estado_preparacion ||
+                          (pedido.fulfillment_status === "fulfilled"
+                            ? "preparado"
+                            : "no_preparado");
+                        const nuevoEstado =
+                          estadoActual === "preparado"
+                            ? "no_preparado"
+                            : "preparado";
+
+                        const ok = await confirm({
+                          title: "¿Confirmar preparación?",
+                          text: `¿Estás seguro de que deseas marcar este pedido como ${
+                            nuevoEstado === "preparado"
+                              ? "preparado"
+                              : "no preparado"
+                          }?`,
+                          confirmButtonColor: "#09C46B",
+                          confirmButtonText: "Sí, preparar",
+                        });
+                        if (!ok) return;
+
+                        const res = await actualizarEstadoInternoPreparacion(
+                          pedido.shopifyId,
+                          estadoActual
+                        );
+                        if (res?.data && res.data.message) {
+                          setPedidos((prev) =>
+                            prev.map((p) =>
+                              p.shopifyId === pedido.shopifyId
+                                ? { ...p, estado_preparacion: nuevoEstado }
+                                : p
+                            )
+                          );
+                          setPedidosOriginales((prev) =>
+                            prev.map((p) =>
+                              p.shopifyId === pedido.shopifyId
+                                ? { ...p, estado_preparacion: nuevoEstado }
+                                : p
+                            )
+                          );
                         }
-                      >
-                        No preparado
-                      </Button>
-                    )}
-                  </TableCell> 
+                      }}
+                      sx={{
+                        backgroundColor:
+                          (pedido.estado_preparacion ||
+                            (pedido.fulfillment_status === "fulfilled"
+                              ? "preparado"
+                              : "no_preparado")) === "preparado"
+                            ? "#09C46B !important"
+                            : "#faea88",
+                        color:
+                          (pedido.estado_preparacion ||
+                            (pedido.fulfillment_status === "fulfilled"
+                              ? "preparado"
+                              : "no_preparado")) === "preparado"
+                            ? "#fff !important"
+                            : "#000",
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        boxShadow: "none",
+                        opacity: 1,
+                        "&:hover": {
+                          backgroundColor:
+                            (pedido.estado_preparacion ||
+                              (pedido.fulfillment_status === "fulfilled"
+                                ? "preparado"
+                                : "no_preparado")) === "preparado"
+                              ? "#09C46B !important"
+                              : "#f5d94f",
+                          color:
+                            (pedido.estado_preparacion ||
+                              (pedido.fulfillment_status === "fulfilled"
+                                ? "preparado"
+                                : "no_preparado")) === "preparado"
+                              ? "#fff !important"
+                              : "#000",
+                        },
+                      }}
+                    >
+                      {(pedido.estado_preparacion ||
+                        (pedido.fulfillment_status === "fulfilled"
+                          ? "preparado"
+                          : "no_preparado")) === "preparado"
+                        ? "Preparado"
+                        : "No preparado"}
+                    </Button>
+                  </TableCell>
 
              <TableCell>
               <Button
