@@ -5,7 +5,7 @@ const isDevelopment = window.location.hostname === 'localhost' || window.locatio
 
 const CUSTOM_API_BASE_URL = isDevelopment
   ? 'http://localhost:8000/api'
-  : 'https://api.novedadeswow.com/api/';
+  : 'https://api.novedadeswow.com/api';
 
 
   const API_BASE_URL = isDevelopment 
