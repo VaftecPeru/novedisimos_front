@@ -322,10 +322,10 @@ function PedidosDashboard() {
 
   const [pedidos, setPedidos] = useState([]);
   const [pedidosOriginales, setPedidosOriginales] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null);
-  const [filtroPago, setFiltroPago] = useState("pendiente");     
-  const [filtroPreparado, setFiltroPreparado] = useState(""); 
+  const [filtroPago, setFiltroPago] = useState(""); 
+  const [filtroPreparado,   setFiltroPreparado] = useState(""); 
 
  
 
@@ -1489,17 +1489,14 @@ function PedidosDashboard() {
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
     const {  fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
-    // if (filtroPago === "pendiente" && pedido.financial_status === "paid") return false;
-    // if (filtroPago === "pagado" && pedido.financial_status !== "paid") return false;
-
-    // if (filtroPreparado === "preparado" && pedido.fulfillment_status !== "fulfilled") return false;
-    // if (filtroPreparado === "no_preparado" && pedido.fulfillment_status === "fulfilled") return false;
-    
-    
+   
+  
     // Estado de pago: prioriza el interno, si no existe usa Shopify
     const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
-    if (filtroPago === "pendiente" && estadoPago === "pagado") return false;
-    if (filtroPago === "pagado" && estadoPago !== "pagado") return false;
+    if (filtroPago) {
+      if (filtroPago === "pendiente" && estadoPago === "pagado") return false;
+      if (filtroPago === "pagado" && estadoPago !== "pagado") return false;
+    }
 
     // Estado de preparación: prioriza el interno, si no existe usa Shopify
     const estadoPreparacion = pedido.estado_preparacion || (pedido.fulfillment_status === 'fulfilled' ? 'preparado' : 'no_preparado');
@@ -1659,6 +1656,7 @@ function PedidosDashboard() {
             onChange={(e) => setFiltroPago(e.target.value)}
             displayEmpty
           >
+            <MenuItem value="">Todos</MenuItem>
             <MenuItem value="pendiente">Pago pendiente</MenuItem>
             <MenuItem value="pagado">Pagado</MenuItem>
           </Select>
@@ -1666,22 +1664,6 @@ function PedidosDashboard() {
             Estado de pago
           </Typography>
         </FormControl>
-        {/*
-        <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
-          <Select
-            value={filtros.estadoEntrega}
-            onChange={(e) => handleFiltroChange('estadoEntrega', e.target.value)}
-            displayEmpty
-            renderValue={selected => selected || "Estados de entrega"}
-            sx={{ height: 40 }}
-            >
-            <MenuItem value="">Estados de entrega</MenuItem>
-            {estadosEntregaDisponibles.map(estado => (
-              <MenuItem key={estado} value={estado}>{estado}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        */}
 
         <FormControl size="small">
           <Select
@@ -1863,42 +1845,32 @@ function PedidosDashboard() {
                           );
                         }
                       }}
-                      sx={{
-                        backgroundColor:
-                          (pedido.estado_pago ||
-                            (pedido.financial_status === "paid"
-                              ? "pagado"
-                              : "pendiente")) === "pagado"
-                            ? "#4D68E6 !important"
-                            : "#f0c47c",
-                        color:
-                          (pedido.estado_pago ||
-                            (pedido.financial_status === "paid"
-                              ? "pagado"
-                              : "pendiente")) === "pagado"
-                            ? "#fff !important"
-                            : "#000",
-                        textTransform: "none",
-                        fontWeight: "bold",
-                        boxShadow: "none",
-                        opacity: 1,
-                        "&:hover": {
-                          backgroundColor:
-                            (pedido.estado_pago ||
-                              (pedido.financial_status === "paid"
-                                ? "pagado"
-                                : "pendiente")) === "pagado"
-                              ? "#4D68E6 !important"
-                              : "#e6a05d",
-                          color:
-                            (pedido.estado_pago ||
-                              (pedido.financial_status === "paid"
-                                ? "pagado"
-                                : "pendiente")) === "pagado"
-                              ? "#fff !important"
-                              : "#000",
-                        },
-                      }}
+                      sx={
+                        (pedido.estado_pago ||
+                          (pedido.financial_status === "paid"
+                            ? "pagado"
+                            : "pendiente")) === "pagado"
+                          ? {
+                              backgroundColor: "#b0b0b0", // gris más oscuro
+                              color: "#222", // texto más oscuro
+                              textTransform: "none",
+                              fontWeight: "bold",
+                              boxShadow: "none",
+                              opacity: 1,
+                            }
+                          : {
+                              backgroundColor: "#f0c47c",
+                              color: "#000",
+                              textTransform: "none",
+                              fontWeight: "bold",
+                              boxShadow: "none",
+                              opacity: 1,
+                              "&:hover": {
+                                backgroundColor: "#e6a05d",
+                                color: "#000",
+                              },
+                            }
+                      }
                     >
                       {(pedido.estado_pago ||
                         (pedido.financial_status === "paid"
@@ -1963,42 +1935,32 @@ function PedidosDashboard() {
                           );
                         }
                       }}
-                      sx={{
-                        backgroundColor:
-                          (pedido.estado_preparacion ||
-                            (pedido.fulfillment_status === "fulfilled"
-                              ? "preparado"
-                              : "no_preparado")) === "preparado"
-                            ? "#09C46B !important"
-                            : "#faea88",
-                        color:
-                          (pedido.estado_preparacion ||
-                            (pedido.fulfillment_status === "fulfilled"
-                              ? "preparado"
-                              : "no_preparado")) === "preparado"
-                            ? "#fff !important"
-                            : "#000",
-                        textTransform: "none",
-                        fontWeight: "bold",
-                        boxShadow: "none",
-                        opacity: 1,
-                        "&:hover": {
-                          backgroundColor:
-                            (pedido.estado_preparacion ||
-                              (pedido.fulfillment_status === "fulfilled"
-                                ? "preparado"
-                                : "no_preparado")) === "preparado"
-                              ? "#09C46B !important"
-                              : "#f5d94f",
-                          color:
-                            (pedido.estado_preparacion ||
-                              (pedido.fulfillment_status === "fulfilled"
-                                ? "preparado"
-                                : "no_preparado")) === "preparado"
-                              ? "#fff !important"
-                              : "#000",
-                        },
-                      }}
+                      sx={
+                        (pedido.estado_preparacion ||
+                          (pedido.fulfillment_status === "fulfilled"
+                            ? "preparado"
+                            : "no_preparado")) === "preparado"
+                          ? {
+                              backgroundColor: "#555", // gris oscuro
+                              color: "#fff", // texto blanco
+                              textTransform: "none",
+                              fontWeight: "bold",
+                              boxShadow: "none",
+                              opacity: 1,
+                            }
+                          : {
+                              backgroundColor: "#faea88",
+                              color: "#000",
+                              textTransform: "none",
+                              fontWeight: "bold",
+                              boxShadow: "none",
+                              opacity: 1,
+                              "&:hover": {
+                                backgroundColor: "#f5d94f",
+                                color: "#000",
+                              },
+                            }
+                      }
                     >
                       {(pedido.estado_preparacion ||
                         (pedido.fulfillment_status === "fulfilled"
