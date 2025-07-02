@@ -111,13 +111,8 @@ export const fetchOrders = async () => {
 };
 
 export const getOrderById = async (orderId) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/orders/${orderId}.json`); // <-- CORREGIDO
-    return response.data;
-  } catch (error) {
-    console.error(`Error al obtener el pedido ${orderId}:`, error);
-    throw error;
-  }
+  const response = await axios.get(`${API_BASE_URL}/orders/${orderId}.json`);
+  return response.data;
 };
 
 export const getProducts = async () => {
