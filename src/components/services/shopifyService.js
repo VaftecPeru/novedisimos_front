@@ -8,9 +8,9 @@ const CUSTOM_API_BASE_URL = isDevelopment
   : 'https://api.novedadeswow.com/api';
 
 
-  const API_BASE_URL = isDevelopment 
-    ? 'http://localhost:8000/api/shopify' 
-    : 'https://api.novedadeswow.com/api/shopify';
+const API_BASE_URL = isDevelopment
+  ? 'http://localhost:8000/api/shopify'
+  : 'https://api.novedadeswow.com/api/shopify';
 
 
 
@@ -65,6 +65,34 @@ export const actualizarEstadoInternoPreparacion = async (pedidoId, estadoActual)
     return null; // <-- AGREGA ESTA LÍNEA
   }
 };
+
+//Listar notificaciones de almacén
+export const listarNotificacionesAlmacen = async () => {
+  try {
+    const response = await axios.get(`${CUSTOM_API_BASE_URL}/notificaciones/almacen`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al listar notificaciones de almacén:', error);
+    return [];
+  }
+};
+
+// Crear notificación de almacén
+export const crearNotificacionAlmacen = async ({ shopify_order_id, mensaje, tipo = "PAGO_CONFIRMADO" }) => {
+  try {
+    const response = await axios.post(`${CUSTOM_API_BASE_URL}/notificaciones/almacen`, {
+      shopify_order_id,
+      mensaje,
+      tipo,
+    });
+    console.log("✅ Notificación creada correctamente:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error al crear notificación de almacén:', error.response?.data || error.message);
+    return null;
+  }
+};
+
 
 
 axios.interceptors.response.use(

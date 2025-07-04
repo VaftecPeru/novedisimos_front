@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, Button, TextField, InputAdornment, Table, TableBody, TableCell, 
+import {
+  Box, Button, TextField, InputAdornment, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem,
   IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
 } from '@mui/material';
+
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save, Refresh } from '@mui/icons-material';
 import './PedidosDashboard.css';
-import { fetchOrders } from './components/services/shopifyService';
+import { fetchOrders, listarNotificacionesAlmacen } from './components/services/shopifyService';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import Badge from '@mui/material/Badge';
+
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -52,21 +56,21 @@ const getInventoryStatus = (order) => {
 const getLocationFromOrder = (order) => {
   const provincia = getNoteAttributeValue(order, 'Provincia y Distrito:');
   const direccion = getNoteAttributeValue(order, 'Dirección');
-  
+
   if (provincia !== 'No disponible') {
     return provincia;
   }
-  
+
   if (order.shipping_address) {
     return `${order.shipping_address.city || ''} - ${order.shipping_address.province || ''}`.trim();
   }
-  
+
   return direccion !== 'No disponible' ? direccion : 'Sin ubicación';
 };
 
 const getAlmacenFromLocation = (location) => {
   if (!location || location === 'Sin ubicación') return 'TODOS';
-  
+
   const locationLower = location.toLowerCase();
   if (locationLower.includes('lima') || locationLower.includes('callao')) {
     return 'LIMA';
@@ -76,7 +80,7 @@ const getAlmacenFromLocation = (location) => {
 
 const EstadoAlmacenChip = ({ estado, estadoAdicional, inventario, pedidoId, onInventarioChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  
+
   const estadosInventario = [
     { value: 'PENDIENTE_STOCK', label: 'Pendiente Stock', color: '#f59e0b' },
     { value: 'DISPONIBLE', label: 'Disponible', color: '#3b82f6' },
@@ -85,9 +89,9 @@ const EstadoAlmacenChip = ({ estado, estadoAdicional, inventario, pedidoId, onIn
     { value: 'DESPACHADO', label: 'Despachado', color: '#10b981' },
     { value: 'ANULADO', label: 'Anulado', color: '#ef4444' }
   ];
-  
+
   const estadoInventarioActual = estadosInventario.find(e => e.value === inventario) || estadosInventario[0];
-  
+
   const colorMap = {
     'INGRESADO': '#3884f7',
     'EN_ALMACEN': '#10b981',
@@ -95,58 +99,58 @@ const EstadoAlmacenChip = ({ estado, estadoAdicional, inventario, pedidoId, onIn
     'DESPACHADO': '#8b5cf6',
     'default': '#4763e4'
   };
-  
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleEstadoSelect = (nuevoEstado) => {
     if (onInventarioChange) {
       onInventarioChange(pedidoId, nuevoEstado);
     }
     handleClose();
   };
-  
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Chip 
-        label={estado} 
-        sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }} 
+      <Chip
+        label={estado}
+        sx={{ bgcolor: '#4763e4', color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
       />
       {estadoAdicional && (
-        <Chip 
-          label={estadoAdicional} 
-          sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }} 
+        <Chip
+          label={estadoAdicional}
+          sx={{ bgcolor: colorMap[estadoAdicional] || colorMap.default, color: 'white', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}
         />
       )}
-      <Chip 
+      <Chip
         label={estadoInventarioActual.label}
         onClick={handleClick}
-        sx={{ 
-          bgcolor: estadoInventarioActual.color, 
-          color: 'white', 
-          borderRadius: '4px', 
-          fontWeight: 'bold', 
+        sx={{
+          bgcolor: estadoInventarioActual.color,
+          color: 'white',
+          borderRadius: '4px',
+          fontWeight: 'bold',
           fontSize: '0.75rem',
           cursor: 'pointer',
           '&:hover': { opacity: 0.8 }
-        }} 
+        }}
       />
-      
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
       >
         {estadosInventario.map((estado) => (
-          <MenuItem 
-            key={estado.value} 
+          <MenuItem
+            key={estado.value}
             onClick={() => handleEstadoSelect(estado.value)}
-            sx={{ 
+            sx={{
               color: estado.color,
               fontWeight: inventario === estado.value ? 'bold' : 'normal'
             }}
@@ -206,25 +210,28 @@ function AlmacenDashboard() {
   };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
-  const [pantalla, setPantalla] = useState('panel'); 
+  const [pantalla, setPantalla] = useState('panel');
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [anchorNotif, setAnchorNotif] = useState(null);
+
+
 
   const estadoInicialAlmacen = {
     numeroOrden: '',
     canal: 'Shopify',
     nota: '',
-    
+
     cliente: '',
     telefono: '',
-    
+
     departamento: '',
     provincia: '',
     distrito: '',
     direccion: '',
     referencia: '',
     gps: '',
-    
+
     productos: [],
     estado: 'CONFIRMADO',
     estadoAlmacen: 'INGRESADO',
@@ -233,15 +240,15 @@ function AlmacenDashboard() {
     ubicacionStock: '',
     observacionesAlmacen: ''
   };
-  
+
   const [nuevoRegistroAlmacen, setNuevoRegistroAlmacen] = useState(estadoInicialAlmacen);
   const [nuevoProducto, setNuevoProducto] = useState({ descripcion: '', cantidad: 1, precio: '', stock: '' });
 
   const [pedidos, setPedidos] = useState([]);
-  const [pedidosOriginales, setPedidosOriginales] = useState([]);  
+  const [pedidosOriginales, setPedidosOriginales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [estadosDisponibles, setEstadosDisponibles] = useState(['TODOS', 'PENDIENTE', 'CONFIRMADO', 'CANCELADO']);
   const [estadosAlmacenDisponibles, setEstadosAlmacenDisponibles] = useState(['INGRESADO', 'EN_ALMACEN', 'PARCIAL', 'DESPACHADO']);
   const [almacenesDisponibles, setAlmacenesDisponibles] = useState(['TODOS', 'LIMA', 'PROVINCIA']);
@@ -251,49 +258,65 @@ function AlmacenDashboard() {
   };
 
   useEffect(() => {
+    const cargar = async () => {
+      const data = await listarNotificacionesAlmacen();
+      setNotificaciones(data);
+    };
+    cargar();
+  }, []);
+
+  const handleNotifClick = (event) => {
+    setAnchorNotif(event.currentTarget);
+  };
+
+  const handleNotifClose = () => {
+    setAnchorNotif(null);
+  };
+
+  useEffect(() => {
     const cargarPedidosAlmacen = async () => {
       try {
         setLoading(true);
         console.log('Cargando pedidos para gestión de almacén...');
-        
+
         let allOrders = [];
         let hasMore = true;
         let page = 1;
-        const limit = 250; 
-        
-        while (hasMore && page <= 10) { 
+        const limit = 250;
+
+        while (hasMore && page <= 10) {
           try {
             console.log(`Cargando página ${page} de pedidos...`);
-            
+
             const response = await fetchOrdersWithPagination(page, limit);
-            
+
             let ordersData = [];
             if (response && response.orders) {
               ordersData = response.orders;
             } else if (Array.isArray(response)) {
               ordersData = response;
             }
-            
+
             if (ordersData.length === 0) {
               hasMore = false;
             } else {
               allOrders = [...allOrders, ...ordersData];
-              hasMore = ordersData.length === limit; 
+              hasMore = ordersData.length === limit;
               page++;
             }
-            
+
             console.log(`Página ${page - 1}: ${ordersData.length} pedidos. Total acumulado: ${allOrders.length}`);
-            
+
           } catch (pageError) {
             console.error(`Error en página ${page}:`, pageError);
             hasMore = false;
           }
         }
-        
+
         if (allOrders.length === 0) {
           console.log('Fallback: Cargando con método original...');
           const response = await fetchOrders();
-          
+
           if (response && response.orders) {
             allOrders = response.orders;
           } else if (Array.isArray(response)) {
@@ -304,39 +327,39 @@ function AlmacenDashboard() {
             return;
           }
         }
-        
+
         console.log(`TOTAL DE PEDIDOS CARGADOS PARA ALMACÉN: ${allOrders.length}`);
-        
+
         const pedidosFormateadosAlmacen = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAlmacen = mapAlmacenStatus(order);
           const inventario = getInventoryStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
-          
+
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
-            
-            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible' 
+
+            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
-            
-            telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible' 
+
+            telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Celular')
               : (order.phone || 'Sin teléfono'),
-            
+
             ubicacion: ubicacion,
             almacen: almacen,
-            
+
             estado: estado,
             estadoAlmacen: estadoAlmacen,
             inventario: inventario,
-            
+
             financial_status: order.financial_status,
             fulfillment_status: order.fulfillment_status,
-            
+
             productos: order.line_items ? order.line_items.map(item => ({
               nombre: item.name || 'Producto',
               cantidad: item.quantity || 1,
@@ -344,46 +367,46 @@ function AlmacenDashboard() {
               precio: `${order.presentment_currency || 'PEN'} ${item.price || '0.00'}`,
               stockDisponible: item.inventory_quantity || 0
             })) : [],
-            
+
             importes: {
               total: `${order.presentment_currency || 'PEN'} ${order.current_total_price || order.total_price || '0.00'}`,
               subtotal: order.subtotal_price || '0.00',
               currency: order.presentment_currency || order.currency || 'PEN'
             },
-            
+
             fechas: {
               ingreso: formatDate(order.created_at),
               registro: formatDate(order.processed_at),
               despacho: formatDate(order.shipped_at) || '-',
-              entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) : 
-                      (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
+              entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) :
+                (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
             },
 
             medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
-            
+
             tags: order.tags || '',
             note: order.note || '',
-            
+
             fechaCreacion: new Date(order.created_at),
             fechaActualizacion: new Date(order.updated_at),
-            
+
             originalOrder: order
           };
         });
-        
+
         setPedidos(pedidosFormateadosAlmacen);
         setPedidosOriginales(pedidosFormateadosAlmacen);
-        
+
         const estadosUnicos = [...new Set(pedidosFormateadosAlmacen.map(p => p.estado))].filter(Boolean);
         const estadosAlmacenUnicos = [...new Set(pedidosFormateadosAlmacen.map(p => p.estadoAlmacen))].filter(Boolean);
-        
+
         setEstadosDisponibles(estadosUnicos);
         setEstadosAlmacenDisponibles(estadosAlmacenUnicos);
-        
+
         console.log('✅ Pedidos procesados para almacén exitosamente:', pedidosFormateadosAlmacen.length);
         console.log('📊 Estados disponibles:', estadosUnicos);
         console.log('🏪 Estados de almacén disponibles:', estadosAlmacenUnicos);
-        
+
       } catch (err) {
         console.error('❌ Error al cargar pedidos para almacén:', err);
         setError(err.message || 'Error al cargar pedidos');
@@ -397,15 +420,15 @@ function AlmacenDashboard() {
 
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
-      const API_BASE_URL = 'https://api.novedadeswow.com';  
-      
+      const API_BASE_URL = 'https://api.novedadeswow.com';
+
       const urls = [
         `${API_BASE_URL}/orders?limit=${limit}&page=${page}`,
         `${API_BASE_URL}/orders?limit=${limit}&page_info=${page}`,
         `${API_BASE_URL}/orders?per_page=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders`  
+        `${API_BASE_URL}/orders`
       ];
-      
+
       for (const url of urls) {
         try {
           console.log(`Intentando URL: ${url}`);
@@ -418,7 +441,7 @@ function AlmacenDashboard() {
           console.warn(`Error con URL ${url}:`, urlError.message);
         }
       }
-      
+
       throw new Error('No se pudo cargar con ninguna URL de paginación');
     } catch (error) {
       console.error('Error en fetchOrdersWithPagination:', error);
@@ -432,15 +455,15 @@ function AlmacenDashboard() {
 
   const handleInventarioChange = (pedidoId, nuevoEstado) => {
     console.log(`Cambiando estado de inventario de ${pedidoId} a ${nuevoEstado}`);
-    
-    setPedidos(prev => prev.map(pedido => 
-      pedido.id === pedidoId 
+
+    setPedidos(prev => prev.map(pedido =>
+      pedido.id === pedidoId
         ? { ...pedido, inventario: nuevoEstado }
         : pedido
     ));
-    
-    setPedidosOriginales(prev => prev.map(pedido => 
-      pedido.id === pedidoId 
+
+    setPedidosOriginales(prev => prev.map(pedido =>
+      pedido.id === pedidoId
         ? { ...pedido, inventario: nuevoEstado }
         : pedido
     ));
@@ -475,11 +498,11 @@ function AlmacenDashboard() {
     if (estado && estado !== '' && pedido.estado !== estado) return false;
     if (almacen && almacen !== 'TODOS' && pedido.almacen !== almacen) return false;
     if (estadoInventario && estadoInventario !== '' && pedido.inventario !== estadoInventario) return false;
-    
+
     if (fechaInicio || fechaFin) {
       let fechaComparar = null;
-      
-      switch(tipoFecha) {
+
+      switch (tipoFecha) {
         case 'ingreso':
           fechaComparar = pedido.originalOrder.created_at;
           break;
@@ -488,7 +511,7 @@ function AlmacenDashboard() {
           break;
         case 'despacho':
           fechaComparar = pedido.originalOrder.shipped_at;
-          if (!fechaComparar) return false; 
+          if (!fechaComparar) return false;
           break;
         case 'entrega':
           fechaComparar = pedido.originalOrder.fulfilled_at;
@@ -500,23 +523,23 @@ function AlmacenDashboard() {
         default:
           fechaComparar = pedido.originalOrder.created_at;
       }
-      
+
       if (!fechaComparar) return false;
-      
+
       const fechaPedido = new Date(fechaComparar);
       const fechaPedidoSoloFecha = new Date(fechaPedido.getFullYear(), fechaPedido.getMonth(), fechaPedido.getDate());
-      
+
       if (fechaInicio) {
         const fechaInicioComparar = new Date(fechaInicio);
         if (fechaPedidoSoloFecha < fechaInicioComparar) return false;
       }
-      
+
       if (fechaFin) {
         const fechaFinComparar = new Date(fechaFin);
         if (fechaPedidoSoloFecha > fechaFinComparar) return false;
       }
     }
-    
+
     if (searchTerm && searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase().trim();
       const matchesCliente = pedido.cliente && pedido.cliente.toLowerCase().includes(searchLower);
@@ -525,12 +548,12 @@ function AlmacenDashboard() {
       const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
       const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
       const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
-      
+
       if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -559,11 +582,48 @@ function AlmacenDashboard() {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Gestión de Almacén</Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              {[MusicNote, Instagram, WhatsApp].map((Icon, idx) => (
-                <IconButton key={idx} color="primary"><Icon /></IconButton>
-              ))}
+              <IconButton color="primary" onClick={handleNotifClick}>
+                <Badge badgeContent={notificaciones.filter(n => !n.leido).length} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
             </Box>
           </Box>
+          {/* Menú de notificaciones */}
+          <Menu
+            anchorEl={anchorNotif}
+            open={Boolean(anchorNotif)}
+            onClose={handleNotifClose}
+            PaperProps={{
+              sx: { minWidth: 320, maxHeight: 400 }
+            }}
+          >
+            <Box sx={{ px: 2, py: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                Notificaciones recientes
+              </Typography>
+            </Box>
+            <Divider />
+            {notificaciones.length === 0 && (
+              <MenuItem disabled>
+                <Typography variant="body2" color="text.secondary">
+                  No hay notificaciones
+                </Typography>
+              </MenuItem>
+            )}
+            {notificaciones.map(n => (
+              <MenuItem key={n.id} sx={{ bgcolor: n.leido ? '#f5f5f5' : '#fffbe6', whiteSpace: 'normal', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography variant="body2">{n.mensaje}</Typography>
+                  <Typography variant="caption" sx={{ color: '#888' }}>
+                    {new Date(n.created_at).toLocaleString()}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Menu>
+
+
 
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
             <Button
@@ -601,8 +661,8 @@ function AlmacenDashboard() {
               onClick={actualizarDatos}
             >
               actualizar
-          </Button>
-                      
+            </Button>
+
 
             <TextField
               placeholder="Buscar por cliente, pedido, teléfono o ubicación..."
@@ -619,7 +679,7 @@ function AlmacenDashboard() {
                 value={filtros.estado}
                 onChange={(e) => handleFiltroChange('estado', e.target.value)}
                 displayEmpty
-                renderValue={selected => selected || "Estados"}  
+                renderValue={selected => selected || "Estados"}
                 sx={{ height: 40 }}
               >
                 <MenuItem value="">Todos los estados</MenuItem>
@@ -678,7 +738,7 @@ function AlmacenDashboard() {
               <TextField
                 label="Desde"
                 type="date"
-                size="small" 
+                size="small"
                 value={filtros.fechaInicio}
                 onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
                 sx={{ width: 160, bgcolor: 'white' }}
@@ -706,11 +766,11 @@ function AlmacenDashboard() {
             </Box>
           </Box>
 
-          <TableContainer 
-            component={Paper} 
-            sx={{ 
-              backgroundColor: 'white', 
-              borderRadius: '12px', 
+          <TableContainer
+            component={Paper}
+            sx={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
               boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               maxHeight: 'calc(100vh - 300px)',
               overflowY: 'auto'
@@ -753,9 +813,9 @@ function AlmacenDashboard() {
               </TableHead>
               <TableBody>
                 {pedidosFiltrados.map((pedido, index) => (
-                  <TableRow 
+                  <TableRow
                     key={pedido.id || index}
-                    sx={{ 
+                    sx={{
                       '&:hover': { bgcolor: '#f8fafc' },
                       '& .MuiTableCell-root': { borderBottom: '1px solid #e2e8f0' }
                     }}
@@ -765,13 +825,13 @@ function AlmacenDashboard() {
                         {pedido.id}
                       </Typography>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                         {pedido.cliente}
                       </Typography>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="body2">{pedido.telefono}</Typography>
@@ -782,27 +842,27 @@ function AlmacenDashboard() {
                         )}
                       </Box>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Typography variant="body2" sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {pedido.ubicacion}
                       </Typography>
                     </TableCell>
-                    
+
                     <TableCell>
-                      <Chip 
-                        label={pedido.almacen} 
-                        sx={{ 
-                          bgcolor: pedido.almacen === 'LIMA' ? '#3b82f6' : '#f59e0b', 
-                          color: 'white', 
+                      <Chip
+                        label={pedido.almacen}
+                        sx={{
+                          bgcolor: pedido.almacen === 'LIMA' ? '#3b82f6' : '#f59e0b',
+                          color: 'white',
                           fontWeight: 'bold',
                           fontSize: '0.75rem'
-                        }} 
+                        }}
                       />
                     </TableCell>
-                    
+
                     <TableCell>
-                      <EstadoAlmacenChip 
+                      <EstadoAlmacenChip
                         estado={pedido.estado}
                         estadoAdicional={pedido.estadoAlmacen}
                         inventario={pedido.inventario}
@@ -810,7 +870,7 @@ function AlmacenDashboard() {
                         onInventarioChange={handleInventarioChange}
                       />
                     </TableCell>
-                    
+
                     <TableCell>
                       <Box sx={{ maxWidth: 180, maxHeight: 100, overflowY: 'auto' }}>
                         {pedido.productos.map((producto, idx) => (
@@ -821,13 +881,13 @@ function AlmacenDashboard() {
                         ))}
                       </Box>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#059669' }}>
                         {pedido.importes.total}
                       </Typography>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         <FechaItem label="Ingreso" fecha={pedido.fechas.ingreso} />
@@ -897,7 +957,7 @@ function AlmacenDashboard() {
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#374151' }}>
                 Información del Pedido
               </Typography>
-              
+
               <TextField
                 label="Número de Orden"
                 name="numeroOrden"
@@ -906,7 +966,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <FormControl fullWidth size="small">
                 <Select
                   value={nuevoRegistroAlmacen.canal}
@@ -936,7 +996,7 @@ function AlmacenDashboard() {
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#374151' }}>
                 Información del Cliente
               </Typography>
-              
+
               <TextField
                 label="Cliente"
                 name="cliente"
@@ -945,7 +1005,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <TextField
                 label="Teléfono"
                 name="telefono"
@@ -960,7 +1020,7 @@ function AlmacenDashboard() {
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#374151' }}>
                 Ubicación y Almacén
               </Typography>
-              
+
               <TextField
                 label="Departamento"
                 name="departamento"
@@ -969,7 +1029,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <TextField
                 label="Provincia"
                 name="provincia"
@@ -978,7 +1038,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <TextField
                 label="Distrito"
                 name="distrito"
@@ -987,7 +1047,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <TextField
                 label="Dirección"
                 name="direccion"
@@ -996,7 +1056,7 @@ function AlmacenDashboard() {
                 fullWidth
                 size="small"
               />
-              
+
               <TextField
                 label="Referencia"
                 name="referencia"
@@ -1152,16 +1212,16 @@ function AlmacenDashboard() {
                     Productos agregados:
                   </Typography>
                   {nuevoRegistroAlmacen.productos.map((producto, index) => (
-                    <Box 
-                      key={index} 
-                      sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                    <Box
+                      key={index}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        p: 1, 
-                        bgcolor: '#f8fafc', 
-                        borderRadius: 1, 
-                        mb: 1 
+                        p: 1,
+                        bgcolor: '#f8fafc',
+                        borderRadius: 1,
+                        mb: 1
                       }}
                     >
                       <Box>
@@ -1204,8 +1264,8 @@ function AlmacenDashboard() {
                   variant="contained"
                   onClick={guardarRegistroAlmacen}
                   startIcon={<Save />}
-                  sx={{ 
-                    bgcolor: '#4f46e5', 
+                  sx={{
+                    bgcolor: '#4f46e5',
                     '&:hover': { bgcolor: '#4338ca' }
                   }}
                 >
@@ -1216,11 +1276,11 @@ function AlmacenDashboard() {
           </Drawer>
 
           {pedidosFiltrados.length === 0 && !loading && (
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               py: 8,
               bgcolor: 'white',
               borderRadius: '12px',
@@ -1283,35 +1343,35 @@ function AlmacenDashboard() {
         </Box>
       )}
       {pantalla === 'guia' && pedidoSeleccionado && (
-          <Box sx={{ maxWidth: 600, mx: 'auto', my: 6, bgcolor: 'white', p: 4, borderRadius: 3, boxShadow: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Guía de Despacho - Tienda Virtual</Typography>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2"><b>{pedidoSeleccionado.id}</b></Typography>
-              <Typography variant="body2">{pedidoSeleccionado.cliente}</Typography>
-              <Typography variant="body2">{pedidoSeleccionado.ubicacion}</Typography>
-            </Box>
-            <Divider />
-            <Box sx={{ mt: 2 }}>
-              {pedidoSeleccionado.productos.map((prod, i) => (
-                <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">{prod.nombre}</Typography>
-                  <Typography variant="body2">{prod.cantidad}</Typography>
-                </Box>
-              ))}
-            </Box>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="body2">Total: {pedidoSeleccionado.importes.total}</Typography>
-            <TextField label="Observaciones" fullWidth sx={{ mt: 2, mb: 2 }} />
-            <Button
-              variant="contained"
-              sx={{ bgcolor: '#2563eb', mt: 2 }}
-              onClick={() => setPantalla('confirmacion')}
-            >
-              Descargar PDF
-            </Button>
+        <Box sx={{ maxWidth: 600, mx: 'auto', my: 6, bgcolor: 'white', p: 4, borderRadius: 3, boxShadow: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Guía de Despacho - Tienda Virtual</Typography>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2"><b>{pedidoSeleccionado.id}</b></Typography>
+            <Typography variant="body2">{pedidoSeleccionado.cliente}</Typography>
+            <Typography variant="body2">{pedidoSeleccionado.ubicacion}</Typography>
           </Box>
-        )}
-        {pantalla === 'confirmacion' && (
+          <Divider />
+          <Box sx={{ mt: 2 }}>
+            {pedidoSeleccionado.productos.map((prod, i) => (
+              <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">{prod.nombre}</Typography>
+                <Typography variant="body2">{prod.cantidad}</Typography>
+              </Box>
+            ))}
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="body2">Total: {pedidoSeleccionado.importes.total}</Typography>
+          <TextField label="Observaciones" fullWidth sx={{ mt: 2, mb: 2 }} />
+          <Button
+            variant="contained"
+            sx={{ bgcolor: '#2563eb', mt: 2 }}
+            onClick={() => setPantalla('confirmacion')}
+          >
+            Descargar PDF
+          </Button>
+        </Box>
+      )}
+      {pantalla === 'confirmacion' && (
         <Box sx={{ maxWidth: 400, mx: 'auto', my: 10, bgcolor: 'white', p: 4, borderRadius: 3, boxShadow: 2, textAlign: 'center' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             <Box sx={{ bgcolor: '#10b981', borderRadius: '50%', width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -5,7 +5,7 @@ import {
   IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
-import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
+import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
@@ -13,6 +13,7 @@ import TablePagination from '@mui/material/TablePagination';
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
+
 
 
 function EstadoBadge({ label, color }) {
@@ -323,12 +324,12 @@ function PedidosDashboard() {
 
   const [pedidos, setPedidos] = useState([]);
   const [pedidosOriginales, setPedidosOriginales] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filtroPago, setFiltroPago] = useState(""); 
-  const [filtroPreparado,   setFiltroPreparado] = useState(""); 
+  const [filtroPago, setFiltroPago] = useState("");
+  const [filtroPreparado, setFiltroPreparado] = useState("");
 
- 
+
 
 
   const [provinciasAmazonas] = useState([
@@ -1316,7 +1317,7 @@ function PedidosDashboard() {
         }
 
         console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
-        const estadosInternos = await fetchEstadosPedidos(); 
+        const estadosInternos = await fetchEstadosPedidos();
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
@@ -1489,9 +1490,9 @@ function PedidosDashboard() {
   };
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
-    const {  fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
-   
-  
+    const { fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+
+
     // Estado de pago: prioriza el interno, si no existe usa Shopify
     const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
     if (filtroPago) {
@@ -1817,9 +1818,8 @@ function PedidosDashboard() {
 
                         const ok = await confirm({
                           title: "¿Confirmar cambio de estado de pago?",
-                          text: `¿Estás seguro de que deseas marcar este pedido como ${
-                            nuevoEstado === "pagado" ? "pagado" : "pendiente"
-                          }?`,
+                          text: `¿Estás seguro de que deseas marcar este pedido como ${nuevoEstado === "pagado" ? "pagado" : "pendiente"
+                            }?`,
                           confirmButtonColor: "#4D68E6",
                           confirmButtonText: "Sí, cambiar",
                         });
@@ -1844,6 +1844,16 @@ function PedidosDashboard() {
                                 : p
                             )
                           );
+                          if (nuevoEstado === "pagado") {
+                            console.log("➡ Enviando notificación de pago al backend...");
+                            const respuesta = await crearNotificacionAlmacen({
+                              shopify_order_id: Number(pedido.shopifyId),
+                              mensaje: `El pedido ${pedido.id} ha sido marcado como pagado.`,
+                              tipo: "PAGO_CONFIRMADO"
+                            });
+                            console.log("✅ Respuesta backend:", respuesta);
+                          }
+
                         }
                       }}
                       sx={
@@ -1852,25 +1862,25 @@ function PedidosDashboard() {
                             ? "pagado"
                             : "pendiente")) === "pagado"
                           ? {
-                              backgroundColor: "#b0b0b0", // gris más oscuro
-                              color: "#222", // texto más oscuro
-                              textTransform: "none",
-                              fontWeight: "bold",
-                              boxShadow: "none",
-                              opacity: 1,
-                            }
+                            backgroundColor: "#b0b0b0", // gris más oscuro
+                            color: "#222", // texto más oscuro
+                            textTransform: "none",
+                            fontWeight: "bold",
+                            boxShadow: "none",
+                            opacity: 1,
+                          }
                           : {
-                              backgroundColor: "#f0c47c",
+                            backgroundColor: "#f0c47c",
+                            color: "#000",
+                            textTransform: "none",
+                            fontWeight: "bold",
+                            boxShadow: "none",
+                            opacity: 1,
+                            "&:hover": {
+                              backgroundColor: "#e6a05d",
                               color: "#000",
-                              textTransform: "none",
-                              fontWeight: "bold",
-                              boxShadow: "none",
-                              opacity: 1,
-                              "&:hover": {
-                                backgroundColor: "#e6a05d",
-                                color: "#000",
-                              },
-                            }
+                            },
+                          }
                       }
                     >
                       {(pedido.estado_pago ||
@@ -1905,11 +1915,10 @@ function PedidosDashboard() {
 
                         const ok = await confirm({
                           title: "¿Confirmar preparación?",
-                          text: `¿Estás seguro de que deseas marcar este pedido como ${
-                            nuevoEstado === "preparado"
-                              ? "preparado"
-                              : "no preparado"
-                          }?`,
+                          text: `¿Estás seguro de que deseas marcar este pedido como ${nuevoEstado === "preparado"
+                            ? "preparado"
+                            : "no preparado"
+                            }?`,
                           confirmButtonColor: "#09C46B",
                           confirmButtonText: "Sí, preparar",
                         });
@@ -1942,25 +1951,25 @@ function PedidosDashboard() {
                             ? "preparado"
                             : "no_preparado")) === "preparado"
                           ? {
-                              backgroundColor: "#555", // gris oscuro
-                              color: "#fff", // texto blanco
-                              textTransform: "none",
-                              fontWeight: "bold",
-                              boxShadow: "none",
-                              opacity: 1,
-                            }
+                            backgroundColor: "#555", // gris oscuro
+                            color: "#fff", // texto blanco
+                            textTransform: "none",
+                            fontWeight: "bold",
+                            boxShadow: "none",
+                            opacity: 1,
+                          }
                           : {
-                              backgroundColor: "#faea88",
+                            backgroundColor: "#faea88",
+                            color: "#000",
+                            textTransform: "none",
+                            fontWeight: "bold",
+                            boxShadow: "none",
+                            opacity: 1,
+                            "&:hover": {
+                              backgroundColor: "#f5d94f",
                               color: "#000",
-                              textTransform: "none",
-                              fontWeight: "bold",
-                              boxShadow: "none",
-                              opacity: 1,
-                              "&:hover": {
-                                backgroundColor: "#f5d94f",
-                                color: "#000",
-                              },
-                            }
+                            },
+                          }
                       }
                     >
                       {(pedido.estado_preparacion ||
@@ -1972,16 +1981,16 @@ function PedidosDashboard() {
                     </Button>
                   </TableCell>
 
-             <TableCell>
-              <Button
-                variant="outlined"
-                size="small"
-                sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                onClick={() => navigate(`/pedidos/${pedido.shopifyId}`)}
-              >
-                Ver detalle
-              </Button>
-            </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                      onClick={() => navigate(`/pedidos/${pedido.shopifyId}`)}
+                    >
+                      Ver detalle
+                    </Button>
+                  </TableCell>
                   <TableCell>{pedido.ubicacion || "-"}</TableCell>
                   <TableCell>
                     <NotaEditable
