@@ -623,8 +623,6 @@ function AlmacenDashboard() {
             ))}
           </Menu>
 
-
-
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
             <Button
               variant="contained"

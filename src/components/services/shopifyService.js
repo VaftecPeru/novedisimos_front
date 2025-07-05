@@ -13,6 +13,41 @@ const API_BASE_URL = isDevelopment
   : 'https://api.novedadeswow.com/api/shopify';
 
 
+export const fetchPedidosPreparacionInterna = async () => {
+  try {
+    const res = await axios.get(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`);
+    return res.data || [];
+  } catch (error) {
+    console.error('Error al obtener pedidos internos de almacén:', error);
+    return [];
+  }
+};
+
+export const crearPreparacionPedido = async (shopify_order_id) => {
+  try {
+    const res = await axios.post(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`, {
+      shopify_order_id
+    });
+    Swal.fire('Preparación creada', 'El pedido ha sido registrado en almacén.', 'success');
+    return res.data;
+  } catch (error) {
+    console.error('Error al crear control de preparación:', error);
+    Swal.fire('Error', 'No se pudo registrar el pedido en almacén.', 'error');
+    return null;
+  }
+};
+
+export const actualizarEstadoPreparacion = async (id, nuevosDatos) => {
+  try {
+    const res = await axios.put(`${CUSTOM_API_BASE_URL}/preparacion-pedidos/${id}`, nuevosDatos);
+    Swal.fire('Actualizado', 'El estado del pedido en almacén ha sido actualizado.', 'success');
+    return res.data;
+  } catch (error) {
+    console.error('Error al actualizar preparación:', error);
+    Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
+    return null;
+  }
+};
 
 export const fetchEstadosPedidos = async () => {
   try {
