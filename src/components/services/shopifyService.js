@@ -39,23 +39,15 @@ export const crearPreparacionPedido = async (shopify_order_id) => {
 
 export const actualizarEstadoPreparacion = async (id, nuevosDatos) => {
   try {
-    // Asegurarse de que se está enviando el campo correcto: 'estado'
     const res = await axios.put(`${CUSTOM_API_BASE_URL}/preparacion-pedidos/${id}`, nuevosDatos);
-
-    if (res.data?.success) {
-      Swal.fire('Actualizado', 'El estado del pedido en almacén ha sido actualizado.', 'success');
-    } else {
-      Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
-    }
-
+    Swal.fire('Actualizado', 'El estado del pedido en almacén ha sido actualizado.', 'success');
     return res.data;
   } catch (error) {
     console.error('Error al actualizar preparación:', error);
-    Swal.fire('Error', 'Error del servidor al actualizar el estado.', 'error');
+    Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
     return null;
   }
 };
-
 
 export const fetchEstadosPedidos = async () => {
   try {

@@ -1078,11 +1078,17 @@ function AlmacenDashboard() {
                                 confirmButtonColor: "#4D68E6",
                                 confirmButtonText: "Sí, cambiar",
                               });
-                              if (!ok) return;
-                              const res = await actualizarEstadoPreparacion(
-                                pedido.shopifyId,
-                                { estado }
-                              );
+                               if (!ok) return;
+                              const estadoMap = {
+                                "Pendiente": "pendiente",
+                                "Listo para despacho": "listo_para_despacho",
+                                "Cancelado": "cancelado",
+                                "Despachado": "despachado",
+                              };
+
+                              const estadoNormalizado = estadoMap[estado]; // <-- este es el valor que espera Laravel
+
+                              const res = await actualizarEstadoPreparacion(pedido.shopifyId, { estado: estadoNormalizado });
                               if (res && res.success) {
                                 setPedidos((prev) =>
                                   prev.map((p) =>
