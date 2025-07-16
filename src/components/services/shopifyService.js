@@ -23,6 +23,16 @@ export const fetchPedidosPreparacionInterna = async () => {
   }
 };
 
+export const fetchEstadosAlmacenDisponibles = async () => {
+  try {
+    const res = await axios.get(`${CUSTOM_API_BASE_URL}/estados-almacen`);
+    return res.data?.data || [];
+  } catch (error) {
+    console.error("Error al obtener estados de almacén:", error);
+    return [];
+  }
+};
+
 export const crearPreparacionPedido = async (shopify_order_id) => {
   try {
     const res = await axios.post(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`, {
@@ -76,6 +86,16 @@ export const actualizarEstadoInternoPago = async (pedidoId, estadoPago) => {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de pago.', 'error');
     return null;
+  }
+};
+
+export const fetchEstadosPedidosInterna = async () => {
+  try {
+    const res = await axios.get(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`);
+    return res.data?.data || []; // ⬅️ importante para que no falle el .map
+  } catch (error) {
+    console.error('Error al obtener pedidos internos de almacén:', error);
+    return [];
   }
 };
 

@@ -74,14 +74,6 @@ const MenuPorRol = ({
                 >
                   Orden de Pedido
                 </li>
-                <li
-                  onClick={() => onMenuItemClick("seguimientoContraentrega")}
-                  className={
-                    activeSection === "seguimientoContraentrega" ? "active" : ""
-                  }
-                >
-                  Seguimiento Contraentrega
-                </li>
               </ul>
             )}
           </li>
@@ -128,25 +120,25 @@ const MenuPorRol = ({
               />
             </div>
             {expanded.mantenimiento && (
-              <ul className="submenu">
-                <li
-                  // Usamos onMenuItemClick y activeSection para el resaltado
-                  onClick={() => onMenuItemClick("productos")}
-                  className={activeSection === "productos" ? "active" : ""}
-                >
-                  Productos
-                </li>
-                <li
-                  onClick={() => onMenuItemClick("movimiento")}
-                  className={activeSection === "movimiento" ? "active" : ""}
-                >
-                  Movimiento
-                </li>
+              <ul className="submenu"> 
                 <li
                   onClick={() => onMenuItemClick("almacenes")}
                   className={activeSection === "almacenes" ? "active" : ""}
                 >
                   Almacen
+                </li>
+                <li
+                  onClick={() => onMenuItemClick("movimiento")}
+                  className={activeSection === "movimiento" ? "active" : ""}
+                >
+                  Productos
+                </li>
+                <li
+                  // Usamos onMenuItemClick y activeSection para el resaltado
+                  onClick={() => onMenuItemClick("productos")}
+                  className={activeSection === "productos" ? "active" : ""}
+                >
+                  Ubicacion
                 </li>
               </ul>
             )}
@@ -206,42 +198,8 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-        {seccionesPermitidas.includes("clientes") && (
-          <li
-            className={`main-menu-item ${expanded.clientes ? "expanded" : ""} ${
-              activeSection === "clientes" ? "active-single-item" : ""
-            }`}
-          >
-            {" "}
-            {/* <-- ¡CAMBIO AQUÍ! */}
-            {/* Usamos onMenuItemClick aquí */}
-            <div
-              className="menu-item-header"
-              onClick={() => onMenuItemClick("clientes")}
-            >
-              <img
-                src={gearImages.clientes}
-                alt="Clientes"
-                style={{ width: "22px", height: "22px" }}
-              />
-              <i className="fas fa-users"></i>
-              {/* Resaltado del TÍTULO de Clientes */}
-              <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "clientes"
-                      ? "white"
-                      : spanColors.clientes,
-                }}
-              >
-                Clientes
-              </span>
-            </div>
-          </li>
-        )}
-
+        
+        
         {seccionesPermitidas.includes("motorizados") && (
           <li
             className={`main-menu-item ${
