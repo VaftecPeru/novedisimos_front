@@ -7,7 +7,7 @@ import {
 
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save, Refresh } from '@mui/icons-material';
 import './PedidosDashboard.css';
-import { fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion } from './components/services/shopifyService';
+import { fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, crearNotificacionDelivery} from './components/services/shopifyService';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -37,7 +37,6 @@ const mapShopifyStatus = (order) => {
 };
 
 const mapAlmacenStatus = (order) => {
-  // Solo estos 4 estados
   if (order.cancelled_at) return 'Cancelado';
   if (order.fulfillment_status === 'fulfilled') return 'Despachado';
   if (order.tags && order.tags.includes('listo-despacho')) return 'Listo para despacho';
@@ -202,9 +201,7 @@ function AlmacenDashboard() {
         } else if (Array.isArray(response)) {
           allOrders = response;
         }
-        // Aquí tu lógica de formatear los pedidos (igual que en tu useEffect inicial)
         const pedidosFormateadosAlmacen = allOrders.map(order => {
-          // ... mismo mapeo que usas al inicio ...
         });
         setPedidos(pedidosFormateadosAlmacen);
         setPedidosOriginales(pedidosFormateadosAlmacen);
@@ -691,8 +688,8 @@ function AlmacenDashboard() {
               size="small"
               startIcon={<Refresh />}
               sx={{
-                textTransform: "none", // minúsculas, no mayúsculas
-                color: "#10b981", // verde esmeralda (tailwind emerald-500)
+                textTransform: "none", 
+                color: "#10b981", 
                 borderColor: "#10b981",
                 borderRadius: "20px",
                 fontWeight: 600,
@@ -1086,7 +1083,7 @@ function AlmacenDashboard() {
                                 "Despachado": "despachado",
                               };
 
-                              const estadoNormalizado = estadoMap[estado]; // <-- este es el valor que espera Laravel
+                              const estadoNormalizado = estadoMap[estado]; 
 
                               const res = await actualizarEstadoPreparacion(pedido.shopifyId, { estado: estadoNormalizado });
                               if (res && res.success) {
@@ -1104,13 +1101,25 @@ function AlmacenDashboard() {
                                       : p
                                   )
                                 );
-                              } else {
-                                Swal.fire(
-                                  "Error",
-                                  "No se pudo actualizar el estado en almacén.",
-                                  "error"
-                                );
-                              }
+                              } 
+                              const nuevoEstado = estadoNormalizado;
+                                console.log("🔍 Pedido para notificación:", pedido);
+
+                                if (nuevoEstado === 'despachado' || nuevoEstado === 'cancelado') {
+                                  console.log("🟨 Enviando notificación a Delivery:", {
+                                    shopify_order_id: pedido.shopifyId,
+                                    mensaje: `El pedido ${pedido.id ?? `#NVD${pedido.orderNumber}`} fue marcado como ${nuevoEstado} por almacén.`,
+                                    tipo: nuevoEstado.toUpperCase(),
+                                  });
+
+                                  await crearNotificacionDelivery({
+                                    shopify_order_id: pedido.shopifyId,
+                                    mensaje: `El pedido ${pedido.id ?? `#NVD${pedido.orderNumber}`} fue marcado como ${nuevoEstado} por almacén.`,
+                                    tipo: nuevoEstado.toUpperCase(),
+                                  });
+                                }
+
+
                             }}
                           >
                             {estado}

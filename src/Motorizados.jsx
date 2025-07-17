@@ -1,325 +1,578 @@
-import React, { useState } from "react";
-import "./Motorizados.css"; // Importa el archivo CSS
+import React, { useEffect, useState } from "react";
+import {
+  Box, Badge, Divider, Button, FormControl, IconButton, InputAdornment, Menu, MenuItem,
+  Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TextField, Typography, TablePagination
+} from "@mui/material";
+import { Search, Refresh, ArrowDropDown, WhatsApp } from "@mui/icons-material";
 import PrintIcon from "@mui/icons-material/Print";
-import CropSquareIcon from "@mui/icons-material/CropSquare";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import IconButton from "@mui/material/IconButton";
-import { useNavigate } from "react-router-dom";
+import DeliveryDiningIcon from "@mui/icons-material/DeliveryDining";
+import axios from "axios";
+import "./Motorizados.css";
+import Swal from "sweetalert2";
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import { listarNotificacionesDelivery, crearNotificacionDelivery, actualizarEstadoInternoDelivery } from './components/services/shopifyService';
 
-const HistorialPedidosMotorizado = () => {
-  const navigate = useNavigate();
-  // Estado para los filtros (puedes expandir esto según sea necesario)
-  const [clienteSearch, setClienteSearch] = useState("");
-  const [estadoFilter, setEstadoFilter] = useState("");
-  const [limitePedidosFilter, setLimitePedidosFilter] = useState("");
-  const [metodoFilter, setMetodoFilter] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE_URL = isDevelopment
+  ? "http://localhost:8000/api/shopify"
+  : "https://api.novedadeswow.com/api/shopify";
 
-  // Datos de ejemplo para la tabla (normalmente vendrían de una API)
-  // Se agregaron las propiedades 'motorizado' y 'vendedor' con datos de relleno
-  const pedidos = [
-    {
-      factura: "12068",
-      hora: "11 de junio de 2025, 14:23",
-      motorizado: "Juan Pérez",
-      vendedor: "Ana García",
-      cliente: "Taarak Mehta",
-      metodo: "Dinero",
-      cantidad: "$ 413.00",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12067",
-      hora: "10 de junio de 2025, 9:22 a. m.",
-      motorizado: "María López",
-      vendedor: "Carlos Ruiz",
-      cliente: "Johnny Doeee",
-      metodo: "Dinero",
-      cantidad: "$ 139.79",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12059",
-      hora: "9 de junio de 2025, 18:50",
-      motorizado: "Pedro Gómez",
-      vendedor: "Laura Torres",
-      cliente: "saasas dsdad",
-      metodo: "Dinero",
-      cantidad: "$ 253.26",
-      estado: "Tratamiento",
-    },
-    {
-      factura: "12066",
-      hora: "9 de junio de 2025, 13:02",
-      motorizado: "Juan Pérez",
-      vendedor: "Ana García",
-      cliente: "Johnny Doeee",
-      metodo: "Dinero",
-      cantidad: "$ 213.26",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12046",
-      hora: "9 de junio de 2025, 1:32 a. m.",
-      motorizado: "María López",
-      vendedor: "Carlos Ruiz",
-      cliente: "Saiful Miqtar",
-      metodo: "Tarjeta",
-      cantidad: "$ 165.10",
-      estado: "Tratamiento",
-    },
-    {
-      factura: "12065",
-      hora: "9 de junio de 2025, 1:27 a. m.",
-      motorizado: "Pedro Gómez",
-      vendedor: "Laura Torres",
-      cliente: "Doctor Masuf Ahmed",
-      metodo: "Dinero",
-      cantidad: "$ 200.78",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12064",
-      hora: "8 de junio de 2025, 17:51",
-      motorizado: "Juan Pérez",
-      vendedor: "Ana García",
-      cliente: "Tran 4 Chen",
-      metodo: "Dinero",
-      cantidad: "$ 67.07",
-      estado: "Entregado",
-    },
-    {
-      factura: "12058",
-      hora: "8 de junio de 2025, 14:49",
-      motorizado: "María López",
-      vendedor: "Carlos Ruiz",
-      cliente: "Jobn Mohan",
-      metodo: "Dinero",
-      cantidad: "$ 90.00",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12063",
-      hora: "6 de junio de 2025, 14:28",
-      motorizado: "Pedro Gómez",
-      vendedor: "Laura Torres",
-      cliente: "NUR ALOM",
-      metodo: "Tarjeta",
-      cantidad: "$ 627.82",
-      estado: "Pendiente",
-    },
-    {
-      factura: "11110",
-      hora: "6 de junio de 2025, 9:22 a. m.",
-      motorizado: "Juan Pérez",
-      vendedor: "Ana García",
-      cliente: "xx xx",
-      metodo: "Dinero",
-      cantidad: "$ 207.83",
-      estado: "Entregado",
-    },
-    {
-      factura: "12062",
-      hora: "5 de junio de 2025, 20:16",
-      motorizado: "María López",
-      vendedor: "Carlos Ruiz",
-      cliente: "añadir sda",
-      metodo: "Dinero",
-      cantidad: "$ 2010.00",
-      estado: "Pendiente",
-    },
-    {
-      factura: "12042",
-      hora: "4 de junio de 2025, 9:03 a. m.",
-      motorizado: "Pedro Gómez",
-      vendedor: "Laura Torres",
-      cliente: "Saiful Miqtar",
-      metodo: "Dinero",
-      cantidad: "$ 420.00",
-      estado: "Entregado",
-    },
-    {
-      factura: "12052",
-      hora: "4 de junio de 2025, 22:03 a. m.",
-      motorizado: "Juan Pérez",
-      vendedor: "Ana García",
-      cliente: "Jesco Hario",
-      metodo: "Dinero",
-      cantidad: "$ 80.00",
-      estado: "Pendiente",
-    },
-    // ... puedes añadir más datos
-  ];
+const ESTADOS_DELIVERY = [
+  { value: "pendiente", label: "Pendiente", color: "#f59e0b" },
+  { value: "en_camino", label: "En camino", color: "#6366f1" },
+  { value: "entregado", label: "Entregado", color: "#10b981" },
+  { value: "cancelado", label: "Cancelado", color: "#ef4444" },
+];
 
-  // Función de ejemplo para el filtrado (simplificado)
-  const filteredPedidos = pedidos.filter((pedido) => {
-    return (
-      pedido.cliente.toLowerCase().includes(clienteSearch.toLowerCase()) &&
-      (estadoFilter === "" || pedido.estado === estadoFilter) &&
-      (metodoFilter === "" || pedido.metodo === metodoFilter)
-      // Aquí puedes añadir lógica para los filtros de fecha y límite de pedidos
-    );
+const getEstadoObj = (estado) => {
+  return ESTADOS_DELIVERY.find(e => e.value === estado) || {
+    value: "pendiente",
+    label: "Pendiente",
+    color: "#f59e0b"
+  };
+};
+
+const obtenerOpciones = (estadoActual) => {
+  switch (estadoActual) {
+    case "pendiente":
+      return ["en_camino", "entregado", "cancelado"];
+    case "en_camino":
+      return ["entregado", "cancelado"];
+    case "entregado":
+      return ["cancelado"];
+    default:
+      return [];
+  }
+};
+
+const traducirMetodoPago = (metodo) => {
+  const traducciones = {
+    'Cash on Delivery (COD)': 'Pago Contra Entrega',
+    'manual': 'Manual',
+    'bogus': 'Prueba',
+    'Credit Card': 'Tarjeta de Crédito',
+    'PayPal': 'PayPal',
+    'Bank Transfer': 'Transferencia Bancaria',
+    'Mercado Pago': 'Mercado Pago',
+    'Yape': 'Yape',
+    'Plin': 'Plin'
+  };
+  return traducciones[metodo] || metodo;
+};
+
+const mapOrderToMotorizado = order => ({
+  factura: order.name || `#${order.order_number}`,
+  fecha: order.created_at ? new Date(order.created_at).toLocaleString("es-PE") : "-",
+  motorizado: order.motorizado || "Sin asignar",
+  cliente: order.customer
+    ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
+    : order.email || "Cliente no registrado",
+  telefono: order.phone || (order.customer && order.customer.phone) || "",
+  metodo: order.payment_gateway_names ? 
+    order.payment_gateway_names.map(m => traducirMetodoPago(m)).join(", ") : 
+    "No especificado",
+  cantidad: `${order.presentment_currency || "PEN"} ${order.current_total_price || order.total_price || "0.00"}`,
+  estado: order.estado_delivery || "pendiente",
+  shopifyId: order.id,
+  originalOrder: order
+});
+
+const PAGE_SIZE = 25;
+
+const MotorizadosDashboard = () => {
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [pedidos, setPedidos] = useState([]);
+  const [pedidosOriginales, setPedidosOriginales] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filtros, setFiltros] = useState({
+    estado: "",
+    searchTerm: "",
+    fechaInicio: "",
+    fechaFin: "",
+  });
+  const [anchorElEstado, setAnchorElEstado] = useState({});
+  const [error, setError] = useState(null);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [anchorNotif, setAnchorNotif] = useState(null);
+
+  const handleNotifClick = (event) => {
+    setAnchorNotif(event.currentTarget);
+  };
+
+  const handleNotifClose = () => {
+    setAnchorNotif(null);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  useEffect(() => {
+    const cargarNotificaciones = async () => {
+      try {
+        const notifs = await listarNotificacionesDelivery();
+        setNotificaciones(notifs);
+      } catch (error) {
+        console.error("Error al cargar notificaciones:", error);
+      }
+    };
+
+    cargarNotificaciones();
+    const intervalo = setInterval(cargarNotificaciones, 10000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const fetchPedidosMotorizado = async (pageNum = 0, limit = rowsPerPage) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/orders?page=${pageNum + 1}&limit=${limit}`);
+      const pedidosMapeados = (res.data.orders || []).map(mapOrderToMotorizado);
+      setPedidos(pedidosMapeados);
+      setPedidosOriginales(pedidosMapeados);
+      setTotal(res.data.total || pedidosMapeados.length);
+    } catch (err) {
+      setError("No se pudieron cargar los pedidos.");
+      console.error("Error al cargar pedidos:", err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPedidosMotorizado(page, rowsPerPage);
+  }, [page, rowsPerPage]);
+
+  const handleFiltroChange = (campo, valor) => {
+    setFiltros({ ...filtros, [campo]: valor });
+  };
+
+  const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+    if (filtros.estado && pedido.estado !== filtros.estado) return false;
+    if (filtros.searchTerm) {
+      const t = filtros.searchTerm.toLowerCase();
+      if (
+        !(
+          pedido.cliente?.toLowerCase().includes(t) ||
+          pedido.factura?.toString().includes(t) ||
+          pedido.motorizado?.toLowerCase().includes(t) ||
+          pedido.telefono?.toLowerCase().includes(t)
+        )
+      ) return false;
+    }
+    if (filtros.fechaInicio) {
+      const fechaPedido = new Date(pedido.originalOrder.created_at);
+      const desde = new Date(filtros.fechaInicio);
+      if (fechaPedido < desde) return false;
+    }
+    if (filtros.fechaFin) {
+      const fechaPedido = new Date(pedido.originalOrder.created_at);
+      const hasta = new Date(filtros.fechaFin);
+      if (fechaPedido > hasta) return false;
+    }
+    return true;
   });
 
-  const handleFilter = () => {
-    console.log("Aplicando filtros:", {
-      clienteSearch,
-      estadoFilter,
-      limitePedidosFilter,
-      metodoFilter,
-      fechaInicio,
-      fechaFin,
+  const handleActualizarEstado = async (pedido, nuevoEstado) => {
+    setAnchorElEstado({ ...anchorElEstado, [pedido.factura]: null });
+
+    const estadoAnterior = pedido.estado;
+    const estadoLabel = getEstadoObj(nuevoEstado).label;
+
+    const result = await Swal.fire({
+      title: `¿Cambiar estado a "${estadoLabel}"?`,
+      text: `El pedido ${pedido.factura} cambiará de estado.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar',
     });
-    // En una aplicación real, aquí harías una llamada a la API para obtener los datos filtrados
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await actualizarEstadoInternoDelivery(pedido.shopifyId, nuevoEstado);
+
+      const updatePedido = (p) => 
+        p.factura === pedido.factura ? { ...p, estado: nuevoEstado } : p;
+      
+      setPedidos(prev => prev.map(updatePedido));
+      setPedidosOriginales(prev => prev.map(updatePedido));
+
+      if (nuevoEstado === 'en_camino' || nuevoEstado === 'entregado' || nuevoEstado === 'cancelado') {
+        await crearNotificacionDelivery({
+          shopify_order_id: pedido.shopifyId,
+          mensaje: `El pedido ${pedido.factura} fue marcado como ${estadoLabel} por Delivery.`,
+          tipo: nuevoEstado.toUpperCase(),
+        });
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Actualizado',
+        text: `El pedido fue marcado como "${estadoLabel}".`,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#7B6EF6'
+      });
+
+      console.log("Estado actualizado:", {
+        pedido: pedido.factura,
+        estadoAnterior,
+        nuevoEstado,
+        estadoLabel
+      });
+
+    } catch (error) {
+      console.error("Error al actualizar el estado:", error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo actualizar el estado del pedido.',
+        icon: 'error',
+      });
+    }
   };
 
-  const handleResetFilters = () => {
-    setClienteSearch("");
-    setEstadoFilter("");
-    setLimitePedidosFilter("");
-    setMetodoFilter("");
-    setFechaInicio("");
-    setFechaFin("");
-    console.log("Filtros reiniciados.");
-    // Opcional: recargar datos originales si es necesario
-  };
+  if (loading) {
+    return (
+      <Box className="motorizados-loading">
+        <Typography>Cargando pedidos de delivery...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className="motorizados-error">
+        <Typography>{error}</Typography>
+        <Button onClick={() => fetchPedidosMotorizado(page, rowsPerPage)} sx={{ mt: 2 }}>
+          Reintentar
+        </Button>
+      </Box>
+    );
+  }
 
   return (
-    <div className="historial-pedidos-container">
-      <h3>Historial de Pedidos Motorizados</h3> {/* Título ajustado */}
-      {/* Sección de Filtros */}
-      <div className="filters-section">
-        <input
-          type="text"
-          placeholder="Buscar por nombre de cliente"
-          value={clienteSearch}
-          onChange={(e) => setClienteSearch(e.target.value)}
-          className="filter-input"
+    <div className="motorizados-outer-container">
+      <Box className="motorizados-container">
+        <Box className="motorizados-header">
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+            Gestión de Pedidos Delivery <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              className="motorizados-btn-refresh"
+              onClick={() => fetchPedidosMotorizado(page, rowsPerPage)}
+            >
+              Actualizar
+            </Button>
+            <IconButton color="primary" onClick={handleNotifClick}>
+              <Badge
+                badgeContent={notificaciones.filter((n) => !n.leido).length}
+                color="error"
+              >
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Box>
+          <Menu
+            anchorEl={anchorNotif}
+            open={Boolean(anchorNotif)}
+            onClose={handleNotifClose}
+            PaperProps={{ sx: { minWidth: 300, maxHeight: 400 } }}
+          >
+            <Box sx={{ px: 2, py: 1 }}>
+              <strong>Notificaciones desde almacén</strong>
+            </Box>
+            <Divider />
+            {notificaciones.length === 0 ? (
+              <MenuItem disabled>No hay notificaciones</MenuItem>
+            ) : (
+              notificaciones.map((n) => (
+                <MenuItem
+                  key={n.id}
+                  sx={{
+                    bgcolor: n.leido ? "#f5f5f5" : "#fffbe6",
+                    whiteSpace: "normal",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <Box>
+                    <p style={{ margin: 0 }}>{n.mensaje}</p>
+                    <small style={{ color: "#888" }}>
+                      {new Date(n.created_at).toLocaleString()}
+                    </small>
+                  </Box>
+                </MenuItem>
+              ))
+            )}
+          </Menu>
+        </Box>
+
+        {/* Filtros */}
+        <Box className="motorizados-filtros">
+          <TextField
+            placeholder="Buscar cliente, factura, motorizado, teléfono..."
+            variant="outlined"
+            size="small"
+            value={filtros.searchTerm}
+            onChange={e => handleFiltroChange("searchTerm", e.target.value)}
+            className="motorizados-search"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <FormControl size="small" className="motorizados-select">
+            <Select
+              value={filtros.estado}
+              onChange={e => handleFiltroChange("estado", e.target.value)}
+              displayEmpty
+              renderValue={selected => selected ? getEstadoObj(selected).label : "Estados"}
+            >
+              <MenuItem value="">Todos los estados</MenuItem>
+              {ESTADOS_DELIVERY.map((estado) => (
+                <MenuItem key={estado.value} value={estado.value}>
+                  {estado.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Desde"
+            type="date"
+            size="small"
+            value={filtros.fechaInicio}
+            onChange={e => handleFiltroChange("fechaInicio", e.target.value)}
+            className="motorizados-date"
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Hasta"
+            type="date"
+            size="small"
+            value={filtros.fechaFin}
+            onChange={e => handleFiltroChange("fechaFin", e.target.value)}
+            className="motorizados-date"
+            InputLabelProps={{ shrink: true }}
+          />
+          <Box className="motorizados-count">
+            <Typography variant="body2" sx={{ color: "#6b7280" }}>
+              {pedidosFiltrados.length} de {pedidosOriginales.length} pedidos
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Tabla con scroll horizontal */}
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <TableContainer 
+            component={Paper} 
+            className="motorizados-tablecontainer"
+          >
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell className="motorizados-th">Factura</TableCell>
+                  <TableCell className="motorizados-th">Fecha</TableCell>
+                  <TableCell className="motorizados-th">Motorizado</TableCell>
+                  <TableCell className="motorizados-th">Cliente</TableCell>
+                  <TableCell className="motorizados-th">Teléfono</TableCell>
+                  <TableCell className="motorizados-th">Método</TableCell>
+                  <TableCell className="motorizados-th">Total</TableCell>
+                  <TableCell className="motorizados-th">Estado</TableCell>
+                  <TableCell className="motorizados-th">Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pedidosFiltrados.map((pedido, idx) => (
+                  <TableRow 
+                    key={pedido.factura || idx}
+                    sx={{ '&:hover': { backgroundColor: '#f8fafc' } }}
+                  >
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: "bold", color: "#1e40af" }}>
+                        {pedido.factura}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontSize: '13px', lineHeight: '1.4' }}>
+                        {pedido.fecha}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontSize: '13px' }}>
+                        {pedido.motorizado}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontSize: '13px',
+                          maxWidth: '150px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                        title={pedido.cliente}
+                      >
+                        {pedido.cliente}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: 'center' }}>
+                        <Typography variant="body2" sx={{ fontSize: '13px' }}>
+                          {pedido.telefono}
+                        </Typography>
+                        {pedido.telefono && (
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() => window.open(`https://wa.me/51${pedido.telefono.replace(/\D/g, "")}`, "_blank")}
+                          >
+                            <WhatsApp fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontSize: '13px',
+                          maxWidth: '140px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                        title={pedido.metodo}
+                      >
+                        {pedido.metodo}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: "bold", 
+                          color: "#059669",
+                          fontSize: '13px'
+                        }}
+                      >
+                        {pedido.cantidad}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        endIcon={<ArrowDropDown />}
+                        sx={{
+                          backgroundColor: getEstadoObj(pedido.estado).color,
+                          color: "#fff",
+                          textTransform: "none",
+                          fontWeight: "bold",
+                          minWidth: 130,
+                          height: 36,
+                          fontSize: '12px',
+                          '&:hover': {
+                            backgroundColor: getEstadoObj(pedido.estado).color,
+                            filter: 'brightness(0.9)'
+                          }
+                        }}
+                        onClick={e => setAnchorElEstado({ ...anchorElEstado, [pedido.factura]: e.currentTarget })}
+                      >
+                        {getEstadoObj(pedido.estado).label}
+                      </Button>
+                      <Menu
+                        anchorEl={anchorElEstado?.[pedido.factura] || null}
+                        open={Boolean(anchorElEstado?.[pedido.factura])}
+                        onClose={() => setAnchorElEstado({ ...anchorElEstado, [pedido.factura]: null })}
+                      >
+                        {obtenerOpciones(pedido.estado).map((estadoValue) => {
+                          const estadoObj = ESTADOS_DELIVERY.find(e => e.value === estadoValue);
+                          if (!estadoObj) return null;
+
+                          return (
+                            <MenuItem
+                              key={estadoObj.value}
+                              onClick={() => handleActualizarEstado(pedido, estadoObj.value)}
+                            >
+                              {estadoObj.label}
+                            </MenuItem>
+                          );
+                        })}
+                      </Menu>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                        <IconButton size="small" title="Imprimir">
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" title="Ver detalle">
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Pedidos por página"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+          rowsPerPageOptions={[5, 10, 25, 50, 100]}
+          sx={{ 
+            borderTop: '1px solid #e5e7eb',
+            padding: '16px',
+            '& .MuiTablePagination-toolbar': {
+              minHeight: '56px'
+            }
+          }}
         />
-        <select
-          value={estadoFilter}
-          onChange={(e) => setEstadoFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Estado</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Tratamiento">Tratamiento</option>
-          <option value="Entregado">Entregado</option>
-          <option value="Cancelar">Cancelar</option>
-        </select>
-        <select
-          value={limitePedidosFilter}
-          onChange={(e) => setLimitePedidosFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Límites de pedidos</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </select>
-        <select
-          value={metodoFilter}
-          onChange={(e) => setMetodoFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Método</option>
-          <option value="Dinero">Dinero</option>
-          <option value="Tarjeta">Tarjeta</option>
-        </select>
-        <button className="btn-descargar">Descargar todos los pedidos</button>
-      </div>
-      <div className="date-filters-section">
-        <div className="date-input-group">
-          <label htmlFor="fechaInicio">Fecha de inicio</label>
-          <input
-            type="date"
-            id="fechaInicio"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-            className="filter-date"
-          />
-        </div>
-        <div className="date-input-group">
-          <label htmlFor="fechaFin">Fecha de finalización</label>
-          <input
-            type="date"
-            id="fechaFin"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-            className="filter-date"
-          />
-        </div>
-        <button className="btn-filter" onClick={handleFilter}>
-          Filtrar
-        </button>
-        <button className="btn-reset" onClick={handleResetFilters}>
-          Reiniciar
-        </button>
-      </div>
-      {/* Sección de Tabla */}
-      <div className="table-wrapper">
-        <table className="pedidos-table">
-          <thead>
-            <tr>
-              <th>NÚMERO DE FACTURA</th>
-              <th>HORA DEL PEDIDO</th>
-              <th>MOTORIZADO</th> {/* Nueva columna */}
-              <th>VENDEDOR</th> {/* Nueva columna */}
-              <th>NOMBRE DEL CLIENTE</th>
-              <th>MÉTODO</th>
-              <th>CANTIDAD</th>
-              <th>ESTADO</th>
-              <th>ACCIÓN</th>
-              <th>FACTURA</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPedidos.map((pedido, index) => (
-              <tr key={index}>
-                <td>{pedido.factura}</td>
-                <td>{pedido.hora}</td>
-                <td>{pedido.motorizado}</td>
-                <td>{pedido.vendedor}</td>
-                <td>{pedido.cliente}</td>
-                <td>{pedido.metodo}</td>
-                <td>{pedido.cantidad}</td>
-                <td>
-                  <span
-                    className={`status-badge ${pedido.estado.toLowerCase()}`}
-                  >
-                    {pedido.estado}
-                  </span>
-                </td>
-                <td>
-                  {["Pendiente", "Tratamiento"].includes(pedido.estado) && (
-                    <button className="action-button-cancelar">Cancelar</button>
-                  )}
-                </td>
-                {/* Columna FACTURA: solo íconos */}
-                <td className="action-icons-cell">
-                  <IconButton size="small" title="Imprimir">
-                    <PrintIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" title="Maximizar">
-                    <ZoomInIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    title="Ver detalle"
-                    onClick={() => navigate(`/motorizados/${pedido.factura}`)}
-                  >
-                    <VisibilityIcon fontSize="small" />
-                  </IconButton>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+        {pedidosFiltrados.length === 0 && !loading && (
+          <Box className="motorizados-vacio">
+            <Typography variant="h6" sx={{ color: "#6b7280", mb: 1 }}>
+              No se encontraron pedidos
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#9ca3af" }}>
+              Ajusta los filtros para ver más resultados
+            </Typography>
+            <Button 
+              onClick={() => fetchPedidosMotorizado(page, rowsPerPage)} 
+              sx={{ mt: 2 }}
+              variant="outlined"
+            >
+              Recargar pedidos
+            </Button>
+          </Box>
+        )}
+      </Box>
     </div>
   );
 };
 
-export default HistorialPedidosMotorizado;
+export default MotorizadosDashboard;
