@@ -63,6 +63,9 @@ function App() {
       };
 
       setUsuario(userWithEmail);
+      localStorage.setItem("currentUser", JSON.stringify(userWithEmail));
+      localStorage.setItem('authToken', response.data.token);
+
       setLoginError("");
 
       console.log("Usuario logueado:", userWithEmail);
@@ -293,16 +296,11 @@ function MainApp() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
-        <Route
-          path="/dashboard/*"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/motorizados/:id" element={<DetalleMotorizado />} />
-        <Route path="/pedidos/:orderId" element={<DetallePedido />} />
+
+        <Route path="/dashboard/*" element={<ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
+        <Route path="/motorizados/:id" element={<ProtectedRoute> <DetalleMotorizado /> </ProtectedRoute>} />
+        <Route path="/pedidos/:orderId" element={<ProtectedRoute> <DetallePedido /> </ProtectedRoute>} />
+
       </Routes>
     </Router>
   );
