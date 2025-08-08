@@ -13,8 +13,9 @@ import TablePagination from '@mui/material/TablePagination';
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
-
-
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 function EstadoBadge({ label, color }) {
   return (
@@ -294,7 +295,11 @@ function PedidosDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pedidoEditado, setPedidoEditado] = useState({});
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
 
+ 
   const estadoInicial = {
     numeroOrden: '',
     canal: 'Shopify',
@@ -1757,6 +1762,7 @@ function PedidosDashboard() {
               </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Editar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -2005,6 +2011,23 @@ function PedidosDashboard() {
                       Icono={NotaIcono}
                     />
                   </TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => {
+                        setPedidoSeleccionado(pedido);
+                        setPedidoEditado({
+                          cliente: pedido.cliente || "",
+                          direccion: pedido.ubicacion || "",
+                          telefono: pedido.telefono || "",
+                          fecha: pedido.fechas?.ingreso || "",
+                        });
+                        setModalOpen(true);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -2024,6 +2047,98 @@ function PedidosDashboard() {
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
         />
       </TableContainer>
+
+             <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Editar Pedido</DialogTitle>
+          <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              label="Cliente"
+              value={pedidoEditado.cliente}
+              onChange={e => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              label="Teléfono"
+              value={pedidoEditado.telefono}
+              onChange={e => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              label="Dirección"
+              value={pedidoEditado.direccion}
+              onChange={e => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
+              fullWidth
+              size="small"
+            />
+            {/* Si quieres agregar fecha: */}
+            {/* <TextField
+              label="Fecha"
+              type="date"
+              value={pedidoEditado.fecha}
+              onChange={e => setPedidoEditado({ ...pedidoEditado, fecha: e.target.value })}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            /> */}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={async () => {
+                setModalOpen(false); // Cierra el modal de edición
+
+                // Espera a que el modal se cierre antes de continuar
+                setTimeout(async () => {
+                  try {
+                    // Actualiza en la BD
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(pedidoEditado),
+                    });
+
+                    if (res.ok) {
+                      // Actualiza la tabla en el frontend
+                      setPedidos(prev =>
+                        prev.map(p =>
+                          p.id === pedidoSeleccionado.id ? { ...p, ...pedidoEditado } : p
+                        )
+                      );
+
+                      // Muestra el modal de éxito
+                      await Swal.fire({
+                        title: "¡Pedido actualizado!",
+                        text: "La información del pedido se actualizó correctamente.",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                      });
+                    } else {
+                      Swal.fire({
+                        title: "Error",
+                        text: "No se pudo actualizar el pedido.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                      });
+                    }
+                  } catch (error) {
+                    Swal.fire({
+                      title: "Error de conexión",
+                      text: "No se pudo conectar al servidor.",
+                      icon: "error",
+                      confirmButtonText: "OK"
+                    });
+                  }
+                }, 200); // Espera 200 ms para que el modal anterior se cierre
+              }}
+            >
+              Guardar
+            </Button>
+            </DialogActions>
+        </Dialog>
 
       <Drawer
         anchor="right"

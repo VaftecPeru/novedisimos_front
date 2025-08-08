@@ -1,234 +1,178 @@
-/* Contenedor principal de la tabla */
-.historial-pedidos-container {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 20px; /* Para separarlo de elementos superiores */
-}
-
-.historial-pedidos-container h3 {
-  color: #333;
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-/* Sección de Filtros */
-.filters-section,
-.date-filters-section {
-  display: flex;
-  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
-  gap: 15px; /* Espacio entre los elementos de filtro */
-  margin-bottom: 20px;
-  align-items: flex-end; /* Alinea los elementos en la parte inferior */
-}
-
-.filter-input,
-.filter-select,
-.filter-date {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-  min-width: 150px; /* Ancho mínimo para inputs/selects */
-  flex-grow: 1; /* Permite que crezcan para ocupar espacio disponible */
-  max-width: 250px; /* Ancho máximo para inputs/selects */
-}
-
-.date-input-group {
+.motorizados-outer-container {
+  width: 100%;
+  min-height: 100vh;
+  background: #f9fafb;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
-.date-input-group label {
-  font-size: 13px;
-  color: #555;
-  font-weight: 500;
-}
-
-.btn-descargar,
-.btn-filter,
-.btn-reset {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap; /* Evita que el texto se rompa */
-}
-
-.btn-descargar {
-  background-color: #28a745; /* Verde */
-  color: white;
-}
-.btn-descargar:hover {
-  background-color: #218838;
-}
-
-.btn-filter {
-  background-color: #007bff; /* Azul */
-  color: white;
-}
-.btn-filter:hover {
-  background-color: #0056b3;
-}
-
-.btn-reset {
-  background-color: #6c757d; /* Gris */
-  color: white;
-}
-.btn-reset:hover {
-  background-color: #5a6268;
-}
-
-/* Tabla */
-.table-wrapper {
-  overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
-  max-width: 100%; /* Asegura que no se desborde */
-}
-
-.pedidos-table {
+.motorizados-container {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  font-size: 14px;
+  max-width: none;
+  margin: 32px auto 0 auto;
+  padding: 22px 18px 28px 18px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.08);
+  min-height: 80vh;
+  overflow-x: auto;
 }
 
-.pedidos-table th,
-.pedidos-table td {
-  border: 1px solid #eee;
-  padding: 12px 15px;
-  text-align: left;
+.motorizados-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.pedidos-table th {
-  background-color: #f8f9fa;
-  color: #333;
-  font-weight: 600;
-  text-transform: uppercase;
+.motorizados-btn-refresh {
+  text-transform: none !important;
+  color: #10b981 !important;
+  border-color: #10b981 !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
 }
 
-.pedidos-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
+.motorizados-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+  align-items: center;
 }
 
-.pedidos-table tbody tr:hover {
-  background-color: #e9ecef;
+.motorizados-search {
+  min-width: 210px;
+  flex: 1;
+  max-width: 300px;
+  background: white;
 }
 
-/* Estilos para las nuevas columnas de Motorizado y Vendedor */
-.pedidos-table th:nth-child(3), /* Motorizado */
-.pedidos-table td:nth-child(3),
-.pedidos-table th:nth-child(4), /* Vendedor */
-.pedidos-table td:nth-child(4) {
-  min-width: 120px; /* Ajusta el ancho mínimo según necesites para el contenido */
-  text-align: left;
-  /*padding: 8px; /* Ya definido en .pedidos-table th, .pedidos-table td */
-  /*border-bottom: 1px solid #ddd; /* Ya definido en .pedidos-table th, .pedidos-table td */
+.motorizados-select {
+  min-width: 120px;
+  background: white;
 }
 
-/* Estilos para los badges de estado */
-.status-badge {
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-weight: bold;
-  font-size: 12px;
-  color: white;
-  text-align: center;
-  display: inline-block; /* Para que no ocupe todo el ancho */
-  min-width: 80px; /* Ancho mínimo para que todos tengan tamaño similar */
+.motorizados-date {
+  width: 140px;
+  background: white;
 }
 
-.status-badge.pendiente {
-  background-color: #ffc107; /* Amarillo */
+.motorizados-count {
+  min-width: 140px;
+  text-align: right;
+  color: #6b7280;
+  font-size: 0.98rem;
+  margin-left: auto;
 }
 
-.status-badge.tratamiento {
-  background-color: #007bff; /* Azul */
+.motorizados-tablecontainer {
+  background: white;
+  border-radius: 12px;
+  max-height: 70vh;
+  overflow: auto;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+  margin-bottom: 10px;
+  width: 100%;
+  min-width: 1200px; 
 }
 
-.status-badge.entregado {
-  background-color: #28a745; /* Verde */
+.motorizados-th {
+  font-weight: bold !important;
+  background: #f8fafc !important;
+  text-align: center !important;
+  font-size: 0.96rem !important;
+  padding: 12px 8px !important;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.status-badge.cancelar {
-  /* Asumiendo que "Cancelar" es un estado */
-  background-color: #dc3545; /* Rojo */
-}
-
-/* Botones de acción dentro de la tabla */
-.action-button-cancelar {
-  background-color: #dc3545; /* Rojo */
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background-color 0.3s ease;
+.MuiTableCell-root {
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 12px 8px !important;
+  font-size: 0.97rem !important;
   white-space: nowrap;
 }
 
-.action-button-cancelar:hover {
-  background-color: #c82333;
+.motorizados-vacio {
+  text-align: center;
+  padding: 48px 0;
+  background: white;
+  border-radius: 12px;
+  margin-top: 12px;
 }
 
-/* Contenedor para los iconos de acción (nueva clase para flexbox) */
-.action-icons-cell {
-  display: flex; /* Para que los iconos se muestren en línea */
-  gap: 5px; /* Espacio entre los iconos */
-  justify-content: center; /* Centra los iconos si la columna es más ancha */
-  align-items: center;
-}
-
-/* Estilos base para los botones de icono (Imprimir, Ver/Ojo, Buscar/Maximizar) */
-.action-icons-cell .action-button-print,
-.action-icons-cell .action-button-view {
-  background-color: transparent; /* Fondo transparente */
-  border: none; /* Sin borde */
-  color: #007bff; /* Color de icono predeterminado, puedes ajustar */
-  cursor: pointer;
-  font-size: 1.2em; /* Tamaño base del icono */
-  padding: 5px; /* Espaciado alrededor del icono para clic fácil */
-  transition: color 0.3s ease; /* Transición suave al pasar el ratón */
-  display: flex; /* Asegura que el icono esté centrado si hay padding */
-  align-items: center;
+.motorizados-loading,
+.motorizados-error {
+  display: flex;
   justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 1.2rem;
 }
 
-.action-icons-cell .action-button-print:hover,
-.action-icons-cell .action-button-view:hover {
-  color: #0056b3; /* Color al pasar el ratón */
+.motorizados-estado-btn {
+  min-width: 90px !important;
+  font-weight: bold !important;
+  border-radius: 12px !important;
+  text-transform: none !important;
+  font-size: 0.96rem !important;
 }
 
-/* Ajustes específicos para los tamaños de los iconos */
-.action-icons-cell .fa-print,
-.action-icons-cell .fa-eye,
-.action-icons-cell .fa-search {
-  font-size: 1.1em; /* Un poco más grande para visibilidad, puedes ajustar */
+@media (max-width: 1400px) {
+  .motorizados-outer-container {
+    padding: 0 10px;
+  }
+  
+  .motorizados-container {
+    padding: 18px 12px 24px 12px;
+  }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .filters-section,
-  .date-filters-section {
+  .motorizados-outer-container {
+    padding: 0 5px;
+  }
+  
+  .motorizados-container {
+    padding: 16px 8px 20px 8px;
+    margin: 16px auto 0 auto;
+  }
+  
+  .motorizados-filtros {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .filter-input,
-  .filter-select,
-  .filter-date,
-  .btn-descargar,
-  .btn-filter,
-  .btn-reset {
-    width: 100%;
+  
+  .motorizados-search {
+    min-width: auto;
     max-width: none;
   }
-
-  .date-input-group {
-    width: 100%;
+  
+  .motorizados-count {
+    text-align: center;
+    margin-left: 0;
+  }
+  
+  .motorizados-tablecontainer {
+    min-width: auto;
+  }
+  
+  .motorizados-th {
+    padding: 8px 4px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .MuiTableCell-root {
+    padding: 8px 4px !important;
+    font-size: 0.9rem !important;
   }
 }

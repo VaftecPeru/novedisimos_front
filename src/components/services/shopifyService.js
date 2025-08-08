@@ -8,15 +8,15 @@ const CUSTOM_API_BASE_URL = isDevelopment
   : 'https://api.novedadeswow.com/api';
 
 
-const API_BASE_URL = isDevelopment
-  ? 'http://localhost:8000/api/shopify'
-  : 'https://api.novedadeswow.com/api/shopify';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;
+
 
 
 export const fetchPedidosPreparacionInterna = async () => {
   try {
     const res = await axios.get(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`);
-    return res.data || [];
+    return res.data.data || [];
   } catch (error) {
     console.error('Error al obtener pedidos internos de almacén:', error);
     return [];
@@ -81,21 +81,11 @@ export const actualizarEstadoInternoPago = async (pedidoId, estadoPago) => {
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de pago.', 'error');
     }
-    return response; // <-- importante para el frontend
+    return response; 
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de pago.', 'error');
     return null;
-  }
-};
-
-export const fetchEstadosPedidosInterna = async () => {
-  try {
-    const res = await axios.get(`${CUSTOM_API_BASE_URL}/preparacion-pedidos`);
-    return res.data?.data || []; // ⬅️ importante para que no falle el .map
-  } catch (error) {
-    console.error('Error al obtener pedidos internos de almacén:', error);
-    return [];
   }
 };
 
@@ -113,15 +103,14 @@ export const actualizarEstadoInternoPreparacion = async (pedidoId, estadoActual)
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de preparación.', 'error');
     }
-    return response; // <-- AGREGA ESTA LÍNEA
+    return response; 
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de preparación.', 'error');
-    return null; // <-- AGREGA ESTA LÍNEA
+    return null; 
   }
 };
 
-//Listar notificaciones de almacén
 export const listarNotificacionesAlmacen = async () => {
   try {
     const response = await axios.get(`${CUSTOM_API_BASE_URL}/notificaciones/almacen`);
@@ -132,7 +121,6 @@ export const listarNotificacionesAlmacen = async () => {
   }
 };
 
-// Crear notificación de almacén
 export const crearNotificacionAlmacen = async ({ shopify_order_id, mensaje, tipo = "PAGO_CONFIRMADO" }) => {
   try {
     const response = await axios.post(`${CUSTOM_API_BASE_URL}/notificaciones/almacen`, {
@@ -148,8 +136,67 @@ export const crearNotificacionAlmacen = async ({ shopify_order_id, mensaje, tipo
   }
 };
 
+export const crearNotificacionDelivery = async ({ shopify_order_id, mensaje, tipo = "ESTADO_ALMACEN" }) => {
+  try {
+    const response = await axios.post(`${CUSTOM_API_BASE_URL}/notificaciones/delivery`, {
+      shopify_order_id,
+      mensaje,
+      tipo,
+    });
+    console.log("✅ Notificación enviada a delivery:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error al crear notificación delivery:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+export const listarNotificacionesDelivery = async () => {
+  try {
+    const response = await axios.get(`${CUSTOM_API_BASE_URL}/notificaciones/delivery`);
+    return response.data;
+  } catch (error) {
+    console.error("Error al listar notificaciones de delivery:", error);
+    return [];
+  }
+};
+
+export const actualizarEstadoInternoDelivery = async (shopifyId, nuevoEstado) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL.replace("/shopify", "")}/estado-delivery-actualizar/${shopifyId}`,
+      { estado: nuevoEstado }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error actualizando estado en delivery:", error);
+    throw error;
+  }
+};
 
 
+
+export const fetchPedidosMotorizado = async () => {
+  try {
+    const res = await axios.get(`${CUSTOM_API_BASE_URL}/estado-delivery-todos`);
+    return res.data.data || res.data || [];
+  } catch (error) {
+    console.error('Error al obtener pedidos de delivery:', error);
+    return [];
+  }
+};
+
+export const actualizarEstadoDelivery = async (shopify_order_id, { estado }) => {
+  try {
+    const res = await axios.post(`${CUSTOM_API_BASE_URL}/estado-delivery-actualizar/${shopify_order_id}`, { estado });
+    Swal.fire('Actualizado', 'El estado del pedido en delivery ha sido actualizado.', 'success');
+    return res.data;
+  } catch (error) {
+    console.error('Error al actualizar estado delivery:', error);
+    Swal.fire('Error', 'No se pudo actualizar el estado de delivery.', 'error');
+    return null;
+  }
+};
 axios.interceptors.response.use(
   response => response,
   error => {
@@ -176,37 +223,20 @@ export const getShopInfo = async () => {
 };
 
 export const fetchOrders = async () => {
-  try {
-    console.log('Solicitando pedidos a:', `${API_BASE_URL}/orders`);
-    const response = await axios.get(`${API_BASE_URL}/orders`);
-    console.log('Pedidos recibidos:', JSON.stringify(response.data));
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener pedidos:', error);
-    if (error.response) {
-      console.error('Datos de respuesta de error:', error.response.data);
-      console.error('Estado de respuesta de error:', error.response.status);
-    } else if (error.request) {
-      console.error('La solicitud se realizó pero no se recibió respuesta');
-    }
-    throw error;
-  }
+  const response = await axios.get(`${SHOPIFY_API_BASE_URL}/orders`);
+  return response.data;
 };
 
 export const getOrderById = async (orderId) => {
-  const response = await axios.get(`${API_BASE_URL}/orders/${orderId}.json`);
+  const response = await axios.get(`${SHOPIFY_API_BASE_URL}/orders/${orderId}.json`);
   return response.data;
 };
 
 export const getProducts = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/products`);
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener productos:', error);
-    throw error;
-  }
+  const response = await axios.get(`${SHOPIFY_API_BASE_URL}/products`);
+  return response.data;
 };
+
 
 export default {
   getShopInfo,
