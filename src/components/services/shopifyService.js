@@ -12,6 +12,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;
 
 
+export const fetchAuthUser = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return null;
+
+    const response = await axios.get(`${CUSTOM_API_BASE_URL}/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('⚠️ No se pudo obtener el usuario autenticado:', error.response?.data || error.message);
+    return null;
+  }
+};  
 
 export const fetchPedidosPreparacionInterna = async () => {
   try {
