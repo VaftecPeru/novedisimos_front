@@ -11,10 +11,10 @@ function Dashboard() {
   });
 
   const toggleSection = (section) => {
-    setExpanded({
-      ...expanded,
-      [section]: !expanded[section],
-    });
+    setExpanded(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
   return (
