@@ -455,16 +455,8 @@ function Dashboard() {
     }, 1000);
   };
 
-  const toggleSection = (sectionName) => {
-    // Cambiado 'section' a 'sectionName' para consistencia
-    // 1. Actualiza la sección activa (PARA QUE renderContent MUESTRE el componente correcto)
-    setActiveSection(sectionName);
-
-    // 2. Navega la URL (PARA QUE la barra de direcciones refleje la sección)
-    // Asegúrate de que `Maps` esté importado de 'react-router-dom'
-    navigate(`/dashboard/${sectionName}`);
-
-    // 3. Lógica para expandir/colapsar el menú y actualizar estilos
+// 1. Expande/colapsa el menú principal y actualiza estilos
+  const handleExpandMenu = (sectionName) => {
     // Copiamos los estados actuales para modificarlos de forma segura
     const newExpandedState = { ...expanded };
     const newArrowImages = { ...arrowImages };
@@ -507,12 +499,6 @@ function Dashboard() {
       }
     });
 
-    setMantenimientoSeleccion("productos");
-    setPedidosSeleccion("ordenDePedido");
-    setIntegracionesSeleccion("shopify");
-    setConfiguracionSeleccion("cobertura");
-    setInformesSeleccion("vista");
-
     // Lógica específica para la sección clickeada:
     // Si la sección clickeada es una de las "padre" (con submenú)
     if (parentSections.includes(sectionName)) {
@@ -530,6 +516,82 @@ function Dashboard() {
         else newGearImages[sectionName] = "/images/file.png";
         newSpanColors[sectionName] = "white";
       }
+    }
+
+    // Finalmente, actualiza los estados en React con las nuevas copias.
+    // Esto dispara la re-renderización y actualiza la UI.
+    setExpanded(newExpandedState);
+    setArrowImages(newArrowImages);
+    setGearImages(newGearImages);
+    setSpanColors(newSpanColors);
+
+    // No navegues ni cambies sección activa aquí
+  };
+
+// 2. Cambia la sección activa y navega (PARA QUE la barra de direcciones refleje la sección)
+  const handleMenuItemClick = (sectionName) => {
+    setActiveSection(sectionName);
+    navigate(`/dashboard/${sectionName}`);
+
+    // Copiamos los estados actuales para modificarlos de forma segura
+    const newExpandedState = { ...expanded };
+    const newArrowImages = { ...arrowImages };
+    const newGearImages = { ...gearImages };
+    const newSpanColors = { ...spanColors };
+
+    // Define aquí qué secciones son "padre" y tienen submenús.
+    const parentSections = [
+      "mantenimiento",
+      "pedidos",
+      "informes",
+      "integraciones",
+      "configuracion",
+      "clientes",
+      "asesores",
+      "motorizados",
+    ];
+
+    // Primero, colapsa *todas* las secciones padre y resetea sus estilos a "inactivos"
+    Object.keys(newExpandedState).forEach((key) => {
+      if (parentSections.includes(key)) {
+        newExpandedState[key] = false; // Colapsa la sección padre
+        newArrowImages[key] = "/images/shadow arrow.png";
+
+        if (key === "clientes")
+          newGearImages[key] = "/images/shadow folder.png";
+        else if (key === "asesores")
+          newGearImages[key] = "/images/shadow tv.png";
+        else if (key === "informes")
+          newGearImages[key] = "/images/shadow report.png";
+        else newGearImages[key] = "/images/shadow file.png";
+        newSpanColors[key] = "#555d8b";
+      }
+
+      if (key === "motorizados") {
+        newGearImages.motorizados = "/images/shadow file.png";
+        newSpanColors.motorizados = "#555d8b";
+      }
+    });
+
+    setMantenimientoSeleccion("productos");
+    setPedidosSeleccion("ordenDePedido");
+    setIntegracionesSeleccion("shopify");
+    setConfiguracionSeleccion("cobertura");
+    setInformesSeleccion("vista");
+
+    // Lógica específica para la sección clickeada:
+    // Si la sección clickeada es una de las "padre" (con submenú)
+    if (parentSections.includes(sectionName)) {
+      newExpandedState[sectionName] = true; // Siempre expande la sección padre al navegar
+      newArrowImages[sectionName] = "/images/down arrow.png";
+      if (sectionName === "clientes")
+        newGearImages[sectionName] = "/images/folder.png";
+      else if (sectionName === "asesores")
+        newGearImages[sectionName] = "/images/tv.png";
+      else if (sectionName === "informes")
+        newGearImages[sectionName] = "/images/report.png";
+      else newGearImages[sectionName] = "/images/file.png";
+      newSpanColors[sectionName] = "white";
     } else {
       // Si la sección clickeada es una sección final (sin submenú propio, como 'motorizados', o una subsección)
 
@@ -586,7 +648,6 @@ function Dashboard() {
       }
       // No hay un `else if` específico para 'motorizados' aquí porque 'motorizados' es un ítem de nivel superior.
       // Sus estilos se activan con las líneas `newGearImages[sectionName] = ...` y `newSpanColors[sectionName] = ...`
-      // cual es la pregunta?.
     }
 
     // Finalmente, actualiza los estados en React con las nuevas copias.
@@ -774,12 +835,14 @@ function Dashboard() {
     switch (activeSection) {
       case "ordenDePedido":
         return <PedidosDashboard />;
-      case "seguimientoContraentrega":
-        return <SeguimientoContraentrega />;
-      case "productos":
-        return <ProductosDashboard />;
-      case "movimiento":
-        return <MovimientoDashboard />;
+      // case "seguimientoContraentrega":
+      //   return <SeguimientoContraentrega />;
+      // case "productos":
+      //   return <ProductosDashboard />;
+      // case "movimiento":
+      //   return <MovimientoDashboard />;
+      // case "clientes":
+      //   return <ClientesDashboard />;
       case "almacenes":
         return <AlmacenDashboard />;
       case "shopify":
@@ -997,7 +1060,8 @@ function Dashboard() {
         <MenuPorRol
           rol={usuario?.rol}
           expanded={expanded}
-          onMenuItemClick={toggleSection}
+          onExpandMenu={handleExpandMenu}
+          onMenuItemClick={handleMenuItemClick}
           activeSection={activeSection}
           gearImages={gearImages}
           spanColors={spanColors}

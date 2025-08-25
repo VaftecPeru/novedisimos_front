@@ -3,6 +3,7 @@ import React from "react";
 const MenuPorRol = ({
   rol,
   expanded,
+  onExpandMenu,
   onMenuItemClick,
   gearImages,
   spanColors,
@@ -14,11 +15,11 @@ const MenuPorRol = ({
       "pedidos",
       "mantenimiento",
       // "integraciones",
-      "clientes",
+      // "clientes",
       "motorizados",
       "asesores",
     ],
-    Vendedor: ["pedidos", "clientes", "motorizados"],
+    Vendedor: ["pedidos", "motorizados"],
     Almacen: ["pedidos", "mantenimiento"],
     Delivery: ["motorizados"],
   };
@@ -35,7 +36,7 @@ const MenuPorRol = ({
             {/* Usamos onMenuItemClick aquí */}
             <div
               className="menu-item-header"
-              onClick={() => onMenuItemClick("pedidos")}
+              onClick={() => onExpandMenu("pedidos")}
             >
               <img
                 src={gearImages.pedidos}
@@ -54,11 +55,7 @@ const MenuPorRol = ({
               >
                 Pedidos
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.pedidos ? "down" : "right"
-                }`}
-              ></i>
+              <i className={`fas fa-chevron-${expanded.pedidos ? "down" : "right"}`}></i>
               <img
                 src={arrowImages.pedidos}
                 alt="Pedidos"
@@ -73,27 +70,25 @@ const MenuPorRol = ({
                 >
                   Orden de Pedido
                 </li>
-                <li
+                {/* <li
                   onClick={() => onMenuItemClick("seguimientoContraentrega")}
                   className={
                     activeSection === "seguimientoContraentrega" ? "active" : ""
                   }
                 >
                   Seguimiento Contraentrega
-                </li>
+                </li> */}
               </ul>
             )}
           </li>
         )}
         {seccionesPermitidas.includes("mantenimiento") && (
           <li
-            className={`main-menu-item ${
-              expanded.mantenimiento ? "expanded" : ""
-            }`}
+            className={`main-menu-item ${expanded.mantenimiento ? "expanded" : ""}`}
           >
             <div
               className="menu-item-header"
-              onClick={() => onMenuItemClick("mantenimiento")}
+              onClick={() => onExpandMenu("mantenimiento")}
             >
               <img
                 src={gearImages.mantenimiento}
@@ -114,11 +109,7 @@ const MenuPorRol = ({
               >
                 Mantenimiento
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.mantenimiento ? "down" : "right"
-                }`}
-              ></i>
+              <i className={`fas fa-chevron-${expanded.mantenimiento ? "down" : "right"}`}></i>
               <img
                 src={arrowImages.mantenimiento}
                 alt="Mantenimiento"
@@ -127,41 +118,37 @@ const MenuPorRol = ({
             </div>
             {expanded.mantenimiento && (
               <ul className="submenu">
-                <li
+                {/* <li
                   // Usamos onMenuItemClick y activeSection para el resaltado
                   onClick={() => onMenuItemClick("productos")}
                   className={activeSection === "productos" ? "active" : ""}
                 >
-                  Almacen
-                </li>
-                
-                <li
+                  Productos
+                </li> */}
+                {/* <li
                   onClick={() => onMenuItemClick("movimiento")}
                   className={activeSection === "movimiento" ? "active" : ""}
                 >
-                  Productos
-                </li>
+                  Movimiento
+                </li> */}
                 <li
                   onClick={() => onMenuItemClick("almacenes")}
                   className={activeSection === "almacenes" ? "active" : ""}
                 >
                   Almacen
                 </li>
-               
               </ul>
             )}
           </li>
         )}
         {seccionesPermitidas.includes("integraciones") && (
-          <li
-            className={`main-menu-item ${
-              expanded.integraciones ? "expanded" : ""
-            }`}
+          <li 
+            className={`main-menu-item ${expanded.integraciones ? "expanded" : ""}`}
           >
             {/* Usamos onMenuItemClick aquí */}
             <div
               className="menu-item-header"
-              onClick={() => onMenuItemClick("integraciones")}
+              onClick={() => onExpandMenu("integraciones")}
             >
               <img
                 src={gearImages.integraciones}
@@ -182,11 +169,7 @@ const MenuPorRol = ({
               >
                 Integraciones
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.integraciones ? "down" : "right"
-                }`}
-              ></i>
+              <i className={`fas fa-chevron-${expanded.integraciones ? "down" : "right"}`}></i>
               <img
                 src={arrowImages.integraciones}
                 alt="Integraciones"
@@ -205,15 +188,12 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-        {seccionesPermitidas.includes("clientes") && (
+        {/* {seccionesPermitidas.includes("clientes") && (
           <li
             className={`main-menu-item ${expanded.clientes ? "expanded" : ""} ${
               activeSection === "clientes" ? "active-single-item" : ""
             }`}
           >
-            {" "}
-            {/* <-- ¡CAMBIO AQUÍ! */}
-            {/* Usamos onMenuItemClick aquí */}
             <div
               className="menu-item-header"
               onClick={() => onMenuItemClick("clientes")}
@@ -223,8 +203,8 @@ const MenuPorRol = ({
                 alt="Clientes"
                 style={{ width: "22px", height: "22px" }}
               />
-              <i className="fas fa-users"></i>
-              {/* Resaltado del TÍTULO de Clientes */}
+              {/* <i className="fas fa-users"></i>}
+              {/* Resaltado del TÍTULO de Clientes}
               <span
                 style={{
                   fontWeight: 400,
@@ -239,8 +219,7 @@ const MenuPorRol = ({
               </span>
             </div>
           </li>
-        )}
-
+        )} */}
         {seccionesPermitidas.includes("motorizados") && (
           <li
             className={`main-menu-item ${
@@ -249,7 +228,7 @@ const MenuPorRol = ({
           >
             <div
               className="menu-item-header"
-              onClick={() => onMenuItemClick("motorizados")}
+              onClick={() => onExpandMenu("motorizados")}
             >
               <img
                 src={gearImages.motorizados}
@@ -269,11 +248,7 @@ const MenuPorRol = ({
               >
                 Motorizados
               </span>
-              <i
-                className={`fas fa-chevron-${
-                  expanded.motorizados ? "down" : "right"
-                }`}
-              ></i>
+              <i className={`fas fa-chevron-${expanded.motorizados ? "down" : "right"}`}></i>
               <img
                 src={arrowImages.motorizados}
                 alt="Motorizados"
