@@ -15,6 +15,7 @@ import { useUser } from "./UserContext";
 import MenuPorRol from "./MenuPorRol";
 import Motorizados from "./Motorizados";
 import DetalleMotorizados from "./DetalleMotorizados";
+import Asesores from "./Asesores";
 import DashboardPage from "./DashboardPage";
 
 Modal.setAppElement("#root");
@@ -864,7 +865,9 @@ function Dashboard() {
       case "motorizados": // Este es el valor que 'activeSection' tendrá cuando se active esta vista
         return <Motorizados />; // Esto renderiza el componente que importaste
       case "detallemotorizados":
-        return <DetalleMotorizados />; // Asegúrate de que este componente esté importado correctamente
+        return <DetalleMotorizados />;
+      case "asesores":
+        return <Asesores />;
       default:
         return <DashboardPage />;
     }

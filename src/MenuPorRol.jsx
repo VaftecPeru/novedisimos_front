@@ -228,7 +228,7 @@ const MenuPorRol = ({
           >
             <div
               className="menu-item-header"
-              onClick={() => onExpandMenu("motorizados")}
+              onClick={() => onMenuItemClick("motorizados")}
             >
               <img
                 src={gearImages.motorizados}
