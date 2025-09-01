@@ -1,0 +1,221 @@
+/* CONTENEDOR */
+.form-container {
+  background: rgba(15, 15, 25, 0.95);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  padding: 30px;
+  border-radius: 18px;
+  width: 100%;              /* 🔥 ocupa todo el ancho disponible */
+  margin: 0 auto;           /* centrado vertical si hay espacio */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  font-family: "Segoe UI", sans-serif;
+  box-sizing: border-box;
+}
+
+/* TITULO */
+.form-title {
+  background: linear-gradient(135deg, #6b0f1a, #200122);
+  padding: 16px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+/* FILA BUSQUEDA */
+.search-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.search-row input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #1f1f1f;
+  color: #fff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-row input:focus {
+  box-shadow: 0 0 10px #ba55d3;
+}
+
+/* GRID FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.form-grid label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #ddd;
+}
+
+.form-grid input,
+.form-grid select {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #2a2a2a;
+  color: #fff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+  box-shadow: 0 0 8px #1e90ff;
+}
+
+/* SECCION PRODUCTOS */
+.section-title {
+  margin: 20px 0 12px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffa500;
+  text-align: center;
+}
+
+.products-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+}
+
+.product-row input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.product-row input:focus {
+  box-shadow: 0 0 8px #20b2aa;
+}
+
+/* MONTO */
+.total-box {
+  background: linear-gradient(135deg, #003b46, #07575b);
+  color: #fff;
+  padding: 16px;
+  margin: 30px 0;
+  border-radius: 12px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 22px;
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* NOTAS */
+.form-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-notes textarea {
+  min-height: 80px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #2a2a2a;
+  color: #fff;
+  resize: vertical;
+}
+
+.form-notes textarea:focus {
+  box-shadow: 0 0 8px #ffa500;
+}
+
+/* BOTONES */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.btn:hover {
+  transform: scale(1.07);
+}
+
+.btn.purple {
+  background: linear-gradient(135deg, #800080, #ba55d3);
+  color: white;
+}
+
+.btn.cyan {
+  background: linear-gradient(135deg, #008b8b, #20b2aa);
+  color: white;
+}
+
+.btn.blue {
+  background: linear-gradient(135deg, #0000cd, #1e90ff);
+  color: white;
+}
+
+.btn.green {
+  background: linear-gradient(135deg, #228b22, #32cd32);
+  color: white;
+}
+
+/* CHIPS / ESTADOS (reusando lo que pasaste) */
+.MuiChip-root {
+  height: 26px;
+  font-size: 12px;
+  padding: 0 6px;
+  border-radius: 8px;
+}
+
+.chip-confirmado {
+  background-color: #4763e4;
+  color: white;
+}
+.chip-in-wow {
+  background-color: #3884f7;
+  color: white;
+}
+.chip-admitido {
+  background-color: #10b981;
+  color: white;
+}
+.chip-por-derivar {
+  background-color: #f59e0b;
+  color: white;
+}
+.chip-final-entrega {
+  background-color: #8b5cf6;
+  color: white;
+}

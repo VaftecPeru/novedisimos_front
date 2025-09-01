@@ -66,9 +66,15 @@ const MenuPorRol = ({
               <ul className="submenu">
                 <li
                   onClick={() => onMenuItemClick("ordenDePedido")}
-                  className={activeSection === "ordenDePedido" ? "active" : ""}
+                  className= {activeSection === "ordenDePedido" ? "active" : ""}
                 >
                   Orden de Pedido
+                </li>
+                <li 
+                  onClick={() => onMenuItemClick("busquedaInterna")}
+                  className= {activeSection === "busquedaInterna" ? "active" : ""}
+                >
+                  Busqueda Interna
                 </li>
                 {/* <li
                   onClick={() => onMenuItemClick("seguimientoContraentrega")}

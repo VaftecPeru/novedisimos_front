@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import {
   Box, Badge, Divider, Button, FormControl, IconButton, InputAdornment, Menu, MenuItem,
   Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Typography, TablePagination
+  TextField, Typography, TablePagination, Link
 } from "@mui/material";
 import { Search, Refresh, ArrowDropDown, WhatsApp } from "@mui/icons-material";
 import PrintIcon from "@mui/icons-material/Print";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeliveryDiningIcon from "@mui/icons-material/DeliveryDining";
+import InventoryIcon from "@mui/icons-material/Inventory";
 import axios from "axios";
 import "./Motorizados.css";
 import Swal from "sweetalert2";
@@ -43,7 +44,6 @@ const obtenerOpciones = (estadoActual) => {
     case "entregado":
       return ["cancelado"];
     default:
-      return [];
   }
 };
 
@@ -65,7 +65,7 @@ const traducirMetodoPago = (metodo) => {
 const mapOrderToMotorizado = order => ({
   factura: order.name || `#${order.order_number}`,
   fecha: order.created_at ? new Date(order.created_at).toLocaleString("es-PE") : "-",
-  motorizado: order.motorizado || "Sin asignar",
+  motorizado: order.motorizado || "Pendiente",
   cliente: order.customer
     ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
     : order.email || "Cliente no registrado",
@@ -265,9 +265,45 @@ const MotorizadosDashboard = () => {
     <div className="motorizados-outer-container">
       <Box className="motorizados-container">
         <Box className="motorizados-header">
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-            Gestión de Pedidos Delivery <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+              Gestión de Pedidos Delivery <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
+            </Typography>
+            
+            {/* Link de Almacén Mejorado */}
+            <Link 
+              href="/dashboard/almacenes"
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                textDecoration: 'none',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 8px rgba(16, 185, 129, 0.4)',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  textDecoration: 'none'
+                }
+              }}
+            >
+              <InventoryIcon sx={{ 
+                mr: 1, 
+                fontSize: '1.2rem',
+                transition: 'transform 0.3s ease'
+              }} />
+              <Typography variant="body1" sx={{ 
+                fontWeight: '600',
+                fontSize: '0.95rem'
+              }}>
+                Ir a Almacén
+              </Typography>
+            </Link>
+          </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Button
               variant="outlined"
@@ -415,7 +451,14 @@ const MotorizadosDashboard = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontSize: '13px' }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontSize: '13px',
+                          color: pedido.motorizado === "Pendiente" ? "#059669" : "inherit",
+                          fontWeight: pedido.motorizado === "Pendiente" ? "bold" : "normal"
+                        }}
+                      >
                         {pedido.motorizado}
                       </Typography>
                     </TableCell>

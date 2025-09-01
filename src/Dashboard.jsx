@@ -5,6 +5,7 @@ import "./Dashboard.css";
 import "./Modal.css";
 import closeIcon from "/images/close.png";
 import PedidosDashboard from "./PedidosDashboard";
+import FormularioInterno from "./FormularioInterno";
 import ProductosDashboard from "./ProductosDashboard";
 import SeguimientoContraentrega from "./SeguimientoContraentrega";
 import ShopifyDashboard from "./ShopifyDashboard";
@@ -44,7 +45,8 @@ function Dashboard() {
   const [mantenimientoSeleccion, setMantenimientoSeleccion] =
     useState("productos");
 
-  const [pedidosSeleccion, setPedidosSeleccion] = useState("ordenDePedido");
+  const [pedidosSeleccion, setPedidosSeleccion] = 
+    useState("ordenDePedido");
 
   const [integracionesSeleccion, setIntegracionesSeleccion] =
     useState("shopify");
@@ -52,7 +54,8 @@ function Dashboard() {
   const [configuracionSeleccion, setConfiguracionSeleccion] =
     useState("cobertura");
 
-  const [informesSeleccion, setInformesSeleccion] = useState("vista");
+  const [informesSeleccion, setInformesSeleccion] = 
+    useState("vista");
 
   const [motorizadosSeleccion, setMotorizadosSeleccion] =
     useState("asignacion");
@@ -619,7 +622,7 @@ function Dashboard() {
         newSpanColors.mantenimiento = "white";
         setMantenimientoSeleccion(sectionName); // Actualiza la selección del submenú
       } else if (
-        ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia"].includes(
+        ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia", "gestionPedidoInterno"].includes(
           sectionName
         )
       ) {
@@ -779,7 +782,7 @@ function Dashboard() {
     let parentSection = "";
 
     if (
-      ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia"].includes(
+      ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia", "gestionPedidoInterno"].includes(
         activeSection
       )
     ) {
@@ -805,6 +808,7 @@ function Dashboard() {
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
+      gestionPedidoInterno: "Gestionar Pedido Interno",
       seguimientoContraentrega: "Seguimiento Contraentrega",
       shopify: "Shopify",
       vista: "Vista Informes",
@@ -836,6 +840,8 @@ function Dashboard() {
     switch (activeSection) {
       case "ordenDePedido":
         return <PedidosDashboard />;
+      case "busquedaInterna":
+        return <FormularioInterno />;
       // case "seguimientoContraentrega":
       //   return <SeguimientoContraentrega />;
       // case "productos":
