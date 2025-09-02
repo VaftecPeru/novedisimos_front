@@ -76,6 +76,12 @@ const MenuPorRol = ({
                 >
                   Busqueda Interna
                 </li>
+                <li 
+                  onClick={() => onMenuItemClick("busquedaExterna")}
+                  className= {activeSection === "busquedaExterna" ? "active" : ""}
+                >
+                  Busqueda Externa
+                </li>
                 {/* <li
                   onClick={() => onMenuItemClick("seguimientoContraentrega")}
                   className={

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import "./FormularioInterno.css";
+import "./FormularioExterno.css";
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 
-const FormularioInterno = () => {
+const FormularioExterno = () => {
   // Estado inicial del formulario
   const initialFormData = {
     buscar: "",
@@ -355,4 +355,4 @@ const FormularioInterno = () => {
   );
 };
 
-export default FormularioInterno;
+export default FormularioExterno;

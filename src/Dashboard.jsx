@@ -6,6 +6,7 @@ import "./Modal.css";
 import closeIcon from "/images/close.png";
 import PedidosDashboard from "./PedidosDashboard";
 import FormularioInterno from "./FormularioInterno";
+import FormularioExterno from "./FormularioExterno";
 import ProductosDashboard from "./ProductosDashboard";
 import SeguimientoContraentrega from "./SeguimientoContraentrega";
 import ShopifyDashboard from "./ShopifyDashboard";
@@ -622,7 +623,7 @@ function Dashboard() {
         newSpanColors.mantenimiento = "white";
         setMantenimientoSeleccion(sectionName); // Actualiza la selección del submenú
       } else if (
-        ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia", "gestionPedidoInterno"].includes(
+        ["ordenDePedido", "busquedaInterna", "busquedaExterna", "seguimientoContraentrega", "enviosAgencia"].includes(
           sectionName
         )
       ) {
@@ -782,7 +783,7 @@ function Dashboard() {
     let parentSection = "";
 
     if (
-      ["ordenDePedido", "seguimientoContraentrega", "enviosAgencia", "gestionPedidoInterno"].includes(
+      ["ordenDePedido", "busquedaInterna", "busquedaExterna", "seguimientoContraentrega", "enviosAgencia"].includes(
         activeSection
       )
     ) {
@@ -808,8 +809,10 @@ function Dashboard() {
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
-      gestionPedidoInterno: "Gestionar Pedido Interno",
+      busquedaInterna: "Búsqueda Interna",
+      busquedaExterna: "Búsqueda Externa",
       seguimientoContraentrega: "Seguimiento Contraentrega",
+      detallemotorizados: "Detalle Motorizados",
       shopify: "Shopify",
       vista: "Vista Informes",
       cobertura: "Registrar Cobertura",
@@ -842,6 +845,8 @@ function Dashboard() {
         return <PedidosDashboard />;
       case "busquedaInterna":
         return <FormularioInterno />;
+      case "busquedaExterna":
+        return <FormularioExterno />;
       // case "seguimientoContraentrega":
       //   return <SeguimientoContraentrega />;
       // case "productos":
