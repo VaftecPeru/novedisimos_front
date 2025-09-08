@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
+import Swal from 'sweetalert2';
 
 const FormularioInterno = () => {
   // Estado inicial del formulario
@@ -29,6 +30,31 @@ const FormularioInterno = () => {
     const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
     setIsModified(hasChanges);
   }, [formData]);
+
+  // Mostrar alerta de confirmación con SweetAlert2
+  const showConfirmationAlert = (title, message, onConfirm) => {
+    Swal.fire({
+      title: title,
+      text: message,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#6b0f1a',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'SI, cambiar',
+      cancelButtonText: 'Cancelar',
+      background: '#fff',
+      customClass: {
+        popup: 'custom-swal-popup',
+        title: 'custom-swal-title',
+        confirmButton: 'custom-swal-confirm-btn',
+        cancelButton: 'custom-swal-cancel-btn'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        onConfirm();
+      }
+    });
+  };
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
@@ -66,11 +92,24 @@ const FormularioInterno = () => {
   };
 
   // Limpiar formulario
-  const limpiarFormulario = () => {
-    if (window.confirm("¿Estás seguro de que deseas limpiar el formulario? Se perderán todos los datos no guardados.")) {
-      setFormData(initialFormData);
-      setErrors({});
-    }
+  const handleLimpiarFormulario = () => {
+    showConfirmationAlert(
+      "¿Limpiar formulario?",
+      "Se perderán todos los datos no guardados. ¿Estás seguro?",
+      () => {
+        setFormData(initialFormData);
+        setErrors({});
+        
+        // Mostrar alerta de éxito
+        Swal.fire({
+          title: '¡Formulario limpiado!',
+          text: 'El formulario se ha restablecido correctamente.',
+          icon: 'success',
+          confirmButtonColor: '#6b0f1a',
+          confirmButtonText: 'OK'
+        });
+      }
+    );
   };
 
   // Validar formulario
@@ -93,13 +132,48 @@ const FormularioInterno = () => {
   };
 
   // Guardar formulario
-  const guardarFormulario = () => {
+  const handleGuardarFormulario = () => {
     if (validarFormulario()) {
-      // Aquí iría la lógica para guardar los datos
-      console.log("Formulario guardado:", formData);
-      alert("Formulario guardado con éxito");
-      setIsModified(false);
+      showConfirmationAlert(
+        "¿Guardar cambios?",
+        "¿Estás seguro de que deseas guardar los cambios realizados en el formulario?",
+        () => {
+          // Aquí iría la lógica para guardar los datos
+          console.log("Formulario guardado:", formData);
+          setIsModified(false);
+          
+          // Mostrar alerta de éxito
+          Swal.fire({
+            title: '¡Guardado!',
+            text: 'El formulario se ha guardado correctamente.',
+            icon: 'success',
+            confirmButtonColor: '#6b0f1a',
+            confirmButtonText: 'OK'
+          });
+        }
+      );
     }
+  };
+
+  // Actualizar formulario
+  const handleActualizarFormulario = () => {
+    showConfirmationAlert(
+      "¿Actualizar formulario?",
+      "¿Estás seguro de que deseas actualizar el formulario?",
+      () => {
+        // Aquí iría la lógica para actualizar
+        console.log("Formulario actualizado");
+        
+        // Mostrar alerta de éxito
+        Swal.fire({
+          title: '¡Actualizado!',
+          text: 'El formulario se ha actualizado correctamente.',
+          icon: 'success',
+          confirmButtonColor: '#6b0f1a',
+          confirmButtonText: 'OK'
+        });
+      }
+    );
   };
 
   // Buscar pedido
@@ -125,12 +199,12 @@ const FormularioInterno = () => {
       <h2 className="form-title">COD - YARA</h2>
 
       {/* BUSCAR */}
-      <div className="search-row">
-        <div className="form-group search-container">
+      <div className="form-group search-row">
+        <div className="search-container">
           <input
             type="text"
             name="buscar"
-            placeholder="🔍 Buscar..."
+            placeholder="Ingrese código o nombre de cliente"
             value={formData.buscar}
             onChange={handleChange}
             className={errors.buscar ? "error" : ""}
@@ -162,6 +236,7 @@ const FormularioInterno = () => {
             <option value="confirmado">Confirmado</option>
             <option value="cancelado">Cancelado</option>
             <option value="entregado">Entregado</option>
+            <option value="en-camino">En camino</option>
           </select>
         </div>
 
@@ -337,17 +412,17 @@ const FormularioInterno = () => {
 
       {/* BOTONES */}
       <div className="btn-group">
-        <button className="btn cyan">
+        <button className="btn cyan" onClick={handleActualizarFormulario}>
           <RefreshCcw size={18} /> ACTUALIZAR
         </button>
         <button 
           className="btn blue" 
-          onClick={guardarFormulario}
+          onClick={handleGuardarFormulario}
           disabled={!isModified}
         >
           <Save size={18} /> {isModified ? "GUARDAR CAMBIOS" : "GUARDADO"}
         </button>
-        <button className="btn green" onClick={limpiarFormulario}>
+        <button className="btn green" onClick={handleLimpiarFormulario}>
           <Trash2 size={18} /> LIMPIAR
         </button>
       </div>

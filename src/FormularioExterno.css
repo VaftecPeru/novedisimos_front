@@ -1,16 +1,66 @@
-/* CONTENEDOR */
+/* CONTENEDOR PRINCIPAL */
+.dual-form-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* PESTAÑAS */
+.form-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #333;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: #2a2a2a;
+  color: #ddd;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  margin-right: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #6b0f1a, #200122);
+  color: white;
+}
+
+.tab-btn:hover:not(.active) {
+  background: #3a3a3a;
+}
+
+/* CONTENEDOR DE FORMULARIOS */
+.forms-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* CONTENEDOR DE FORMULARIO INDIVIDUAL */
 .form-container {
   background: rgba(15, 15, 25, 0.95);
   backdrop-filter: blur(12px);
   color: #fff;
   padding: 30px;
   border-radius: 18px;
-  width: 100%;
-  margin: 0 auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   font-family: "Segoe UI", sans-serif;
   box-sizing: border-box;
-  max-width: 1200px;
+  display: none;
+}
+
+.form-container.active {
+  display: block;
+}
+
+.form-container.administrative {
+  background: rgba(15, 25, 35, 0.95);
 }
 
 /* TITULO */
@@ -23,6 +73,10 @@
   font-weight: bold;
   color: #fff;
   margin-bottom: 20px;
+}
+
+.administrative-title {
+  background: linear-gradient(135deg, #0f4c75, #3282b8);
 }
 
 /* FILA BUSQUEDA */
@@ -50,7 +104,7 @@
 }
 
 .search-row input:focus {
-  box-shadow: 0 0 10px #d21cff;
+  box-shadow: 0 0 10px #ba55d3;
 }
 
 /* GRID FORM */
@@ -106,6 +160,35 @@
   color: #ff4757;
   font-size: 12px;
   margin-top: 4px;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+/* SECCIONES ADMINISTRATIVAS */
+.administrative-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.administrative-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3282b8;
+  margin-bottom: 20px;
+  font-size: 18px;
 }
 
 /* SECCION PRODUCTOS */
@@ -300,6 +383,21 @@
 }
 
 /* Responsive */
+@media (min-width: 992px) {
+  .forms-wrapper {
+    flex-direction: row;
+  }
+  
+  .form-container {
+    flex: 1;
+    display: block;
+  }
+  
+  .form-tabs {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .form-container {
     padding: 20px;

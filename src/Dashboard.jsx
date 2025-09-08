@@ -29,9 +29,8 @@ function Dashboard() {
   console.log("Objeto usuario en Dashboard:", usuario);
   const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    window.innerWidth <= 768
-  );
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [expanded, setExpanded] = useState({
     mantenimiento: false,
     clientes: false,
@@ -136,6 +135,7 @@ function Dashboard() {
   useEffect(() => {
     const path = location.pathname.split("/");
     const lastSegment = path[path.length - 1];
+    setSidebarCollapsed(false);
 
     if (lastSegment !== "dashboard") {
       setActiveSection(lastSegment);
@@ -184,47 +184,7 @@ function Dashboard() {
         configuracion: "#555d8b",
       });
 
-      if (lastSegment === "productos" || lastSegment === "usuarios") {
-        initialExpandedState.mantenimiento = true;
-        setMantenimientoSeleccion(lastSegment);
-
-        setArrowImages((prev) => ({
-          ...prev,
-          mantenimiento: "/images/down arrow.png",
-        }));
-
-        setGearImages((prev) => ({
-          ...prev,
-          mantenimiento: "/images/file.png",
-        }));
-
-        setSpanColors((prev) => ({
-          ...prev,
-          mantenimiento: "white",
-        }));
-      }
-
-      if (lastSegment === "productos" || lastSegment === "movimiento") {
-        initialExpandedState.mantenimiento = true;
-        setMantenimientoSeleccion(lastSegment);
-
-        setArrowImages((prev) => ({
-          ...prev,
-          mantenimiento: "/images/down arrow.png",
-        }));
-
-        setGearImages((prev) => ({
-          ...prev,
-          mantenimiento: "/images/file.png",
-        }));
-
-        setSpanColors((prev) => ({
-          ...prev,
-          mantenimiento: "white",
-        }));
-      }
-
-      if (lastSegment === "productos" || lastSegment === "almacenes") {
+      if (lastSegment === "productos" || lastSegment === "usuarios" || lastSegment === "movimiento" || lastSegment === "almacenes") {
         initialExpandedState.mantenimiento = true;
         setMantenimientoSeleccion(lastSegment);
 
@@ -246,6 +206,8 @@ function Dashboard() {
 
       if (
         lastSegment === "ordenDePedido" ||
+        lastSegment === "busquedaInterna" ||
+        lastSegment === "busquedaExterna" ||
         lastSegment === "seguimientoContraentrega" ||
         lastSegment === "enviosAgencia"
       ) {
@@ -308,27 +270,7 @@ function Dashboard() {
         }));
       }
 
-      if (lastSegment === "cobertura") {
-        initialExpandedState.configuracion = true;
-        setConfiguracionSeleccion(lastSegment);
-
-        setArrowImages((prev) => ({
-          ...prev,
-          configuracion: "/images/down arrow.png",
-        }));
-
-        setGearImages((prev) => ({
-          ...prev,
-          configuracion: "/images/file.png",
-        }));
-
-        setSpanColors((prev) => ({
-          ...prev,
-          configuracion: "white",
-        }));
-      }
-
-      if (lastSegment === "curier") {
+      if (lastSegment === "cobertura" || lastSegment === "curier") {
         initialExpandedState.configuracion = true;
         setConfiguracionSeleccion(lastSegment);
 
@@ -349,13 +291,14 @@ function Dashboard() {
       }
 
       if (lastSegment === "motorizados") {
-        // Para 'motorizados', no expandimos un padre, solo activamos sus estilos
-        // Asegúrate que esta sea la imagen activa
+        initialExpandedState.configuracion = true;
+        setConfiguracionSeleccion(lastSegment);
+
         setGearImages((prev) => ({
           ...prev,
           motorizados: "/images/file.png",
         }));
-        // Asegúrate que este sea el color activo
+
         setSpanColors((prev) => ({
           ...prev,
           motorizados: "white",

@@ -11,6 +11,7 @@
   font-family: "Segoe UI", sans-serif;
   box-sizing: border-box;
   max-width: 1200px;
+  position: relative;
 }
 
 /* TITULO */
@@ -50,7 +51,7 @@
 }
 
 .search-row input:focus {
-  box-shadow: 0 0 10px #d21cff;
+  box-shadow: 0 0 10px #ba55d3;
 }
 
 /* GRID FORM */
@@ -297,6 +298,70 @@
 .btn.green {
   background: linear-gradient(135deg, #228b22, #32cd32);
   color: white;
+}
+
+/* Estilos para SweetAlert2 personalizado */
+.custom-swal-popup {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.custom-swal-title {
+  color: #1a1a1a;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.custom-swal-confirm-btn {
+  background: #1b32ff !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 10px 25px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-swal-confirm-btn:hover {
+  background: #1b32ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.custom-swal-cancel-btn {
+  background: #eb1e1e !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 10px 25px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-swal-cancel-btn:hover {
+  background: #ff1313 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Ajustes responsivos para SweetAlert */
+@media (max-width: 480px) {
+  .swal2-popup {
+    width: 90% !important;
+    margin: 20px !important;
+  }
+  
+  .swal2-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .custom-swal-confirm-btn,
+  .custom-swal-cancel-btn {
+    width: 100% !important;
+  }
 }
 
 /* Responsive */
