@@ -1,3 +1,4 @@
+/* Asesores.css */
 .motorizados-outer-container {
   width: 100%;
   min-height: 100vh;
@@ -79,7 +80,7 @@
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08);
   margin-bottom: 10px;
   width: 100%;
-  min-width: 1200px; 
+  min-width: 1300px; /* Aumentado para acomodar la nueva columna */
 }
 
 .motorizados-th {
@@ -174,5 +175,13 @@
   .MuiTableCell-root {
     padding: 8px 4px !important;
     font-size: 0.9rem !important;
+  }
+}
+
+/* Ocultar columnas menos importantes en móviles */
+@media (max-width: 480px) {
+  .motorizados-th:nth-child(4), /* Columna Asesor */
+  .MuiTableCell-root:nth-child(4) {
+    display: none;
   }
 }

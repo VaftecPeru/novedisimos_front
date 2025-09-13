@@ -66,6 +66,7 @@ const mapOrderToMotorizado = order => ({
   factura: order.name || `#${order.order_number}`,
   fecha: order.created_at ? new Date(order.created_at).toLocaleString("es-PE") : "-",
   motorizado: order.motorizado || "Sin asignar",
+  asesor: order.asesor || "Sin asignar", // Nueva columna añadida
   cliente: order.customer
     ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
     : order.email || "Cliente no registrado",
@@ -164,6 +165,7 @@ const AsesoresDashboard = () => {
           pedido.cliente?.toLowerCase().includes(t) ||
           pedido.factura?.toString().includes(t) ||
           pedido.motorizado?.toLowerCase().includes(t) ||
+          pedido.asesor?.toLowerCase().includes(t) || // Búsqueda por asesor añadida
           pedido.telefono?.toLowerCase().includes(t)
         )
       ) return false;
@@ -266,7 +268,7 @@ const AsesoresDashboard = () => {
       <Box className="motorizados-container">
         <Box className="motorizados-header">
           <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-            Gestión de Pedidos Delivery <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
+            Gestión de Ventas <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Button
@@ -323,7 +325,7 @@ const AsesoresDashboard = () => {
         {/* Filtros */}
         <Box className="motorizados-filtros">
           <TextField
-            placeholder="Buscar cliente, factura, motorizado, teléfono..."
+            placeholder="Buscar cliente, factura, motorizado, asesor, teléfono..."
             variant="outlined"
             size="small"
             value={filtros.searchTerm}
@@ -390,6 +392,7 @@ const AsesoresDashboard = () => {
                   <TableCell className="motorizados-th">Factura</TableCell>
                   <TableCell className="motorizados-th">Fecha</TableCell>
                   <TableCell className="motorizados-th">Motorizado</TableCell>
+                  <TableCell className="motorizados-th">Asesor</TableCell>
                   <TableCell className="motorizados-th">Cliente</TableCell>
                   <TableCell className="motorizados-th">Teléfono</TableCell>
                   <TableCell className="motorizados-th">Método</TableCell>
@@ -417,6 +420,11 @@ const AsesoresDashboard = () => {
                     <TableCell>
                       <Typography variant="body2" sx={{ fontSize: '13px' }}>
                         {pedido.motorizado}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontSize: '13px' }}>
+                        {pedido.asesor}
                       </Typography>
                     </TableCell>
                     <TableCell>

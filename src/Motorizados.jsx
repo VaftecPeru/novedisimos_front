@@ -267,7 +267,7 @@ const MotorizadosDashboard = () => {
         <Box className="motorizados-header">
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-              Gestión de Pedidos Delivery <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
+              Gestión de Entrega <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
             </Typography>
             
             {/* Link de Almacén Mejorado */}
