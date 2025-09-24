@@ -1409,33 +1409,45 @@ function PedidosDashboard() {
     cargarTodosLosPedidos();
   }, []);
 
+  // Modificación: reemplazo de Axios por fetch, con validación de respuesta HTTP y verificación de datos
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
+
+      const API_BASE_URL = 'https://api.novedadeswow.com/api';
+
       const urls = [
-        `${API_BASE_URL}/orders?limit=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders?limit=${limit}&page_info=${page}`,
-        `${API_BASE_URL}/orders?per_page=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders`
+        `${API_BASE_URL}/shopify/orders?limit=${limit}&page=${page}`,
+        `${API_BASE_URL}/shopify/orders?limit=${limit}&page_info=${page}`,
+        `${API_BASE_URL}/shopify/orders?per_page=${limit}&page=${page}`,
+        `${API_BASE_URL}/shopify/orders`
       ];
 
       for (const url of urls) {
         try {
           console.log(`Intentando URL: ${url}`);
-          const response = await axios.get(url);
-          if (response.data) {
-            return response.data;
+          const response = await fetch(url);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data && Array.isArray(data.orders)) {
+            return data.orders;
           }
         } catch (urlError) {
           console.warn(`Error con URL ${url}:`, urlError.message);
         }
       }
 
-      throw new Error('No se pudo cargar con ninguna URL de paginación');
+      throw new Error("No se pudo cargar con ninguna URL de paginación");
     } catch (error) {
-      console.error('Error en fetchOrdersWithPagination:', error);
+      console.error("Error en fetchOrdersWithPagination:", error);
       throw error;
     }
   };
+
 
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
