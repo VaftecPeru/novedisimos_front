@@ -29,7 +29,7 @@ export const fetchAuthUser = async () => {
     console.error('⚠️ No se pudo obtener el usuario autenticado:', error.response?.data || error.message);
     return null;
   }
-};  
+};
 
 export const fetchPedidosPreparacionInterna = async () => {
   try {
@@ -99,7 +99,7 @@ export const actualizarEstadoInternoPago = async (pedidoId, estadoPago) => {
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de pago.', 'error');
     }
-    return response; 
+    return response;
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de pago.', 'error');
@@ -121,11 +121,11 @@ export const actualizarEstadoInternoPreparacion = async (pedidoId, estadoActual)
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de preparación.', 'error');
     }
-    return response; 
+    return response;
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de preparación.', 'error');
-    return null; 
+    return null;
   }
 };
 
@@ -255,6 +255,46 @@ export const getProducts = async () => {
   return response.data;
 };
 
+
+export const fetchPedidosLight = async () => {
+  try {
+    const url = `${SHOPIFY_API_BASE_URL}/orders/light`;
+
+    console.log(`Intentando URL: ${url}`);
+
+    const response = await axios.get(url);
+
+    if (!response.data || !Array.isArray(response.data.orders)) {
+      throw new Error("Formato de datos de pedidos 'light' no válido.");
+    }
+
+    console.log("✅ Pedidos light obtenidos con éxito");
+    return response.data.orders;
+
+  } catch (error) {
+    console.error("Error en fetchPedidosLight:", error.response?.data || error.message);
+    return [];
+  }
+};
+
+export const fetchPedidoDetalle = async (pedidoId) => {
+  try {
+    // 💡 SOLUCIÓN: Agregamos ".json" al final de la ruta
+    const urlDetalle = `${SHOPIFY_API_BASE_URL}/orders/${pedidoId}.json`; 
+
+    console.log(`Cargando detalles del pedido desde: ${urlDetalle}`);
+
+    const response = await axios.get(urlDetalle);
+
+    const dataCompleta = response.data;
+    console.log("📄 Datos completos del pedido:", dataCompleta);
+
+    return dataCompleta;
+  } catch (error) {
+    console.error("Error al cargar datos completos del pedido:", error.response?.data || error.message);
+    return null;
+  }
+};
 
 export default {
   getShopInfo,

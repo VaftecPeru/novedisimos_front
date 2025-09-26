@@ -1400,7 +1400,7 @@ function PedidosDashboard() {
 
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
-        setError(err.message || 'Error al cargar pedidos');
+        setError(err.message || 'Error al cargar pedidos');Modificación
       } finally {
         setLoading(false);
       }
@@ -1409,7 +1409,7 @@ function PedidosDashboard() {
     cargarTodosLosPedidos();
   }, []);
 
-  // Modificación: reemplazo de Axios por fetch, con validación de respuesta HTTP y verificación de datos
+  // : reemplazo de Axios por fetch, con validación de respuesta HTTP y verificación de datos
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
 
