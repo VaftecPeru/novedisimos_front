@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
-import { fetchEstadosPedidos, fetchPedidosLight, fetchPedidoDetalle  } from './components/services/shopifyService';
+import { fetchEstadosPedidos, fetchOrderByName, } from './components/services/shopifyService';
 
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 import Swal from 'sweetalert2';
@@ -26,30 +26,6 @@ const FormularioInterno = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isModified, setIsModified] = useState(false);
-  const [pedidosLight, setPedidosLight] = useState([]);
-  const [pedidoCompleto, setPedidoCompleto] = useState(null);
-
-
-  const API_BASE_URL = "http://127.0.0.1:8000/api";
-
-  // Peticion para obtener los datos de id y ordenes de los pedidos
-  const loadPedidos = async () => {
-    // La nueva función ahora devuelve la lista de pedidos
-    const pedidos = await fetchPedidosLight();
-    if (pedidos && Array.isArray(pedidos)) {
-      setPedidosLight(pedidos);
-    }
-  };
-
-  useEffect(() => {
-    loadPedidos();
-    // Ya no necesitas la lógica de reintentos o el for loop en el componente
-  }, []);
-
-
-
-
-
 
   const buscarPedido = async () => {
     if (!formData.buscar.trim()) {
@@ -58,107 +34,88 @@ const FormularioInterno = () => {
     }
 
     const valorBuscar = formData.buscar.trim();
-
-    // Buscar en pedidosLight por el nombre o número de orden
-    const pedidoEncontrado = pedidosLight.find(p => p.name === valorBuscar || p.order_number === valorBuscar);
+    const pedidoEncontrado = await fetchOrderByName(valorBuscar);
 
     if (pedidoEncontrado) {
+      console.log(`✅ Pedido encontrado (${pedidoEncontrado.name})`);
 
-      console.log(`✅ Pedido encontrado `);
+      const estadosInternos = await fetchEstadosPedidos();
+      let arrayEstados = Array.isArray(estadosInternos)
+        ? estadosInternos
+        : (estadosInternos.data || []);
 
-      const pedidoId = pedidoEncontrado.id;
+      const estadoInterno = arrayEstados.find(
+        (estado) => estado.shopify_order_id === pedidoEncontrado.id
+      );
 
-      const detalle = await fetchPedidoDetalle(pedidoId); 
-
-      if (detalle) {
-
-        const estadosInternos = await fetchEstadosPedidos();
-
-
-        console.log("Estados internos recibidos (tipo):", Array.isArray(estadosInternos) ? "array directo" : "objeto con data");
-
-        let arrayEstados = Array.isArray(estadosInternos) ? estadosInternos : (estadosInternos.data || []);
-
-
-        const estadoInterno = arrayEstados.find(estado => estado.shopify_order_id === pedidoId);
-
-        const mapShopifyStatus = (order, estadoInterno) => {
-
-          if (order.cancelled_at) return 'cancelado';
-
-          if (estadoInterno) {
-            if (estadoInterno.estado_pago === 'pagado' && estadoInterno.estado_preparacion === 'preparado') {
-
-              if (order.fulfillment_status === 'fulfilled') {
-                return 'entregado';
-              }
-              return 'en-camino';
+      const mapShopifyStatus = (order, estadoInterno) => {
+        if (order.cancelled_at) return "cancelado";
+        if (estadoInterno) {
+          if (
+            estadoInterno.estado_pago === "pagado" &&
+            estadoInterno.estado_preparacion === "preparado"
+          ) {
+            if (order.fulfillment_status === "fulfilled") {
+              return "entregado";
             }
-            if (estadoInterno.estado_pago === 'pagado') {
-              return 'confirmado';
-            }
-            if (estadoInterno.estado_pago === 'pendiente') {
-              return 'pendiente';
-            }
+            return "en-camino";
           }
+          if (estadoInterno.estado_pago === "pagado") {
+            return "confirmado";
+          }
+          if (estadoInterno.estado_pago === "pendiente") {
+            return "pendiente";
+          }
+        }
+        if (order.financial_status === "paid") return "confirmado";
+        if (order.financial_status === "pending") return "pendiente";
+        return "pendiente";
+      };
 
-          if (order.financial_status === 'paid') return 'confirmado';
-          if (order.financial_status === 'pending') return 'pendiente';
+      const noteAttributes = pedidoEncontrado.note_attributes || [];
+      const celularEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
+      const provUbicacionEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
+      const direccionEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Dirección")?.value || "";
+      const referenciasEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Referencias")?.value || "";
+      const clienteEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
 
-          // Valor por defecto
-          return 'pendiente';
-        };
+      const pedidoFormateado = {
+        buscar: valorBuscar,
+        asesor: pedidoEncontrado.asesor || "Asesor 1",
+        codigo: pedidoEncontrado.name || "",
+        estado: mapShopifyStatus(pedidoEncontrado, estadoInterno),
+        cliente: clienteEnAtributos || "",
+        celular: celularEnAtributos,
+        ubicacion: provUbicacionEnAtributos || "",
+        direccion: direccionEnAtributos || "",
+        referencias: referenciasEnAtributos || "",
+        productos:
+          pedidoEncontrado.line_items && Array.isArray(pedidoEncontrado.line_items)
+            ? pedidoEncontrado.line_items.map((producto) => ({
+              nombre: producto.title || producto.name || "",
+              cantidad:
+                producto.quantity?.toString() || producto.cantidad?.toString() || "",
+              precio:
+                producto.price?.toString() || producto.precio?.toString() || "0.00",
+            }))
+            : initialFormData.productos,
 
-        const noteAttributes = detalle.order.note_attributes || [];
+        notasAsesor: pedidoEncontrado.notasAsesor || pedidoEncontrado.note || "",
+        notasSupervision: pedidoEncontrado.notasSupervision || "",
+        originalOrder: pedidoEncontrado,
+      };
 
-        const celularEnAtributos = noteAttributes.find(attr => attr.name === "Celular")?.value || "";
-        const provUbicacionEnAtributos = noteAttributes.find(attr => attr.name === "Provincia y Distrito:")?.value || "";
-        const direccionEnAtributos = noteAttributes.find(attr => attr.name === "Dirección")?.value || "";
-        const referenciasEnAtributos = noteAttributes.find(attr => attr.name === "Referencias")?.value || "";
-        const clienteEnAtributos = noteAttributes.find(attr => attr.name === "Nombre y Apellidos")?.value || "";
-
-        const pedidoFormateado = {
-          buscar: valorBuscar,
-          asesor: detalle.asesor || "Asesor 1",
-          codigo: detalle.order.name || "",
-          estado: mapShopifyStatus(detalle.order, estadoInterno), // Estado mapeado
-          cliente: clienteEnAtributos || "",
-
-          celular: celularEnAtributos,
-          ubicacion: provUbicacionEnAtributos || "",
-          direccion: direccionEnAtributos || "",
-          referencias: referenciasEnAtributos || "",
-
-          productos: detalle.order.line_items && Array.isArray(detalle.order.line_items) ? detalle.order.line_items.map(producto => ({
-            nombre: producto.title || producto.name || "",
-            cantidad: producto.quantity?.toString() || producto.cantidad?.toString() || "",
-            precio: producto.price?.toString() || producto.precio?.toString() || "0.00"
-          })) : initialFormData.productos, // Si no hay productos, usa el array inicial con un campo vacío
-
-          notasAsesor: detalle.notasAsesor || detalle.note || "",
-          notasSupervision: detalle.notasSupervision || "",
-
-          originalOrder: detalle
-        };
-
-        setFormData(pedidoFormateado);
-        setPedidoCompleto(detalle);  // Guardamos el detalle completo en el estado
-
-      } else {
-        console.log("⚠️ Pedido encontrado en lista, pero falló la carga del detalle completo. Cargando solo datos iniciales.");
-        setPedidoCompleto(null);
-        setFormData(initialFormData);
-        setFormData(prev => ({ ...prev, buscar: valorBuscar, codigo: pedidoEncontrado.name || "" }));
-      }
-
+      setFormData(pedidoFormateado);
     } else {
       console.log("❌ Pedido no encontrado");
-      setPedidoCompleto(null);
       setFormData(initialFormData);
     }
   };
-  //-------------------------------
-
 
 
   // Mostrar alerta de confirmación con SweetAlert2

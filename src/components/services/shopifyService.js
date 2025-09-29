@@ -255,46 +255,45 @@ export const getProducts = async () => {
   return response.data;
 };
 
-
-export const fetchPedidosLight = async () => {
+//  Buscar pedido por name  y devolver el objeto completo
+export const fetchOrderByName = async (valorBuscar) => {
   try {
-    const url = `${SHOPIFY_API_BASE_URL}/orders/light`;
+    const API_BASE_URL = 'https://api.novedadeswow.com/api';
+    const url = `${API_BASE_URL}/shopify/orders?limit=250`;
 
-    console.log(`Intentando URL: ${url}`);
+    console.log(`🔎 Buscando pedido con name/order_number = ${valorBuscar}`);
 
-    const response = await axios.get(url);
+    const response = await fetch(url);
 
-    if (!response.data || !Array.isArray(response.data.orders)) {
-      throw new Error("Formato de datos de pedidos 'light' no válido.");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    console.log("✅ Pedidos light obtenidos con éxito");
-    return response.data.orders;
+    const data = await response.json();
 
+    if (!data || !Array.isArray(data.orders)) {
+      throw new Error("Respuesta inválida de la API de Shopify");
+    }
+
+    const pedidoEncontrado = data.orders.find(
+      (p) =>
+        p.name === valorBuscar || 
+        String(p.order_number) === valorBuscar
+    );
+
+    if (pedidoEncontrado) {
+      console.log("✅ Pedido encontrado:", pedidoEncontrado);
+      return pedidoEncontrado; 
+    } else {
+      console.warn("❌ Pedido no encontrado");
+      return null;
+    }
   } catch (error) {
-    console.error("Error en fetchPedidosLight:", error.response?.data || error.message);
-    return [];
+    console.error("Error en fetchOrderByName:", error);
+    throw error;
   }
 };
 
-export const fetchPedidoDetalle = async (pedidoId) => {
-  try {
-    // 💡 SOLUCIÓN: Agregamos ".json" al final de la ruta
-    const urlDetalle = `${SHOPIFY_API_BASE_URL}/orders/${pedidoId}.json`; 
-
-    console.log(`Cargando detalles del pedido desde: ${urlDetalle}`);
-
-    const response = await axios.get(urlDetalle);
-
-    const dataCompleta = response.data;
-    console.log("📄 Datos completos del pedido:", dataCompleta);
-
-    return dataCompleta;
-  } catch (error) {
-    console.error("Error al cargar datos completos del pedido:", error.response?.data || error.message);
-    return null;
-  }
-};
 
 export default {
   getShopInfo,
