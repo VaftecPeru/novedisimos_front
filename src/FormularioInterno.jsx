@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
-import { fetchEstadosPedidos, fetchOrderByName, } from './components/services/shopifyService';
+import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno } from './components/services/shopifyService';
 
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 import Swal from 'sweetalert2';
 
 const FormularioInterno = () => {
 
-  // Estado inicial del formulario
   const initialFormData = {
+
     buscar: "",
+    shopify_order_id: "",
     asesor: "",
     codigo: "",
     estado: "",
@@ -34,10 +35,13 @@ const FormularioInterno = () => {
     }
 
     const valorBuscar = formData.buscar.trim();
-    const pedidoEncontrado = await fetchOrderByName(valorBuscar);
+    const pedidoShopify = await fetchOrderByName(valorBuscar);
 
-    if (pedidoEncontrado) {
-      console.log(`✅ Pedido encontrado (${pedidoEncontrado.name})`);
+    if (pedidoShopify) {
+      console.log(`Pedido encontrado (${pedidoShopify.name})`);
+
+      // Buscar si existe en BD 
+      const pedidoBD = await fetchPedidoInterno(pedidoShopify.id);
 
       const estadosInternos = await fetchEstadosPedidos();
       let arrayEstados = Array.isArray(estadosInternos)
@@ -45,7 +49,7 @@ const FormularioInterno = () => {
         : (estadosInternos.data || []);
 
       const estadoInterno = arrayEstados.find(
-        (estado) => estado.shopify_order_id === pedidoEncontrado.id
+        (estado) => estado.shopify_order_id === pedidoShopify.id
       );
 
       const mapShopifyStatus = (order, estadoInterno) => {
@@ -72,7 +76,7 @@ const FormularioInterno = () => {
         return "pendiente";
       };
 
-      const noteAttributes = pedidoEncontrado.note_attributes || [];
+      const noteAttributes = pedidoShopify.note_attributes || [];
       const celularEnAtributos =
         noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
       const provUbicacionEnAtributos =
@@ -85,18 +89,20 @@ const FormularioInterno = () => {
         noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
 
       const pedidoFormateado = {
+
         buscar: valorBuscar,
-        asesor: pedidoEncontrado.asesor || "Asesor 1",
-        codigo: pedidoEncontrado.name || "",
-        estado: mapShopifyStatus(pedidoEncontrado, estadoInterno),
+        shopify_order_id: pedidoShopify.id,
+        asesor: pedidoShopify.asesor || "Asesor 1",
+        codigo: pedidoShopify.name || "",
+        estado: mapShopifyStatus(pedidoShopify, estadoInterno),
         cliente: clienteEnAtributos || "",
         celular: celularEnAtributos,
         ubicacion: provUbicacionEnAtributos || "",
         direccion: direccionEnAtributos || "",
         referencias: referenciasEnAtributos || "",
         productos:
-          pedidoEncontrado.line_items && Array.isArray(pedidoEncontrado.line_items)
-            ? pedidoEncontrado.line_items.map((producto) => ({
+          pedidoShopify.line_items && Array.isArray(pedidoShopify.line_items)
+            ? pedidoShopify.line_items.map((producto) => ({
               nombre: producto.title || producto.name || "",
               cantidad:
                 producto.quantity?.toString() || producto.cantidad?.toString() || "",
@@ -105,14 +111,38 @@ const FormularioInterno = () => {
             }))
             : initialFormData.productos,
 
-        notasAsesor: pedidoEncontrado.notasAsesor || pedidoEncontrado.note || "",
-        notasSupervision: pedidoEncontrado.notasSupervision || "",
-        originalOrder: pedidoEncontrado,
+        notasAsesor: pedidoShopify.notasAsesor || pedidoShopify.note || "",
+        notasSupervision: pedidoShopify.notasSupervision || "",
+        originalOrder: pedidoShopify,
       };
+
+      // Si en BD hay registro
+      if (pedidoBD) {
+        console.log("Pedido interno encontrado en BD:", pedidoBD);
+
+        pedidoFormateado.asesor = pedidoBD.asesor || pedidoFormateado.asesor;
+        pedidoFormateado.estado = pedidoBD.estado || pedidoFormateado.estado;
+        pedidoFormateado.cliente = pedidoBD.cliente || pedidoFormateado.cliente;
+        pedidoFormateado.celular = pedidoBD.celular || pedidoFormateado.celular;
+        pedidoFormateado.ubicacion = pedidoBD.provincia_distrito || pedidoFormateado.ubicacion;
+        pedidoFormateado.direccion = pedidoBD.direccion || pedidoFormateado.direccion;
+        pedidoFormateado.referencias = pedidoBD.referencias || pedidoFormateado.referencias;
+        pedidoFormateado.notasAsesor = pedidoBD.notas_asesor || pedidoFormateado.notasAsesor;
+        pedidoFormateado.notasSupervision = pedidoBD.notas_supervisor || pedidoFormateado.notasSupervision;
+
+        // Productos de BD reemplazan si existen
+        if (pedidoBD.productos && pedidoBD.productos.length > 0) {
+          pedidoFormateado.productos = pedidoBD.productos.map((p) => ({
+            nombre: p.nombre_producto,
+            cantidad: String(p.cantidad),
+            precio: String(p.precio_unitario),
+          }));
+        }
+      }
 
       setFormData(pedidoFormateado);
     } else {
-      console.log("❌ Pedido no encontrado");
+      console.log("Pedido no encontrado");
       setFormData(initialFormData);
     }
   };
@@ -151,13 +181,16 @@ const FormularioInterno = () => {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+    setIsModified(true);
   };
+
 
   // Manejar cambios en productos
   const handleProductChange = (index, field, value) => {
     const updatedProductos = [...formData.productos];
     updatedProductos[index][field] = value;
     setFormData({ ...formData, productos: updatedProductos });
+    setIsModified(true);
   };
 
   // Agregar nuevo campo de producto
@@ -166,6 +199,7 @@ const FormularioInterno = () => {
       ...formData,
       productos: [...formData.productos, { nombre: "", cantidad: "", precio: "" }]
     });
+    setIsModified(true);
   };
 
   // Eliminar campo de producto
@@ -175,6 +209,7 @@ const FormularioInterno = () => {
     const updatedProductos = [...formData.productos];
     updatedProductos.splice(index, 1);
     setFormData({ ...formData, productos: updatedProductos });
+    setIsModified(true);
   };
 
   // Limpiar formulario
@@ -218,49 +253,79 @@ const FormularioInterno = () => {
   };
 
   // Guardar formulario
-  const handleGuardarFormulario = () => {
-    if (validarFormulario()) {
-      showConfirmationAlert(
-        "¿Guardar cambios?",
-        "¿Estás seguro de que deseas guardar los cambios realizados en el formulario?",
-        () => {
-          // Aquí iría la lógica para guardar los datos
-          console.log("Formulario guardado:", formData);
+  const handleGuardarFormulario = async () => {
+    if (!validarFormulario()) return;
+
+    showConfirmationAlert(
+      "¿Guardar pedido?",
+      "¿Estás seguro de que deseas guardar este pedido?",
+      async () => {
+        try {
+          // 👇 Mapeamos los campos de formData a lo que espera Laravel
+          const payload = {
+            shopify_order_id: formData.shopify_order_id,
+            asesor: formData.asesor,
+            estado: formData.estado,
+            codigo: formData.codigo,
+            celular: formData.celular,
+            cliente: formData.cliente,
+            provincia_distrito: formData.ubicacion,      
+            direccion: formData.direccion,
+            referencias: formData.referencias,
+            notas_asesor: formData.notasAsesor,           
+            notas_supervisor: formData.notasSupervision,  
+
+            // 👇 Agregamos productos si existen en el formData
+            productos: formData.productos
+              ? formData.productos.map((p) => ({
+                nombre: p.nombre,       
+                cantidad: p.cantidad,   
+                precio: p.precio,       
+              }))
+              : [],
+          };
+
+          console.log("Datos que se enviarán:", payload);
+
+          // Crear pedido interno
+          const response = await fetch("http://127.0.0.1:8000/api/pedidos-internos", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error("Error al guardar");
+          }
+
+          const data = await response.json();
+          console.log("✅ Guardado en backend:", data);
+
           setIsModified(false);
 
-          // Mostrar alerta de éxito
           Swal.fire({
-            title: '¡Guardado!',
-            text: 'El formulario se ha guardado correctamente.',
-            icon: 'success',
-            confirmButtonColor: '#6b0f1a',
-            confirmButtonText: 'OK'
+            title: "¡Guardado!",
+            text: "El pedido se ha guardado correctamente.",
+            icon: "success",
+            confirmButtonColor: "#6b0f1a",
+            confirmButtonText: "OK",
+          });
+        } catch (error) {
+          console.error("❌ Error al guardar:", error);
+          Swal.fire({
+            title: "Error",
+            text: "No se pudo guardar el pedido.",
+            icon: "error",
+            confirmButtonColor: "#6b0f1a",
           });
         }
-      );
-    }
-  };
-
-  // Actualizar formulario
-  const handleActualizarFormulario = () => {
-    showConfirmationAlert(
-      "¿Actualizar formulario?",
-      "¿Estás seguro de que deseas actualizar el formulario?",
-      () => {
-        // Aquí iría la lógica para actualizar
-        console.log("Formulario actualizado");
-
-        // Mostrar alerta de éxito
-        Swal.fire({
-          title: '¡Actualizado!',
-          text: 'El formulario se ha actualizado correctamente.',
-          icon: 'success',
-          confirmButtonColor: '#6b0f1a',
-          confirmButtonText: 'OK'
-        });
       }
     );
   };
+
+
 
   // Calcular monto total
   const montoCobrar = formData.productos.reduce(
@@ -477,9 +542,6 @@ const FormularioInterno = () => {
 
       {/* BOTONES */}
       <div className="btn-group">
-        <button className="btn cyan" onClick={handleActualizarFormulario}>
-          <RefreshCcw size={18} /> ACTUALIZAR
-        </button>
         <button
           className="btn blue"
           onClick={handleGuardarFormulario}

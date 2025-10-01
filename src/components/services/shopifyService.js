@@ -275,7 +275,7 @@ export const fetchOrderByName = async (valorBuscar) => {
       throw new Error("Respuesta inválida de la API de Shopify");
     }
 
-    const pedidoEncontrado = data.orders.find(
+    const pedidoShopify = data.orders.find(
       (p) =>
         p.name === valorBuscar || 
         String(p.order_number) === valorBuscar
@@ -291,6 +291,19 @@ export const fetchOrderByName = async (valorBuscar) => {
   } catch (error) {
     console.error("Error en fetchOrderByName:", error);
     throw error;
+  }
+};
+
+export const fetchPedidoInterno = async (shopifyOrderId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pedidos-internos/${shopifyOrderId}`);
+    if (!response.ok) {
+      throw new Error("Error al obtener pedido interno");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en fetchPedidoInterno:", error);
+    return null;
   }
 };
 
