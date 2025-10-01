@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
+import { fetchEstadosPedidos, fetchOrderByName, } from './components/services/shopifyService';
+
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 import Swal from 'sweetalert2';
 
 const FormularioInterno = () => {
+
   // Estado inicial del formulario
   const initialFormData = {
     buscar: "",
@@ -12,8 +15,7 @@ const FormularioInterno = () => {
     estado: "",
     cliente: "",
     celular: "",
-    provincia: "",
-    distrito: "",
+    ubicacion: "",
     direccion: "",
     referencias: "",
     productos: [{ nombre: "", cantidad: "", precio: "" }],
@@ -25,11 +27,96 @@ const FormularioInterno = () => {
   const [errors, setErrors] = useState({});
   const [isModified, setIsModified] = useState(false);
 
-  // Efecto para detectar cambios en el formulario
-  useEffect(() => {
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-    setIsModified(hasChanges);
-  }, [formData]);
+  const buscarPedido = async () => {
+    if (!formData.buscar.trim()) {
+      setErrors({ ...errors, buscar: "Ingrese un código o nombre para buscar" });
+      return;
+    }
+
+    const valorBuscar = formData.buscar.trim();
+    const pedidoEncontrado = await fetchOrderByName(valorBuscar);
+
+    if (pedidoEncontrado) {
+      console.log(`✅ Pedido encontrado (${pedidoEncontrado.name})`);
+
+      const estadosInternos = await fetchEstadosPedidos();
+      let arrayEstados = Array.isArray(estadosInternos)
+        ? estadosInternos
+        : (estadosInternos.data || []);
+
+      const estadoInterno = arrayEstados.find(
+        (estado) => estado.shopify_order_id === pedidoEncontrado.id
+      );
+
+      const mapShopifyStatus = (order, estadoInterno) => {
+        if (order.cancelled_at) return "cancelado";
+        if (estadoInterno) {
+          if (
+            estadoInterno.estado_pago === "pagado" &&
+            estadoInterno.estado_preparacion === "preparado"
+          ) {
+            if (order.fulfillment_status === "fulfilled") {
+              return "entregado";
+            }
+            return "en-camino";
+          }
+          if (estadoInterno.estado_pago === "pagado") {
+            return "confirmado";
+          }
+          if (estadoInterno.estado_pago === "pendiente") {
+            return "pendiente";
+          }
+        }
+        if (order.financial_status === "paid") return "confirmado";
+        if (order.financial_status === "pending") return "pendiente";
+        return "pendiente";
+      };
+
+      const noteAttributes = pedidoEncontrado.note_attributes || [];
+      const celularEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
+      const provUbicacionEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
+      const direccionEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Dirección")?.value || "";
+      const referenciasEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Referencias")?.value || "";
+      const clienteEnAtributos =
+        noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
+
+      const pedidoFormateado = {
+        buscar: valorBuscar,
+        asesor: pedidoEncontrado.asesor || "Asesor 1",
+        codigo: pedidoEncontrado.name || "",
+        estado: mapShopifyStatus(pedidoEncontrado, estadoInterno),
+        cliente: clienteEnAtributos || "",
+        celular: celularEnAtributos,
+        ubicacion: provUbicacionEnAtributos || "",
+        direccion: direccionEnAtributos || "",
+        referencias: referenciasEnAtributos || "",
+        productos:
+          pedidoEncontrado.line_items && Array.isArray(pedidoEncontrado.line_items)
+            ? pedidoEncontrado.line_items.map((producto) => ({
+              nombre: producto.title || producto.name || "",
+              cantidad:
+                producto.quantity?.toString() || producto.cantidad?.toString() || "",
+              precio:
+                producto.price?.toString() || producto.precio?.toString() || "0.00",
+            }))
+            : initialFormData.productos,
+
+        notasAsesor: pedidoEncontrado.notasAsesor || pedidoEncontrado.note || "",
+        notasSupervision: pedidoEncontrado.notasSupervision || "",
+        originalOrder: pedidoEncontrado,
+      };
+
+      setFormData(pedidoFormateado);
+    } else {
+      console.log("❌ Pedido no encontrado");
+      setFormData(initialFormData);
+    }
+  };
+
 
   // Mostrar alerta de confirmación con SweetAlert2
   const showConfirmationAlert = (title, message, onConfirm) => {
@@ -60,8 +147,7 @@ const FormularioInterno = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // Limpiar error si existe
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -85,7 +171,7 @@ const FormularioInterno = () => {
   // Eliminar campo de producto
   const removeProductField = (index) => {
     if (formData.productos.length <= 1) return;
-    
+
     const updatedProductos = [...formData.productos];
     updatedProductos.splice(index, 1);
     setFormData({ ...formData, productos: updatedProductos });
@@ -99,7 +185,7 @@ const FormularioInterno = () => {
       () => {
         setFormData(initialFormData);
         setErrors({});
-        
+
         // Mostrar alerta de éxito
         Swal.fire({
           title: '¡Formulario limpiado!',
@@ -115,18 +201,18 @@ const FormularioInterno = () => {
   // Validar formulario
   const validarFormulario = () => {
     const newErrors = {};
-    
+
     if (!formData.cliente) newErrors.cliente = "El cliente es requerido";
     if (!formData.celular) newErrors.celular = "El celular es requerido";
     if (!formData.direccion) newErrors.direccion = "La dirección es requerida";
-    
+
     // Validar productos
     formData.productos.forEach((producto, index) => {
       if (producto.nombre && (!producto.cantidad || !producto.precio)) {
         newErrors[`producto-${index}`] = "Complete cantidad y precio si añade un producto";
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -141,7 +227,7 @@ const FormularioInterno = () => {
           // Aquí iría la lógica para guardar los datos
           console.log("Formulario guardado:", formData);
           setIsModified(false);
-          
+
           // Mostrar alerta de éxito
           Swal.fire({
             title: '¡Guardado!',
@@ -163,7 +249,7 @@ const FormularioInterno = () => {
       () => {
         // Aquí iría la lógica para actualizar
         console.log("Formulario actualizado");
-        
+
         // Mostrar alerta de éxito
         Swal.fire({
           title: '¡Actualizado!',
@@ -174,18 +260,6 @@ const FormularioInterno = () => {
         });
       }
     );
-  };
-
-  // Buscar pedido
-  const buscarPedido = () => {
-    if (!formData.buscar.trim()) {
-      setErrors({ ...errors, buscar: "Ingrese un código o nombre para buscar" });
-      return;
-    }
-    
-    // Simulación de búsqueda
-    console.log("Buscando:", formData.buscar);
-    // Aquí iría la lógica real de búsqueda
   };
 
   // Calcular monto total
@@ -220,11 +294,11 @@ const FormularioInterno = () => {
       <div className="form-grid">
         <div className="input-group">
           <label>Asesor:</label>
-          <input 
-            type="text" 
-            name="asesor" 
-            value={formData.asesor} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="asesor"
+            value={formData.asesor}
+            onChange={handleChange}
           />
         </div>
 
@@ -242,21 +316,21 @@ const FormularioInterno = () => {
 
         <div className="input-group">
           <label>Código:</label>
-          <input 
-            type="text" 
-            name="codigo" 
-            value={formData.codigo} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="codigo"
+            value={formData.codigo}
+            onChange={handleChange}
           />
         </div>
 
         <div className="input-group">
           <label>N° Celular: *</label>
-          <input 
-            type="text" 
-            name="celular" 
-            value={formData.celular} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="celular"
+            value={formData.celular}
+            onChange={handleChange}
             className={errors.celular ? "error" : ""}
           />
           {errors.celular && <span className="error-message">{errors.celular}</span>}
@@ -264,43 +338,34 @@ const FormularioInterno = () => {
 
         <div className="input-group">
           <label>Cliente: *</label>
-          <input 
-            type="text" 
-            name="cliente" 
-            value={formData.cliente} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="cliente"
+            value={formData.cliente}
+            onChange={handleChange}
             className={errors.cliente ? "error" : ""}
           />
           {errors.cliente && <span className="error-message">{errors.cliente}</span>}
         </div>
 
         <div className="input-group">
-          <label>Provincia:</label>
-          <input 
-            type="text" 
-            name="provincia" 
-            value={formData.provincia} 
-            onChange={handleChange} 
+          <label>Provincia y Distrito:</label>
+          <input
+            type="text"
+            name="ubicacion"
+            value={formData.ubicacion}
+            onChange={handleChange}
           />
         </div>
 
-        <div className="input-group">
-          <label>Distrito:</label>
-          <input 
-            type="text" 
-            name="distrito" 
-            value={formData.distrito} 
-            onChange={handleChange} 
-          />
-        </div>
 
         <div className="input-group full-width">
           <label>Dirección: *</label>
-          <input 
-            type="text" 
-            name="direccion" 
-            value={formData.direccion} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="direccion"
+            value={formData.direccion}
+            onChange={handleChange}
             className={errors.direccion ? "error" : ""}
           />
           {errors.direccion && <span className="error-message">{errors.direccion}</span>}
@@ -308,11 +373,11 @@ const FormularioInterno = () => {
 
         <div className="input-group full-width">
           <label>Referencias:</label>
-          <input 
-            type="text" 
-            name="referencias" 
-            value={formData.referencias} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="referencias"
+            value={formData.referencias}
+            onChange={handleChange}
           />
         </div>
       </div>
@@ -325,7 +390,7 @@ const FormularioInterno = () => {
             <Plus size={16} /> Añadir Producto
           </button>
         </div>
-        
+
         <div className="products-table">
           <div className="table-header">
             <span>Producto</span>
@@ -334,7 +399,7 @@ const FormularioInterno = () => {
             <span>Subtotal (S/.)</span>
             <span>Acción</span>
           </div>
-          
+
           {formData.productos.map((producto, index) => (
             <div className="product-row" key={index}>
               <input
@@ -361,8 +426,8 @@ const FormularioInterno = () => {
               <div className="subtotal">
                 S/. {(parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)).toFixed(2)}
               </div>
-              <button 
-                className="btn-remove" 
+              <button
+                className="btn-remove"
                 onClick={() => removeProductField(index)}
                 disabled={formData.productos.length <= 1}
               >
@@ -370,7 +435,7 @@ const FormularioInterno = () => {
               </button>
             </div>
           ))}
-          
+
           {Object.keys(errors).some(key => key.startsWith('producto-')) && (
             <div className="error-message">
               {Object.entries(errors)
@@ -391,10 +456,10 @@ const FormularioInterno = () => {
       <div className="form-notes">
         <div className="input-group">
           <label>Notas de Asesor:</label>
-          <textarea 
-            name="notasAsesor" 
-            value={formData.notasAsesor} 
-            onChange={handleChange} 
+          <textarea
+            name="notasAsesor"
+            value={formData.notasAsesor}
+            onChange={handleChange}
             placeholder="Ingrese observaciones del asesor..."
           />
         </div>
@@ -415,8 +480,8 @@ const FormularioInterno = () => {
         <button className="btn cyan" onClick={handleActualizarFormulario}>
           <RefreshCcw size={18} /> ACTUALIZAR
         </button>
-        <button 
-          className="btn blue" 
+        <button
+          className="btn blue"
           onClick={handleGuardarFormulario}
           disabled={!isModified}
         >

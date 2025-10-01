@@ -29,7 +29,7 @@ export const fetchAuthUser = async () => {
     console.error('⚠️ No se pudo obtener el usuario autenticado:', error.response?.data || error.message);
     return null;
   }
-};  
+};
 
 export const fetchPedidosPreparacionInterna = async () => {
   try {
@@ -99,7 +99,7 @@ export const actualizarEstadoInternoPago = async (pedidoId, estadoPago) => {
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de pago.', 'error');
     }
-    return response; 
+    return response;
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de pago.', 'error');
@@ -121,11 +121,11 @@ export const actualizarEstadoInternoPreparacion = async (pedidoId, estadoActual)
     } else {
       Swal.fire('Error', 'No se pudo actualizar el estado de preparación.', 'error');
     }
-    return response; 
+    return response;
   } catch (error) {
     console.error(error);
     Swal.fire('Error', 'Error del servidor al actualizar estado de preparación.', 'error');
-    return null; 
+    return null;
   }
 };
 
@@ -253,6 +253,45 @@ export const getOrderById = async (orderId) => {
 export const getProducts = async () => {
   const response = await axios.get(`${SHOPIFY_API_BASE_URL}/products`);
   return response.data;
+};
+
+//  Buscar pedido por name  y devolver el objeto completo
+export const fetchOrderByName = async (valorBuscar) => {
+  try {
+    const API_BASE_URL = 'https://api.novedadeswow.com/api';
+    const url = `${API_BASE_URL}/shopify/orders?limit=250`;
+
+    console.log(`🔎 Buscando pedido con name/order_number = ${valorBuscar}`);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || !Array.isArray(data.orders)) {
+      throw new Error("Respuesta inválida de la API de Shopify");
+    }
+
+    const pedidoEncontrado = data.orders.find(
+      (p) =>
+        p.name === valorBuscar || 
+        String(p.order_number) === valorBuscar
+    );
+
+    if (pedidoEncontrado) {
+      console.log("✅ Pedido encontrado:", pedidoEncontrado);
+      return pedidoEncontrado; 
+    } else {
+      console.warn("❌ Pedido no encontrado");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error en fetchOrderByName:", error);
+    throw error;
+  }
 };
 
 
