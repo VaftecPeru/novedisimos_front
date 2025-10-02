@@ -258,8 +258,8 @@ export const getProducts = async () => {
 //  Buscar pedido por name  y devolver el objeto completo
 export const fetchOrderByName = async (valorBuscar) => {
   try {
-    const API_BASE_URL = 'https://api.novedadeswow.com/api';
-    const url = `${API_BASE_URL}/shopify/orders?limit=250`;
+
+    const url = `${CUSTOM_API_BASE_URL}/shopify/orders?limit=250`;
 
     console.log(`🔎 Buscando pedido con name/order_number = ${valorBuscar}`);
 
@@ -297,8 +297,7 @@ export const fetchOrderByName = async (valorBuscar) => {
 export const fetchPedidoInterno = async (shopifyOrderId) => {
   try {
 
-    const API_BASE_URL = 'https://api.novedadeswow.com/api';
-    const response = await fetch(`${API_BASE_URL}/pedidos-internos/${shopifyOrderId}`);
+    const response = await fetch(`${CUSTOM_API_BASE_URL}/pedido-interno/shopify/${shopifyOrderId}`);
     if (!response.ok) {
       throw new Error("Error al obtener pedido interno");
     }
@@ -308,6 +307,32 @@ export const fetchPedidoInterno = async (shopifyOrderId) => {
     return null;
   }
 };
+
+export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
+  try {
+    const response = await fetch(
+      `${CUSTOM_API_BASE_URL}/pedido-interno${shopifyOrderId ? `/${shopifyOrderId}` : ''}`,
+      {
+        method: shopifyOrderId ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error("Error al guardar: " + JSON.stringify(errorData));
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 
 
 export default {
