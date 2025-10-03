@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Button, TextField, InputAdornment, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem,
-  IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu
+  IconButton, Typography, Chip, Drawer, Divider, Radio, RadioGroup, FormControlLabel, Menu,
+  InputLabel, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
 import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
@@ -15,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
-import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 function EstadoBadge({ label, color }) {
   return (
@@ -93,7 +93,6 @@ function NotaEditable({ nota, onSave, Icono }) {
   );
 }
 
-
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
@@ -103,7 +102,6 @@ const formatDate = (dateString) => {
     year: 'numeric'
   });
 };
-
 
 const getNoteAttributeValue = (order, attributeName) => {
   if (!order.note_attributes) return 'No disponible';
@@ -265,14 +263,18 @@ function PedidosDashboard() {
   const { confirm } = useConfirmDialog();
 
   const navigate = useNavigate();
+  const [vendedores, setVendedores] = useState([]);
+  const [loadingVendedores, setLoadingVendedores] = useState(false);
+
   const handleExportar = () => {
     const csvRows = [];
-    csvRows.push("ID,Cliente,Estado de Pago,Estado de Entrega,Total");
+    csvRows.push("ID,Cliente,Vendedor,Estado de Pago,Estado de Entrega,Total");
 
     pedidosFiltrados.forEach(pedido => {
       const row = [
         pedido.id,
         pedido.cliente || "",
+        pedido.vendedor?.nombre || "Sin asignar",
         pedido.financial_status === "paid" ? "Pagado" : "Pago pendiente",
         pedido.fulfillment_status === "fulfilled" ? "Preparado" : "No preparado",
         pedido.total || ""
@@ -299,7 +301,6 @@ function PedidosDashboard() {
   const [pedidoEditado, setPedidoEditado] = useState({});
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
 
- 
   const estadoInicial = {
     numeroOrden: '',
     canal: 'Shopify',
@@ -334,8 +335,25 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("");
   const [filtroPreparado, setFiltroPreparado] = useState("");
 
+  // Cargar lista de vendedores
+  useEffect(() => {
+    const cargarVendedores = async () => {
+      try {
+        setLoadingVendedores(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/vendedores`);
+        if (response.ok) {
+          const data = await response.json();
+          setVendedores(data);
+        }
+      } catch (error) {
+        console.error('Error al cargar vendedores:', error);
+      } finally {
+        setLoadingVendedores(false);
+      }
+    };
 
-
+    cargarVendedores();
+  }, []);
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -1259,13 +1277,6 @@ function PedidosDashboard() {
     setFiltros({ ...filtros, [campo]: valor });
   };
 
-  const getNoteAttributeValue = (order, attributeName) => {
-    if (!order.note_attributes) return 'No disponible';
-
-    const attribute = order.note_attributes.find(attr => attr.name === attributeName);
-    return attribute ? attribute.value : 'No disponible';
-  };
-
   useEffect(() => {
     const cargarTodosLosPedidos = async () => {
       try {
@@ -1330,12 +1341,14 @@ function PedidosDashboard() {
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
           const estadoInterno = estadosInternos.find(e => e.shopify_order_id === order.id);
+          
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
-            estado_pago: estadoInterno?.estado_pago, // <-- agrega esto
-            estado_preparacion: estadoInterno?.estado_preparacion, // <-- agrega esto
+            estado_pago: estadoInterno?.estado_pago,
+            estado_preparacion: estadoInterno?.estado_preparacion,
+            vendedor: estadoInterno?.vendedor_id,
 
             cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
@@ -1372,7 +1385,6 @@ function PedidosDashboard() {
                 (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
             },
 
-
             medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
 
             tags: order.tags || '',
@@ -1400,7 +1412,7 @@ function PedidosDashboard() {
 
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
-        setError(err.message || 'Error al cargar pedidos');Modificación
+        setError(err.message || 'Error al cargar pedidos');
       } finally {
         setLoading(false);
       }
@@ -1409,10 +1421,8 @@ function PedidosDashboard() {
     cargarTodosLosPedidos();
   }, []);
 
-  // : reemplazo de Axios por fetch, con validación de respuesta HTTP y verificación de datos
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
-
       const API_BASE_URL = 'https://api.novedadeswow.com/api';
 
       const urls = [
@@ -1447,7 +1457,6 @@ function PedidosDashboard() {
       throw error;
     }
   };
-
 
   const handleFormChange = (e) => {
     setNuevoPedido({ ...nuevoPedido, [e.target.name]: e.target.value });
@@ -1509,7 +1518,6 @@ function PedidosDashboard() {
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
     const { fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
 
-
     // Estado de pago: prioriza el interno, si no existe usa Shopify
     const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
     if (filtroPago) {
@@ -1521,7 +1529,6 @@ function PedidosDashboard() {
     const estadoPreparacion = pedido.estado_preparacion || (pedido.fulfillment_status === 'fulfilled' ? 'preparado' : 'no_preparado');
     if (filtroPreparado === "preparado" && estadoPreparacion !== "preparado") return false;
     if (filtroPreparado === "no_preparado" && estadoPreparacion !== "no_preparado") return false;
-
 
     if (fechaInicio || fechaFin) {
       let fechaComparar = null;
@@ -1572,8 +1579,9 @@ function PedidosDashboard() {
       const matchesUbicacion = pedido.ubicacion && pedido.ubicacion.toLowerCase().includes(searchLower);
       const matchesNote = pedido.note && pedido.note.toLowerCase().includes(searchLower);
       const matchesTags = pedido.tags && pedido.tags.toLowerCase().includes(searchLower);
+      const matchesVendedor = pedido.vendedor?.nombre && pedido.vendedor.nombre.toLowerCase().includes(searchLower);
 
-      if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags) {
+      if (!matchesCliente && !matchesId && !matchesTelefono && !matchesUbicacion && !matchesNote && !matchesTags && !matchesVendedor) {
         return false;
       }
     }
@@ -1585,6 +1593,7 @@ function PedidosDashboard() {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+
   if (loading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1654,7 +1663,7 @@ function PedidosDashboard() {
         </Button>
 
         <TextField
-          placeholder="Buscar por cliente, pedido, teléfono o ubicación..."
+          placeholder="Buscar por cliente, pedido, teléfono, ubicación o vendedor..."
           variant="outlined"
           size="small"
           value={filtros.searchTerm}
@@ -1765,6 +1774,7 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>
                 Estado Preparación Pedido
@@ -1780,7 +1790,7 @@ function PedidosDashboard() {
           <TableBody>
             {pedidosFiltrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={10} align="center">
                   No hay pedidos encontrados.
                 </TableCell>
               </TableRow>
@@ -1813,6 +1823,89 @@ function PedidosDashboard() {
                   </TableCell>
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
+                  </TableCell>
+
+                  {/* NUEVA COLUMNA - VENDEDOR */}
+                  <TableCell>
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                      <Select
+                        value={pedido.vendedor?._id || ''}
+                        onChange={async (e) => {
+                          const nuevoVendedorId = e.target.value;
+                          
+                          // Verificar permisos
+                          const usuarioActual = JSON.parse(localStorage.getItem('usuario'));
+                          const rolesPermitidos = ['admin', 'supervisor', 'vendedor'];
+                          
+                          if (!rolesPermitidos.includes(usuarioActual?.rol)) {
+                            Swal.fire({
+                              title: "Sin permisos",
+                              text: "No tienes permisos para asignar vendedores",
+                              icon: "error",
+                              confirmButtonText: "OK"
+                            });
+                            return;
+                          }
+
+                          try {
+                            const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedido.shopifyId}`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ 
+                                vendedor_id: nuevoVendedorId,
+                                cliente: pedido.cliente,
+                                telefono: pedido.telefono,
+                                direccion: pedido.ubicacion
+                              }),
+                            });
+
+                            if (res.ok) {
+                              const vendedorSeleccionado = vendedores.find(v => v._id === nuevoVendedorId);
+                              
+                              setPedidos(prev =>
+                                prev.map(p =>
+                                  p.id === pedido.id 
+                                    ? { ...p, vendedor: vendedorSeleccionado } 
+                                    : p
+                                )
+                              );
+                              setPedidosOriginales(prev =>
+                                prev.map(p =>
+                                  p.id === pedido.id 
+                                    ? { ...p, vendedor: vendedorSeleccionado } 
+                                    : p
+                                )
+                              );
+                              
+                              Swal.fire({
+                                title: "¡Vendedor asignado!",
+                                text: `El vendedor ${vendedorSeleccionado?.nombre} ha sido asignado al pedido.`,
+                                icon: "success",
+                                confirmButtonText: "OK"
+                              });
+                            }
+                          } catch (error) {
+                            Swal.fire({
+                              title: "Error",
+                              text: "No se pudo asignar el vendedor",
+                              icon: "error",
+                              confirmButtonText: "OK"
+                            });
+                          }
+                        }}
+                        displayEmpty
+                        disabled={loadingVendedores}
+                      >
+                        <MenuItem value="">
+                          <em>Sin asignar</em>
+                        </MenuItem>
+                        {vendedores.map((vendedor) => (
+                          <MenuItem key={vendedor._id} value={vendedor._id}>
+                            {vendedor.nombre}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </TableCell>
 
                   <TableCell>
@@ -1880,8 +1973,8 @@ function PedidosDashboard() {
                             ? "pagado"
                             : "pendiente")) === "pagado"
                           ? {
-                            backgroundColor: "#b0b0b0", // gris más oscuro
-                            color: "#222", // texto más oscuro
+                            backgroundColor: "#b0b0b0",
+                            color: "#222",
                             textTransform: "none",
                             fontWeight: "bold",
                             boxShadow: "none",
@@ -1969,8 +2062,8 @@ function PedidosDashboard() {
                             ? "preparado"
                             : "no_preparado")) === "preparado"
                           ? {
-                            backgroundColor: "#555", // gris oscuro
-                            color: "#fff", // texto blanco
+                            backgroundColor: "#555",
+                            color: "#fff",
                             textTransform: "none",
                             fontWeight: "bold",
                             boxShadow: "none",
@@ -2032,6 +2125,7 @@ function PedidosDashboard() {
                           cliente: pedido.cliente || "",
                           direccion: pedido.ubicacion || "",
                           telefono: pedido.telefono || "",
+                          vendedor_id: pedido.vendedor?._id || "",
                           fecha: pedido.fechas?.ingreso || "",
                         });
                         setModalOpen(true);
@@ -2060,97 +2154,121 @@ function PedidosDashboard() {
         />
       </TableContainer>
 
-             <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Editar Pedido</DialogTitle>
-          <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              label="Cliente"
-              value={pedidoEditado.cliente}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label="Teléfono"
-              value={pedidoEditado.telefono}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label="Dirección"
-              value={pedidoEditado.direccion}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
-              fullWidth
-              size="small"
-            />
-            {/* Si quieres agregar fecha: */}
-            {/* <TextField
-              label="Fecha"
-              type="date"
-              value={pedidoEditado.fecha}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, fecha: e.target.value })}
-              fullWidth
-              size="small"
-              InputLabelProps={{ shrink: true }}
-            /> */}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                setModalOpen(false); // Cierra el modal de edición
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Editar Pedido</DialogTitle>
+        <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Cliente"
+            value={pedidoEditado.cliente}
+            onChange={e => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          
+          {/* Selector de Vendedor en el modal */}
+          <FormControl fullWidth size="small">
+            <InputLabel>Vendedor</InputLabel>
+            <Select
+              value={pedidoEditado.vendedor_id || ''}
+              onChange={e => setPedidoEditado({ ...pedidoEditado, vendedor_id: e.target.value })}
+              label="Vendedor"
+            >
+              <MenuItem value="">
+                <em>Sin asignar</em>
+              </MenuItem>
+              {vendedores.map((vendedor) => (
+                <MenuItem key={vendedor._id} value={vendedor._id}>
+                  {vendedor.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-                // Espera a que el modal se cierre antes de continuar
-                setTimeout(async () => {
-                  try {
-                    // Actualiza en la BD
-                    const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(pedidoEditado),
-                    });
+          <TextField
+            label="Teléfono"
+            value={pedidoEditado.telefono}
+            onChange={e => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Dirección"
+            value={pedidoEditado.direccion}
+            onChange={e => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
+            fullWidth
+            size="small"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={async () => {
+              setModalOpen(false);
+              setTimeout(async () => {
+                try {
+                  const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(pedidoEditado),
+                  });
 
-                    if (res.ok) {
-                      // Actualiza la tabla en el frontend
-                      setPedidos(prev =>
-                        prev.map(p =>
-                          p.id === pedidoSeleccionado.id ? { ...p, ...pedidoEditado } : p
-                        )
-                      );
+                  if (res.ok) {
+                    const vendedorSeleccionado = vendedores.find(v => v._id === pedidoEditado.vendedor_id);
+                    
+                    setPedidos(prev =>
+                      prev.map(p =>
+                        p.id === pedidoSeleccionado.id 
+                          ? { 
+                              ...p, 
+                              ...pedidoEditado,
+                              vendedor: vendedorSeleccionado 
+                            } 
+                          : p
+                      )
+                    );
+                    setPedidosOriginales(prev =>
+                      prev.map(p =>
+                        p.id === pedidoSeleccionado.id 
+                          ? { 
+                              ...p, 
+                              ...pedidoEditado,
+                              vendedor: vendedorSeleccionado 
+                            } 
+                          : p
+                      )
+                    );
 
-                      // Muestra el modal de éxito
-                      await Swal.fire({
-                        title: "¡Pedido actualizado!",
-                        text: "La información del pedido se actualizó correctamente.",
-                        icon: "success",
-                        confirmButtonText: "OK"
-                      });
-                    } else {
-                      Swal.fire({
-                        title: "Error",
-                        text: "No se pudo actualizar el pedido.",
-                        icon: "error",
-                        confirmButtonText: "OK"
-                      });
-                    }
-                  } catch (error) {
                     Swal.fire({
-                      title: "Error de conexión",
-                      text: "No se pudo conectar al servidor.",
+                      title: "¡Pedido actualizado!",
+                      text: "La información del pedido se actualizó correctamente.",
+                      icon: "success",
+                      confirmButtonText: "OK"
+                    });
+                  } else {
+                    Swal.fire({
+                      title: "Error",
+                      text: "No se pudo actualizar el pedido.",
                       icon: "error",
                       confirmButtonText: "OK"
                     });
                   }
-                }, 200); // Espera 200 ms para que el modal anterior se cierre
-              }}
-            >
-              Guardar
-            </Button>
-            </DialogActions>
-        </Dialog>
+                } catch (error) {
+                  Swal.fire({
+                    title: "Error de conexión",
+                    text: "No se pudo conectar al servidor.",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                  });
+                }
+              }, 200);
+            }}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Drawer
         anchor="right"
@@ -2452,21 +2570,6 @@ function PedidosDashboard() {
                 ))}
               </RadioGroup>
             </FormControl>
-
-            {/*
-            // DROPDOWN OCULTO - Estado Adicional
-            <FormControl fullWidth size="small">
-              <Select
-                name="estadoAdicional"
-                value={nuevoPedido.estadoAdicional}
-                onChange={handleFormChange}
-              >
-                {['IN-WOW', 'ADMITIDO', 'POR DERIVAR', 'FINAL DE ENTREGA'].map(opt => (
-                  <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            */}
 
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
               Productos

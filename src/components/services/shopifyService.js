@@ -281,9 +281,9 @@ export const fetchOrderByName = async (valorBuscar) => {
         String(p.order_number) === valorBuscar
     );
 
-    if (pedidoEncontrado) {
-      console.log("✅ Pedido encontrado:", pedidoEncontrado);
-      return pedidoEncontrado; 
+    if (pedidoShopify) {
+      console.log("✅ Pedido encontrado:", pedidoShopify);
+      return pedidoShopify; 
     } else {
       console.warn("❌ Pedido no encontrado");
       return null;
@@ -296,8 +296,6 @@ export const fetchOrderByName = async (valorBuscar) => {
 
 export const fetchPedidoInterno = async (shopifyOrderId) => {
   try {
-
-    const API_BASE_URL = 'https://api.novedadeswow.com/api';
     const response = await fetch(`${API_BASE_URL}/pedidos-internos/${shopifyOrderId}`);
     if (!response.ok) {
       throw new Error("Error al obtener pedido interno");
