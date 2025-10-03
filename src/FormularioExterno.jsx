@@ -316,9 +316,6 @@ const FormularioExterno = () => {
 
           {/* BOTONES */}
           <div className="btn-group">
-            <button className="btn cyan">
-              <RefreshCcw size={18} /> ACTUALIZAR
-            </button>
             <button className="btn blue">
               <Save size={18} /> GUARDAR
             </button>
@@ -424,17 +421,6 @@ const FormularioExterno = () => {
               </div>
 
               <div className="input-group">
-                <label>Medio Depositado:</label>
-                <select name="medioDepositado" value={formData2.medioDepositado} onChange={handleChange2}>
-                  <option value="">Seleccione...</option>
-                  <option value="efectivo">Efectivo</option>
-                  <option value="transferencia">Transferencia</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="yape">Yape/Plin</option>
-                </select>
-              </div>
-
-              <div className="input-group">
                 <label>Fecha Depositada:</label>
                 <div className="input-with-icon">
                   <input 
@@ -487,9 +473,6 @@ const FormularioExterno = () => {
 
           {/* BOTONES */}
           <div className="btn-group">
-            <button className="btn cyan">
-              <RefreshCcw size={18} /> ACTUALIZAR
-            </button>
             <button className="btn blue">
               <Save size={18} /> GUARDAR
             </button>
