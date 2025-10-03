@@ -4,25 +4,25 @@ import { fetchAuthUser } from "./components/services/shopifyService";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  // 1. Inicializa el estado 'usuario' leyendo de localStorage al cargar
   const [usuario, setUsuario] = useState(() => {
     const storedUser = localStorage.getItem("currentUser");
+    console.log("Stored user raw:", storedUser); // Debug
     try {
       return storedUser ? JSON.parse(storedUser) : null;
     } catch (e) {
       console.error("Error parsing stored user from localStorage:", e);
-      return null; // Si hay un error, el usuario es nulo
+      return null;
     }
   });
 
-  // 2. Usa useEffect para guardar o eliminar el usuario en localStorage cada vez que 'usuario' cambie
   useEffect(() => {
     if (usuario) {
       localStorage.setItem("currentUser", JSON.stringify(usuario));
     } else {
-      localStorage.removeItem("currentUser"); // Limpia si el usuario cierra sesión
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("authToken"); // Limpia authToken
     }
-  }, [usuario]); // Dependencia: el efecto se ejecuta cuando 'usuario' cambia
+  }, [usuario]);
 
   useEffect(() => {
     if (!usuario) {
@@ -30,7 +30,6 @@ const UserProvider = ({ children }) => {
         if (fetchedUser) {
           setUsuario(fetchedUser);
         } else {
-          // Si el token no es válido, limpiamos
           localStorage.removeItem("authToken");
           localStorage.removeItem("currentUser");
         }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
-import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno } from './components/services/shopifyService';
+import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno, guardarPedidoInterno } from './components/services/shopifyService';
 
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 import Swal from 'sweetalert2';
@@ -261,7 +261,6 @@ const FormularioInterno = () => {
       "¿Estás seguro de que deseas guardar este pedido?",
       async () => {
         try {
-          // 👇 Mapeamos los campos de formData a lo que espera Laravel
           const payload = {
             shopify_order_id: formData.shopify_order_id,
             asesor: formData.asesor,
@@ -269,40 +268,25 @@ const FormularioInterno = () => {
             codigo: formData.codigo,
             celular: formData.celular,
             cliente: formData.cliente,
-            provincia_distrito: formData.ubicacion,      
+            provincia_distrito: formData.ubicacion,
             direccion: formData.direccion,
             referencias: formData.referencias,
-            notas_asesor: formData.notasAsesor,           
-            notas_supervisor: formData.notasSupervision,  
-
-            // 👇 Agregamos productos si existen en el formData
+            notas_asesor: formData.notasAsesor,
+            notas_supervisor: formData.notasSupervision,
             productos: formData.productos
               ? formData.productos.map((p) => ({
-                nombre: p.nombre,       
-                cantidad: p.cantidad,   
-                precio: p.precio,       
+                nombre: p.nombre,
+                cantidad: p.cantidad,
+                precio: p.precio,
               }))
               : [],
           };
 
-          console.log("Datos que se enviarán:", payload);
+          console.log("Datos que se enviarán:", JSON.stringify(payload, null, 2));
 
-          // Crear pedido interno
-          const response = await fetch("http://127.0.0.1:8000/api/pedidos-internos", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
+          const data = await guardarPedidoInterno(payload, formData.shopify_order_id);
 
-          if (!response.ok) {
-            throw new Error("Error al guardar");
-          }
-
-          const data = await response.json();
           console.log("✅ Guardado en backend:", data);
-
           setIsModified(false);
 
           Swal.fire({
@@ -316,7 +300,7 @@ const FormularioInterno = () => {
           console.error("❌ Error al guardar:", error);
           Swal.fire({
             title: "Error",
-            text: "No se pudo guardar el pedido.",
+            text: "No se pudo guardar el pedido: " + error.message,
             icon: "error",
             confirmButtonColor: "#6b0f1a",
           });
