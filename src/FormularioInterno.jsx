@@ -339,7 +339,7 @@ const FormularioInterno = () => {
           />
           {errors.buscar && <span className="error-message">{errors.buscar}</span>}
         </div>
-        <button className="btn purple" onClick={buscarPedido}>
+        <button className="btn blue" onClick={buscarPedido}>
           <Search size={18} /> BUSCAR
         </button>
       </div>
@@ -439,8 +439,8 @@ const FormularioInterno = () => {
       {/* PRODUCTOS */}
       <div className="products-section">
         <div className="section-header">
-          <h3 className="section-title">🛒 Productos</h3>
-          <button className="btn-add" onClick={addProductField}>
+          <h3 className="section-title">Productos</h3>
+          <button className="btn green" onClick={addProductField}>
             <Plus size={16} /> Añadir Producto
           </button>
         </div>
@@ -502,7 +502,7 @@ const FormularioInterno = () => {
 
         {/* MONTO TOTAL */}
         <div className="total-box">
-          💰 MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
+          MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
         </div>
       </div>
 

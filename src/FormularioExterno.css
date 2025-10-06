@@ -27,8 +27,8 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #6b0f1a, #200122);
-  color: white;
+  background:  #f9fafb;
+  color: rgb(0, 0, 0);
 }
 
 .tab-btn:hover:not(.active) {
@@ -44,9 +44,9 @@
 
 /* CONTENEDOR DE FORMULARIO INDIVIDUAL */
 .form-container {
-  background: rgba(15, 15, 25, 0.95);
+  background-color: #f9fafb;
   backdrop-filter: blur(12px);
-  color: #fff;
+  color: #000000;
   padding: 30px;
   border-radius: 18px;
   font-family: "Segoe UI", sans-serif;
@@ -58,24 +58,16 @@
   display: block;
 }
 
-.form-container.administrative {
-  background: rgba(15, 25, 35, 0.95);
-}
-
 /* TITULO */
 .form-title {
-  background: linear-gradient(135deg, #6b0f1a, #200122);
+  background: #f3f4f6;
   padding: 16px;
   border-radius: 14px;
   text-align: center;
   font-size: 26px;
   font-weight: bold;
-  color: #fff;
+  color: #000000;
   margin-bottom: 20px;
-}
-
-.administrative-title {
-  background: linear-gradient(135deg, #0f4c75, #3282b8);
 }
 
 /* FILA BUSQUEDA */
@@ -96,14 +88,10 @@
   padding: 14px;
   border-radius: 12px;
   border: none;
-  background: #1f1f1f;
-  color: #fff;
+  background: #ffffff;
+  color: #000000;
   outline: none;
   transition: all 0.2s ease;
-}
-
-.search-row input:focus {
-  box-shadow: 0 0 10px #ba55d3;
 }
 
 /* GRID FORM */
@@ -127,7 +115,7 @@
 .input-group label {
   font-weight: 600;
   font-size: 14px;
-  color: #ddd;
+  color: #000000;
 }
 
 .input-group input,
@@ -135,24 +123,23 @@
 .input-group textarea {
   padding: 12px;
   border-radius: 12px;
-  border: 2px solid #3a3a3a;
-  background: #2a2a2a;
-  color: #fff;
+  border: 2px solid #dbdcdc;
+  background: #ffffff;
+  color: #000000;
   outline: none;
   transition: all 0.2s ease;
-}
-
-.input-group input:focus,
-.input-group select:focus,
-.input-group textarea:focus {
-  border-color: #1e90ff;
-  box-shadow: 0 0 8px #1e90ff;
 }
 
 .input-group input.error,
 .input-group select.error,
 .input-group textarea.error {
   border-color: #ff4757;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #969696; 
+  opacity: 1;
 }
 
 .error-message {
@@ -177,7 +164,7 @@
 .administrative-section {
   margin-bottom: 30px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background-color: #f9fafb;
   border-radius: 12px;
 }
 
@@ -185,7 +172,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #3282b8;
+  color: #000000;
   margin-bottom: 20px;
   font-size: 18px;
 }
@@ -206,7 +193,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: bold;
-  color: #ffa500;
+  color: #000000;
 }
 
 .btn-add {
@@ -239,7 +226,7 @@
   grid-template-columns: 2fr 1fr 1fr 1fr 60px;
   gap: 12px;
   padding: 10px;
-  background: rgba(255, 165, 0, 0.1);
+  background: #f3f4f6;
   border-radius: 8px;
   font-weight: bold;
   font-size: 14px;
@@ -255,21 +242,16 @@
 .product-row input {
   padding: 10px;
   border-radius: 8px;
-  border: 2px solid #3a3a3a;
-  background: #2a2a2a;
-  color: #fff;
+  border: 2px solid #dbdcdc;
+  background: #ffffff;
+  color: #000000;
   outline: none;
-}
-
-.product-row input:focus {
-  border-color: #20b2aa;
-  box-shadow: 0 0 8px #20b2aa;
 }
 
 .subtotal {
   text-align: center;
   font-weight: bold;
-  color: #20b2aa;
+  color: #4338ca;
 }
 
 .btn-remove {
@@ -296,8 +278,8 @@
 
 /* MONTO */
 .total-box {
-  background: linear-gradient(135deg, #003b46, #07575b);
-  color: #fff;
+  background: #f3f4f6;
+  color: #000000;
   padding: 16px;
   border-radius: 12px;
   font-weight: bold;
@@ -318,16 +300,11 @@
   min-height: 100px;
   padding: 14px;
   border-radius: 12px;
-  border: 2px solid #3a3a3a;
-  background: #2a2a2a;
-  color: #fff;
+  border: 2px solid #dbdcdc;
+  background: #ffffff;
+  color: #000000;
   resize: vertical;
   outline: none;
-}
-
-.form-notes textarea:focus {
-  border-color: #ffa500;
-  box-shadow: 0 0 8px #ffa500;
 }
 
 /* BOTONES */
@@ -349,7 +326,7 @@
   cursor: pointer;
   font-size: 15px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .btn:hover:not(:disabled) {
@@ -372,12 +349,12 @@
 }
 
 .btn.blue {
-  background: linear-gradient(135deg, #0000cd, #1e90ff);
+  background: #4338ca;
   color: white;
 }
 
 .btn.green {
-  background: linear-gradient(135deg, #228b22, #32cd32);
+  background: #228b22;
   color: white;
 }
 
@@ -386,12 +363,12 @@
   .forms-wrapper {
     flex-direction: row;
   }
-  
+
   .form-container {
     flex: 1;
     display: block;
   }
-  
+
   .form-tabs {
     display: none;
   }
@@ -401,50 +378,50 @@
   .form-container {
     padding: 20px;
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-notes {
     grid-template-columns: 1fr;
   }
-  
+
   .table-header,
   .product-row {
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: 
+    grid-template-areas:
       "producto producto"
       "cantidad precio"
       "subtotal remove";
     gap: 10px;
   }
-  
+
   .table-header span:nth-child(1),
   .product-row input:nth-child(1) {
     grid-area: producto;
   }
-  
+
   .table-header span:nth-child(2),
   .product-row input:nth-child(2) {
     grid-area: cantidad;
   }
-  
+
   .table-header span:nth-child(3),
   .product-row input:nth-child(3) {
     grid-area: precio;
   }
-  
+
   .table-header span:nth-child(4),
   .product-row .subtotal {
     grid-area: subtotal;
   }
-  
+
   .table-header span:nth-child(5),
   .product-row .btn-remove {
     grid-area: remove;
   }
-  
+
   .btn-group {
     flex-direction: column;
   }

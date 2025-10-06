@@ -302,6 +302,8 @@ export const fetchOrderByName = async (valorBuscar) => {
   }
 };
 
+
+
 export const fetchPedidoInterno = async (shopifyOrderId) => {
   try {
 
@@ -317,6 +319,8 @@ export const fetchPedidoInterno = async (shopifyOrderId) => {
     return null;
   }
 };
+
+
 
 export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
   try {
@@ -340,6 +344,77 @@ export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
 
     return await response.json();
   } catch (error) {
+    throw error;
+  }
+};
+
+// Buscar pedido externo por shopify_order_id (incluye productos y envio)
+export const fetchPedidoExterno = async (shopifyOrderId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pedido-externo/shopify/${shopifyOrderId}`);
+
+    if (!response.ok) {
+      throw new Error("Error al obtener pedido externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en fetchPedidoExterno:", error);
+    return null;
+  }
+};
+
+// Guardar/Actualizar pedido externo y productos (usa POST para store/update)
+export const guardarPedidoExterno = async (data) => {
+  try {
+    // Si ya existe shopify_order_id, usa PUT; si no, POST
+    const url = data.shopify_order_id
+      ? `${API_BASE_URL}/pedido-externo/${data.shopify_order_id}`
+      : `${API_BASE_URL}/pedido-externo`;
+
+    const method = data.shopify_order_id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al guardar pedido externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en guardarPedidoExterno:", error);
+    throw error;
+  }
+};
+
+// Guardar/Actualizar envío externo (usa POST para store/update, separada)
+export const guardarPedidoExternoEnvio = async (data) => {
+  try {
+    // Siempre incluye shopify_order_id para updateOrCreate
+    const url = data.shopify_order_id
+      ? `${API_BASE_URL}/pedido-externo-envio/${data.shopify_order_id}`
+      : `${API_BASE_URL}/pedido-externo-envio`;
+
+    const method = data.shopify_order_id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al guardar envío externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en guardarPedidoExternoEnvio:", error);
     throw error;
   }
 };
