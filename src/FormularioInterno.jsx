@@ -252,6 +252,8 @@ const FormularioInterno = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+
+
   // Guardar formulario
   const handleGuardarFormulario = async () => {
     if (!validarFormulario()) return;
@@ -309,240 +311,239 @@ const FormularioInterno = () => {
 
       }
     )
-  }
-    ;
-};
+  };
 
 
 
-// Calcular monto total
-const montoCobrar = formData.productos.reduce(
-  (acc, producto) => acc + (parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)),
-  0
-);
 
-return (
-  <div className="form-container">
-    <h2 className="form-title">COD - YARA</h2>
+  // Calcular monto total
+  const montoCobrar = formData.productos.reduce(
+    (acc, producto) => acc + (parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)),
+    0
+  );
 
-    {/* BUSCAR */}
-    <div className="form-group search-row">
-      <div className="search-container">
-        <input
-          type="text"
-          name="buscar"
-          placeholder="Ingrese código o nombre de cliente"
-          value={formData.buscar}
-          onChange={handleChange}
-          className={errors.buscar ? "error" : ""}
-        />
-        {errors.buscar && <span className="error-message">{errors.buscar}</span>}
-      </div>
-      <button className="btn purple" onClick={buscarPedido}>
-        <Search size={18} /> BUSCAR
-      </button>
-    </div>
+  return (
+    <div className="form-container">
+      <h2 className="form-title">COD - YARA</h2>
 
-    {/* INFO PRINCIPAL */}
-    <div className="form-grid">
-      <div className="input-group">
-        <label>Asesor:</label>
-        <input
-          type="text"
-          name="asesor"
-          value={formData.asesor}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Estado:</label>
-        <select name="estado" value={formData.estado} onChange={handleChange}>
-          <option value="">Seleccione...</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="cancelado">Cancelado</option>
-          <option value="entregado">Entregado</option>
-          <option value="en-camino">En camino</option>
-        </select>
-      </div>
-
-      <div className="input-group">
-        <label>Código:</label>
-        <input
-          type="text"
-          name="codigo"
-          value={formData.codigo}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="input-group">
-        <label>N° Celular: *</label>
-        <input
-          type="text"
-          name="celular"
-          value={formData.celular}
-          onChange={handleChange}
-          className={errors.celular ? "error" : ""}
-        />
-        {errors.celular && <span className="error-message">{errors.celular}</span>}
-      </div>
-
-      <div className="input-group">
-        <label>Cliente: *</label>
-        <input
-          type="text"
-          name="cliente"
-          value={formData.cliente}
-          onChange={handleChange}
-          className={errors.cliente ? "error" : ""}
-        />
-        {errors.cliente && <span className="error-message">{errors.cliente}</span>}
-      </div>
-
-      <div className="input-group">
-        <label>Provincia y Distrito:</label>
-        <input
-          type="text"
-          name="ubicacion"
-          value={formData.ubicacion}
-          onChange={handleChange}
-        />
-      </div>
-
-
-      <div className="input-group full-width">
-        <label>Dirección: *</label>
-        <input
-          type="text"
-          name="direccion"
-          value={formData.direccion}
-          onChange={handleChange}
-          className={errors.direccion ? "error" : ""}
-        />
-        {errors.direccion && <span className="error-message">{errors.direccion}</span>}
-      </div>
-
-      <div className="input-group full-width">
-        <label>Referencias:</label>
-        <input
-          type="text"
-          name="referencias"
-          value={formData.referencias}
-          onChange={handleChange}
-        />
-      </div>
-    </div>
-
-    {/* PRODUCTOS */}
-    <div className="products-section">
-      <div className="section-header">
-        <h3 className="section-title">🛒 Productos</h3>
-        <button className="btn-add" onClick={addProductField}>
-          <Plus size={16} /> Añadir Producto
+      {/* BUSCAR */}
+      <div className="form-group search-row">
+        <div className="search-container">
+          <input
+            type="text"
+            name="buscar"
+            placeholder="Ingrese código o nombre de cliente"
+            value={formData.buscar}
+            onChange={handleChange}
+            className={errors.buscar ? "error" : ""}
+          />
+          {errors.buscar && <span className="error-message">{errors.buscar}</span>}
+        </div>
+        <button className="btn purple" onClick={buscarPedido}>
+          <Search size={18} /> BUSCAR
         </button>
       </div>
 
-      <div className="products-table">
-        <div className="table-header">
-          <span>Producto</span>
-          <span>Cantidad</span>
-          <span>Precio Unit. (S/.)</span>
-          <span>Subtotal (S/.)</span>
-          <span>Acción</span>
+      {/* INFO PRINCIPAL */}
+      <div className="form-grid">
+        <div className="input-group">
+          <label>Asesor:</label>
+          <input
+            type="text"
+            name="asesor"
+            value={formData.asesor}
+            onChange={handleChange}
+          />
         </div>
 
-        {formData.productos.map((producto, index) => (
-          <div className="product-row" key={index}>
-            <input
-              type="text"
-              placeholder={`Nombre del producto ${index + 1}`}
-              value={producto.nombre}
-              onChange={(e) => handleProductChange(index, "nombre", e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="0"
-              min="1"
-              value={producto.cantidad}
-              onChange={(e) => handleProductChange(index, "cantidad", e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              value={producto.precio}
-              onChange={(e) => handleProductChange(index, "precio", e.target.value)}
-            />
-            <div className="subtotal">
-              S/. {(parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)).toFixed(2)}
+        <div className="input-group">
+          <label>Estado:</label>
+          <select name="estado" value={formData.estado} onChange={handleChange}>
+            <option value="">Seleccione...</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="cancelado">Cancelado</option>
+            <option value="entregado">Entregado</option>
+            <option value="en-camino">En camino</option>
+          </select>
+        </div>
+
+        <div className="input-group">
+          <label>Código:</label>
+          <input
+            type="text"
+            name="codigo"
+            value={formData.codigo}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="input-group">
+          <label>N° Celular: *</label>
+          <input
+            type="text"
+            name="celular"
+            value={formData.celular}
+            onChange={handleChange}
+            className={errors.celular ? "error" : ""}
+          />
+          {errors.celular && <span className="error-message">{errors.celular}</span>}
+        </div>
+
+        <div className="input-group">
+          <label>Cliente: *</label>
+          <input
+            type="text"
+            name="cliente"
+            value={formData.cliente}
+            onChange={handleChange}
+            className={errors.cliente ? "error" : ""}
+          />
+          {errors.cliente && <span className="error-message">{errors.cliente}</span>}
+        </div>
+
+        <div className="input-group">
+          <label>Provincia y Distrito:</label>
+          <input
+            type="text"
+            name="ubicacion"
+            value={formData.ubicacion}
+            onChange={handleChange}
+          />
+        </div>
+
+
+        <div className="input-group full-width">
+          <label>Dirección: *</label>
+          <input
+            type="text"
+            name="direccion"
+            value={formData.direccion}
+            onChange={handleChange}
+            className={errors.direccion ? "error" : ""}
+          />
+          {errors.direccion && <span className="error-message">{errors.direccion}</span>}
+        </div>
+
+        <div className="input-group full-width">
+          <label>Referencias:</label>
+          <input
+            type="text"
+            name="referencias"
+            value={formData.referencias}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+
+      {/* PRODUCTOS */}
+      <div className="products-section">
+        <div className="section-header">
+          <h3 className="section-title">🛒 Productos</h3>
+          <button className="btn-add" onClick={addProductField}>
+            <Plus size={16} /> Añadir Producto
+          </button>
+        </div>
+
+        <div className="products-table">
+          <div className="table-header">
+            <span>Producto</span>
+            <span>Cantidad</span>
+            <span>Precio Unit. (S/.)</span>
+            <span>Subtotal (S/.)</span>
+            <span>Acción</span>
+          </div>
+
+          {formData.productos.map((producto, index) => (
+            <div className="product-row" key={index}>
+              <input
+                type="text"
+                placeholder={`Nombre del producto ${index + 1}`}
+                value={producto.nombre}
+                onChange={(e) => handleProductChange(index, "nombre", e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="0"
+                min="1"
+                value={producto.cantidad}
+                onChange={(e) => handleProductChange(index, "cantidad", e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                value={producto.precio}
+                onChange={(e) => handleProductChange(index, "precio", e.target.value)}
+              />
+              <div className="subtotal">
+                S/. {(parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)).toFixed(2)}
+              </div>
+              <button
+                className="btn-remove"
+                onClick={() => removeProductField(index)}
+                disabled={formData.productos.length <= 1}
+              >
+                <Minus size={16} />
+              </button>
             </div>
-            <button
-              className="btn-remove"
-              onClick={() => removeProductField(index)}
-              disabled={formData.productos.length <= 1}
-            >
-              <Minus size={16} />
-            </button>
-          </div>
-        ))}
+          ))}
 
-        {Object.keys(errors).some(key => key.startsWith('producto-')) && (
-          <div className="error-message">
-            {Object.entries(errors)
-              .filter(([key]) => key.startsWith('producto-'))
-              .map(([_, value]) => value)
-              .join(', ')}
-          </div>
-        )}
+          {Object.keys(errors).some(key => key.startsWith('producto-')) && (
+            <div className="error-message">
+              {Object.entries(errors)
+                .filter(([key]) => key.startsWith('producto-'))
+                .map(([_, value]) => value)
+                .join(', ')}
+            </div>
+          )}
+        </div>
+
+        {/* MONTO TOTAL */}
+        <div className="total-box">
+          💰 MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
+        </div>
       </div>
 
-      {/* MONTO TOTAL */}
-      <div className="total-box">
-        💰 MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
+      {/* NOTAS */}
+      <div className="form-notes">
+        <div className="input-group">
+          <label>Notas de Asesor:</label>
+          <textarea
+            name="notasAsesor"
+            value={formData.notasAsesor}
+            onChange={handleChange}
+            placeholder="Ingrese observaciones del asesor..."
+          />
+        </div>
+
+        <div className="input-group">
+          <label>Notas Supervisión:</label>
+          <textarea
+            name="notasSupervision"
+            value={formData.notasSupervision}
+            onChange={handleChange}
+            placeholder="Ingrese observaciones de supervisión..."
+          />
+        </div>
+      </div>
+
+      {/* BOTONES */}
+      <div className="btn-group">
+        <button
+          className="btn blue"
+          onClick={handleGuardarFormulario}
+          disabled={!isModified}
+        >
+          <Save size={18} /> {isModified ? "GUARDAR CAMBIOS" : "GUARDADO"}
+        </button>
+        <button className="btn green" onClick={handleLimpiarFormulario}>
+          <Trash2 size={18} /> LIMPIAR
+        </button>
       </div>
     </div>
+  );
 
-    {/* NOTAS */}
-    <div className="form-notes">
-      <div className="input-group">
-        <label>Notas de Asesor:</label>
-        <textarea
-          name="notasAsesor"
-          value={formData.notasAsesor}
-          onChange={handleChange}
-          placeholder="Ingrese observaciones del asesor..."
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Notas Supervisión:</label>
-        <textarea
-          name="notasSupervision"
-          value={formData.notasSupervision}
-          onChange={handleChange}
-          placeholder="Ingrese observaciones de supervisión..."
-        />
-      </div>
-    </div>
-
-    {/* BOTONES */}
-    <div className="btn-group">
-      <button
-        className="btn blue"
-        onClick={handleGuardarFormulario}
-        disabled={!isModified}
-      >
-        <Save size={18} /> {isModified ? "GUARDAR CAMBIOS" : "GUARDADO"}
-      </button>
-      <button className="btn green" onClick={handleLimpiarFormulario}>
-        <Trash2 size={18} /> LIMPIAR
-      </button>
-    </div>
-  </div>
-);
-
-
-export default FormularioInterno;
+};
+export default FormularioInterno; 
