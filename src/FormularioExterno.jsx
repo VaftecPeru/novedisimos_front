@@ -4,7 +4,7 @@ import {
   fetchOrderByName, fetchEstadosPedidos, fetchPedidoExterno, guardarPedidoExterno, guardarPedidoExternoEnvio,
 } from './components/services/shopifyService';
 
-import { Search, Save, RefreshCcw, Trash2, Plus, Minus, Calendar, Truck, DollarSign } from "lucide-react";
+import { Search, Save, RefreshCcw, Trash2, Plus, Minus, Calendar, Truck, DollarSign, UsbIcon } from "lucide-react";
 import Swal from 'sweetalert2';
 
 const FormularioExterno = () => {
@@ -17,8 +17,7 @@ const FormularioExterno = () => {
     estado: "",
     cliente: "",
     celular: "",
-    provincia: "",
-    distrito: "",
+    ubicacion: "",
     direccion: "",
     referencias: "",
     productos: [{ nombre: "", cantidad: "", precio: "" }],
@@ -119,7 +118,7 @@ const FormularioExterno = () => {
 
       const noteAttributes = pedidoShopify.note_attributes || [];
       const celularEnAtributos = noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
-      const provUbicacionEnAtributos = noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
+      const ubicacionEnAtributos = noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
       const direccionEnAtributos = noteAttributes.find((attr) => attr.name === "Dirección")?.value || "";
       const referenciasEnAtributos = noteAttributes.find((attr) => attr.name === "Referencias")?.value || "";
       const clienteEnAtributos = noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
@@ -132,8 +131,7 @@ const FormularioExterno = () => {
         estado: mapShopifyStatus(pedidoShopify, estadoInterno),
         cliente: clienteEnAtributos || "",
         celular: celularEnAtributos,
-        provincia: provUbicacionEnAtributos ? provUbicacionEnAtributos.split(',')[0].trim() || "" : "", // Split simple para provincia
-        distrito: provUbicacionEnAtributos ? provUbicacionEnAtributos.split(',').slice(1).join(',').trim() || "" : "",
+        ubicacion: ubicacionEnAtributos ? ubicacionEnAtributos.split(',')[0].trim() || "" : "", 
         direccion: direccionEnAtributos || "",
         referencias: referenciasEnAtributos || "",
         productos: pedidoShopify.line_items && Array.isArray(pedidoShopify.line_items)
@@ -153,7 +151,7 @@ const FormularioExterno = () => {
         pedidoFormateado1.estado = pedidoBD.estado || pedidoFormateado1.estado;
         pedidoFormateado1.cliente = pedidoBD.cliente || pedidoFormateado1.cliente;
         pedidoFormateado1.celular = pedidoBD.celular || pedidoFormateado1.celular;
-        pedidoFormateado1.provincia = pedidoBD.provincia_distrito || pedidoFormateado1.provincia; // Full en provincia por simplicidad
+        pedidoFormateado1.ubicacion = pedidoBD.provincia_distrito || pedidoFormateado1.ubicacion; 
         pedidoFormateado1.direccion = pedidoBD.direccion || pedidoFormateado1.direccion;
         pedidoFormateado1.referencias = pedidoBD.referencias || pedidoFormateado1.referencias;
         pedidoFormateado1.notasAsesor = pedidoBD.notas_asesor || pedidoFormateado1.notasAsesor;
@@ -267,7 +265,7 @@ const FormularioExterno = () => {
             codigo: formData1.codigo,
             celular: formData1.celular,
             cliente: formData1.cliente,
-            provincia_distrito: `${formData1.provincia} ${formData1.distrito}`.trim(),
+            provincia_distrito: `${formData1.ubicacion}`.trim(),
             direccion: formData1.direccion,
             referencias: formData1.referencias,
             notas_asesor: formData1.notasAsesor,
@@ -496,21 +494,11 @@ const FormularioExterno = () => {
             </div>
 
             <div className="input-group">
-              <label>Provincia:</label>
+              <label>ubicacion:</label>
               <input
                 type="text"
-                name="provincia"
-                value={formData1.provincia}
-                onChange={handleChange1}
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Distrito:</label>
-              <input
-                type="text"
-                name="distrito"
-                value={formData1.distrito}
+                name="ubicacion"
+                value={formData1.ubicacion}
                 onChange={handleChange1}
               />
             </div>

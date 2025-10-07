@@ -323,7 +323,7 @@ const FormularioInterno = () => {
   );
 
   return (
-    <div className="form-container">
+    <div className="form-container-interno">
       <h2 className="form-title">COD - YARA</h2>
 
       {/* BUSCAR */}

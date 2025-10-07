@@ -1,5 +1,5 @@
 /* CONTENEDOR */
-.form-container {
+.form-container-interno {
   backdrop-filter: blur(12px);
   color: #000000;
   padding: 30px;
@@ -351,7 +351,7 @@ textarea::placeholder {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .form-container {
+  .form-container-interno {
     padding: 20px;
   }
   
