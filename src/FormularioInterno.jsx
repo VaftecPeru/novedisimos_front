@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
-import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno } from './components/services/shopifyService';
+import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno, guardarPedidoInterno } from './components/services/shopifyService';
 
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
 import Swal from 'sweetalert2';
@@ -252,6 +252,8 @@ const FormularioInterno = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+
+
   // Guardar formulario
   const handleGuardarFormulario = async () => {
     if (!validarFormulario()) return;
@@ -261,7 +263,6 @@ const FormularioInterno = () => {
       "¿Estás seguro de que deseas guardar este pedido?",
       async () => {
         try {
-          // 👇 Mapeamos los campos de formData a lo que espera Laravel
           const payload = {
             shopify_order_id: formData.shopify_order_id,
             asesor: formData.asesor,
@@ -269,40 +270,26 @@ const FormularioInterno = () => {
             codigo: formData.codigo,
             celular: formData.celular,
             cliente: formData.cliente,
-            provincia_distrito: formData.ubicacion,      
+            provincia_distrito: formData.ubicacion,
             direccion: formData.direccion,
             referencias: formData.referencias,
-            notas_asesor: formData.notasAsesor,           
-            notas_supervisor: formData.notasSupervision,  
-
-            // 👇 Agregamos productos si existen en el formData
+            notas_asesor: formData.notasAsesor,
+            notas_supervisor: formData.notasSupervision,
             productos: formData.productos
               ? formData.productos.map((p) => ({
-                nombre: p.nombre,       
-                cantidad: p.cantidad,   
-                precio: p.precio,       
+
+                nombre: p.nombre,
+                cantidad: p.cantidad,
+                precio: p.precio,
               }))
               : [],
           };
 
-          console.log("Datos que se enviarán:", payload);
+          console.log("Datos que se enviarán:", JSON.stringify(payload, null, 2));
 
-          // Crear pedido interno
-          const response = await fetch("http://127.0.0.1:8000/api/pedidos-internos", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
+          const data = await guardarPedidoInterno(payload, formData.shopify_order_id);
 
-          if (!response.ok) {
-            throw new Error("Error al guardar");
-          }
-
-          const data = await response.json();
           console.log("✅ Guardado en backend:", data);
-
           setIsModified(false);
 
           Swal.fire({
@@ -316,14 +303,16 @@ const FormularioInterno = () => {
           console.error("❌ Error al guardar:", error);
           Swal.fire({
             title: "Error",
-            text: "No se pudo guardar el pedido.",
+            text: "No se pudo guardar el pedido: " + error.message,
             icon: "error",
             confirmButtonColor: "#6b0f1a",
           });
         }
+
       }
-    );
+    )
   };
+
 
 
 
@@ -334,7 +323,7 @@ const FormularioInterno = () => {
   );
 
   return (
-    <div className="form-container">
+    <div className="form-container-interno">
       <h2 className="form-title">COD - YARA</h2>
 
       {/* BUSCAR */}
@@ -350,7 +339,7 @@ const FormularioInterno = () => {
           />
           {errors.buscar && <span className="error-message">{errors.buscar}</span>}
         </div>
-        <button className="btn purple" onClick={buscarPedido}>
+        <button className="btn blue" onClick={buscarPedido}>
           <Search size={18} /> BUSCAR
         </button>
       </div>
@@ -450,8 +439,8 @@ const FormularioInterno = () => {
       {/* PRODUCTOS */}
       <div className="products-section">
         <div className="section-header">
-          <h3 className="section-title">🛒 Productos</h3>
-          <button className="btn-add" onClick={addProductField}>
+          <h3 className="section-title">Productos</h3>
+          <button className="btn green" onClick={addProductField}>
             <Plus size={16} /> Añadir Producto
           </button>
         </div>
@@ -513,7 +502,7 @@ const FormularioInterno = () => {
 
         {/* MONTO TOTAL */}
         <div className="total-box">
-          💰 MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
+          MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
         </div>
       </div>
 
@@ -555,6 +544,6 @@ const FormularioInterno = () => {
       </div>
     </div>
   );
-};
 
-export default FormularioInterno;
+};
+export default FormularioInterno; 

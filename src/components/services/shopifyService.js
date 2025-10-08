@@ -7,6 +7,10 @@ const CUSTOM_API_BASE_URL = isDevelopment
   ? 'http://localhost:8000/api'
   : 'https://api.novedadeswow.com/api';
 
+const CUSTOM_API_AUTH = isDevelopment
+  ? "http://localhost/api_php"
+  : "https://novedadeswow.com/api_php";
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;
@@ -14,19 +18,23 @@ const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;
 
 export const fetchAuthUser = async () => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return null;
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.log("No token found");
+      return null;
+    }
 
-    const response = await axios.get(`${CUSTOM_API_BASE_URL}/user`, {
+    const response = await axios.get(`${CUSTOM_API_AUTH}/user.php`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        Accept: 'application/json'
-      }
+        Accept: "application/json",
+      },
     });
 
+    console.log("fetchAuthUser response:", response.data);
     return response.data;
   } catch (error) {
-    console.error('⚠️ No se pudo obtener el usuario autenticado:', error.response?.data || error.message);
+    console.error("⚠️ No se pudo obtener el usuario autenticado:", error.response?.data || error.message);
     return null;
   }
 };
@@ -258,8 +266,8 @@ export const getProducts = async () => {
 //  Buscar pedido por name  y devolver el objeto completo
 export const fetchOrderByName = async (valorBuscar) => {
   try {
-    const API_BASE_URL = 'https://api.novedadeswow.com/api';
-    const url = `${API_BASE_URL}/shopify/orders?limit=250`;
+
+    const url = `${CUSTOM_API_BASE_URL}/shopify/orders?limit=250`;
 
     console.log(`🔎 Buscando pedido con name/order_number = ${valorBuscar}`);
 
@@ -277,13 +285,13 @@ export const fetchOrderByName = async (valorBuscar) => {
 
     const pedidoShopify = data.orders.find(
       (p) =>
-        p.name === valorBuscar || 
+        p.name === valorBuscar ||
         String(p.order_number) === valorBuscar
     );
 
     if (pedidoShopify) {
       console.log("✅ Pedido encontrado:", pedidoShopify);
-      return pedidoShopify; 
+      return pedidoShopify;
     } else {
       console.warn("❌ Pedido no encontrado");
       return null;
@@ -294,9 +302,14 @@ export const fetchOrderByName = async (valorBuscar) => {
   }
 };
 
+
+
 export const fetchPedidoInterno = async (shopifyOrderId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/pedidos-internos/${shopifyOrderId}`);
+
+
+    const response = await fetch(`${API_BASE_URL}/pedido-interno/shopify/${shopifyOrderId}`);
+
     if (!response.ok) {
       throw new Error("Error al obtener pedido interno");
     }
@@ -304,6 +317,105 @@ export const fetchPedidoInterno = async (shopifyOrderId) => {
   } catch (error) {
     console.error("❌ Error en fetchPedidoInterno:", error);
     return null;
+  }
+};
+
+
+
+export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
+  try {
+    const response = await fetch(
+
+      `${API_BASE_URL}/pedido-interno${shopifyOrderId ? `/${shopifyOrderId}` : ''}`,
+
+      {
+        method: shopifyOrderId ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error("Error al guardar: " + JSON.stringify(errorData));
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Buscar pedido externo por shopify_order_id (incluye productos y envio)
+export const fetchPedidoExterno = async (shopifyOrderId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pedido-externo/shopify/${shopifyOrderId}`);
+
+    if (!response.ok) {
+      throw new Error("Error al obtener pedido externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en fetchPedidoExterno:", error);
+    return null;
+  }
+};
+
+// Guardar/Actualizar pedido externo y productos (usa POST para store/update)
+export const guardarPedidoExterno = async (data) => {
+  try {
+    // Si ya existe shopify_order_id, usa PUT; si no, POST
+    const url = data.shopify_order_id
+      ? `${API_BASE_URL}/pedido-externo/${data.shopify_order_id}`
+      : `${API_BASE_URL}/pedido-externo`;
+
+    const method = data.shopify_order_id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al guardar pedido externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en guardarPedidoExterno:", error);
+    throw error;
+  }
+};
+
+// Guardar/Actualizar envío externo (usa POST para store/update, separada)
+export const guardarPedidoExternoEnvio = async (data) => {
+  try {
+    // Siempre incluye shopify_order_id para updateOrCreate
+    const url = data.shopify_order_id
+      ? `${API_BASE_URL}/pedido-externo-envio/${data.shopify_order_id}`
+      : `${API_BASE_URL}/pedido-externo-envio`;
+
+    const method = data.shopify_order_id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al guardar envío externo");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error en guardarPedidoExternoEnvio:", error);
+    throw error;
   }
 };
 
