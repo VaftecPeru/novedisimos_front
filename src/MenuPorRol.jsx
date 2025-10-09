@@ -19,8 +19,8 @@ const MenuPorRol = ({
       "motorizados",
       "asesores",
     ],
-    Vendedor: ["pedidos", "motorizados"],
-    Almacen: ["pedidos", "mantenimiento"],
+    Vendedor: ["pedidos"],
+    Almacen: ["mantenimiento"],
     Delivery: ["motorizados"],
   };
 

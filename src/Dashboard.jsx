@@ -28,13 +28,7 @@ function Dashboard() {
   const location = useLocation();
   const { usuario, setUsuario } = useUser();
 
-  // Redirigir al login si no hay usuario
-  useEffect(() => {
-    if (!usuario) {
-      navigate("/");
-    }
-  }, [usuario, navigate]);
-  
+
   console.log("Objeto usuario en Dashboard:", usuario);
   const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
 
@@ -142,6 +136,31 @@ function Dashboard() {
   });
 
   useEffect(() => {
+
+    if (!usuario) {
+      navigate("/");
+    } else if (location.pathname === "/dashboard" || activeSection === "") {
+
+      let defaultSection = "";
+      switch (usuario.rol) {
+        case "Administrador":
+          defaultSection = "pedidos";
+          break;
+        case "Vendedor":
+          defaultSection = "ordenDePedido";
+          break;
+        case "Almacen":
+          defaultSection = "almacenes";
+          break;
+        case "Delivery":
+          defaultSection = "motorizados";
+          break;
+        default:
+          defaultSection = "dashboard";
+      }
+      setActiveSection(defaultSection);
+      navigate(`/dashboard/${defaultSection}`);
+    }
 
     const path = location.pathname.split("/");
     const lastSegment = path[path.length - 1];
@@ -333,7 +352,7 @@ function Dashboard() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [location.pathname]);
+  }, [usuario, navigate, location.pathname, activeSection]);
 
   const toggleSidebar = () => {
     const newCollapsedState = !sidebarCollapsed;
