@@ -4,6 +4,7 @@ import Modal from "react-modal";
 import "./Dashboard.css";
 import "./Modal.css";
 import closeIcon from "/images/close.png";
+import ControlUsuarios from "./ControlUsuarios";
 import PedidosDashboard from "./PedidosDashboard";
 import FormularioInterno from "./FormularioInterno";
 import FormularioExterno from "./FormularioExterno";
@@ -831,6 +832,8 @@ function Dashboard() {
         return <DetalleMotorizados />;
       case "asesores":
         return <Asesores />;
+      case "controlUsuarios":
+      return <ControlUsuarios />;
       default:
         return <DashboardPage />;
     }

@@ -108,7 +108,6 @@ const MenuPorRol = ({
                 style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-cogs"></i>
-              {/* Resaltado del TÍTULO de Mantenimiento */}
               <span
                 style={{
                   fontWeight: 400,
@@ -131,7 +130,6 @@ const MenuPorRol = ({
             {expanded.mantenimiento && (
               <ul className="submenu">
                 {/* <li
-                  // Usamos onMenuItemClick y activeSection para el resaltado
                   onClick={() => onMenuItemClick("productos")}
                   className={activeSection === "productos" ? "active" : ""}
                 >
@@ -149,6 +147,15 @@ const MenuPorRol = ({
                 >
                   Almacen
                 </li>
+                {/* Agregar Control de Usuarios solo para administradores */}
+                {rol === 'Administrador' && (
+                  <li
+                    onClick={() => onMenuItemClick("controlUsuarios")}
+                    className={activeSection === "controlUsuarios" ? "active" : ""}
+                  >
+                    Control de Usuarios
+                  </li>
+                )}
               </ul>
             )}
           </li>
