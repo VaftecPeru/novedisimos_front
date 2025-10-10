@@ -4,6 +4,7 @@ import Modal from "react-modal";
 import "./Dashboard.css";
 import "./Modal.css";
 import closeIcon from "/images/close.png";
+import ControlUsuarios from "./ControlUsuarios";
 import PedidosDashboard from "./PedidosDashboard";
 import FormularioInterno from "./FormularioInterno";
 import FormularioExterno from "./FormularioExterno";
@@ -26,6 +27,14 @@ function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario, setUsuario } = useUser();
+
+  // Redirigir al login si no hay usuario
+  useEffect(() => {
+    if (!usuario) {
+      navigate("/");
+    }
+  }, [usuario, navigate]);
+  
   console.log("Objeto usuario en Dashboard:", usuario);
   const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
 
@@ -45,7 +54,7 @@ function Dashboard() {
   const [mantenimientoSeleccion, setMantenimientoSeleccion] =
     useState("productos");
 
-  const [pedidosSeleccion, setPedidosSeleccion] = 
+  const [pedidosSeleccion, setPedidosSeleccion] =
     useState("ordenDePedido");
 
   const [integracionesSeleccion, setIntegracionesSeleccion] =
@@ -54,7 +63,7 @@ function Dashboard() {
   const [configuracionSeleccion, setConfiguracionSeleccion] =
     useState("cobertura");
 
-  const [informesSeleccion, setInformesSeleccion] = 
+  const [informesSeleccion, setInformesSeleccion] =
     useState("vista");
 
   const [motorizadosSeleccion, setMotorizadosSeleccion] =
@@ -133,6 +142,7 @@ function Dashboard() {
   });
 
   useEffect(() => {
+
     const path = location.pathname.split("/");
     const lastSegment = path[path.length - 1];
     setSidebarCollapsed(false);
@@ -403,7 +413,7 @@ function Dashboard() {
     }, 1000);
   };
 
-// 1. Expande/colapsa el menú principal y actualiza estilos
+  // 1. Expande/colapsa el menú principal y actualiza estilos
   const handleExpandMenu = (sectionName) => {
     // Copiamos los estados actuales para modificarlos de forma segura
     const newExpandedState = { ...expanded };
@@ -476,7 +486,7 @@ function Dashboard() {
     // No navegues ni cambies sección activa aquí
   };
 
-// 2. Cambia la sección activa y navega (PARA QUE la barra de direcciones refleje la sección)
+  // 2. Cambia la sección activa y navega (PARA QUE la barra de direcciones refleje la sección)
   const handleMenuItemClick = (sectionName) => {
     setActiveSection(sectionName);
     navigate(`/dashboard/${sectionName}`);
@@ -822,6 +832,8 @@ function Dashboard() {
         return <DetalleMotorizados />;
       case "asesores":
         return <Asesores />;
+      case "controlUsuarios":
+      return <ControlUsuarios />;
       default:
         return <DashboardPage />;
     }
@@ -830,21 +842,18 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <div
-        className={`sidebar-overlay ${
-          !sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
-        }`}
+        className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
+          }`}
         onClick={handleOverlayClick}
       />
 
       <header
-        className={`dashboard-header ${
-          sidebarCollapsed ? "sidebar-collapsed" : ""
-        }`}
+        className={`dashboard-header ${sidebarCollapsed ? "sidebar-collapsed" : ""
+          }`}
       >
         <div
-          className={`panel-control-header ${
-            sidebarCollapsed ? "sidebar-collapsed" : ""
-          }`}
+          className={`panel-control-header ${sidebarCollapsed ? "sidebar-collapsed" : ""
+            }`}
         >
           <button onClick={toggleSidebar} className="sidebar-toggle-button">
             {sidebarCollapsed ? openIcon : openCloseIcon}
@@ -869,9 +878,8 @@ function Dashboard() {
       </header>
 
       <div
-        className={`dashboard-content ${
-          sidebarCollapsed ? "sidebar-collapsed" : ""
-        }`}
+        className={`dashboard-content ${sidebarCollapsed ? "sidebar-collapsed" : ""
+          }`}
       >
         {renderContent()}
       </div>

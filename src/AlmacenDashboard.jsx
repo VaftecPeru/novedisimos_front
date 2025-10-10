@@ -11,7 +11,7 @@ import { fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, 
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { useConfirmDialog } from './components/Modals/useConfirmDialog'; 
+import { useConfirmDialog } from './components/Modals/useConfirmDialog';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -337,25 +337,25 @@ function AlmacenDashboard() {
         const pedidosInternos = await fetchPedidosPreparacionInterna();
 
         const pedidosFormateadosAlmacen = allOrders.map(order => {
-          const ubicacion  = getLocationFromOrder(order);
-          const almacen    = getAlmacenFromLocation(ubicacion);
+          const ubicacion = getLocationFromOrder(order);
+          const almacen = getAlmacenFromLocation(ubicacion);
           const inventario = getInventoryStatus(order);
           // *** CRUZAR CON pedidosInternos ***
           const estadoInterno = pedidosInternos.find(e =>
             Number(e.shopify_order_id) === Number(order.id)
           );
-          const estadoBD      = estadoInterno?.estado || 'pendiente';
+          const estadoBD = estadoInterno?.estado || 'pendiente';
           const estadoAlmacen =
             estadoBD === 'listo_para_despacho' ? 'Listo para despacho' :
-            estadoBD === 'despachado' ? 'Despachado' :
-            estadoBD === 'cancelado' ? 'Cancelado' : 'Pendiente';                        'Pendiente';
+              estadoBD === 'despachado' ? 'Despachado' :
+                estadoBD === 'cancelado' ? 'Cancelado' : 'Pendiente'; 'Pendiente';
 
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
 
-            cliente:getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
+            cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
 
@@ -430,15 +430,16 @@ function AlmacenDashboard() {
     cargarPedidosAlmacen();
   }, []);
 
+  // Modificación: Actualizacion de las rutas api
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
-      const API_BASE_URL = 'https://api.novedadeswow.com';
+      const API_BASE_URL = 'https://api.novedadeswow.com/api';
 
       const urls = [
-        `${API_BASE_URL}/orders?limit=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders?limit=${limit}&page_info=${page}`,
-        `${API_BASE_URL}/orders?per_page=${limit}&page=${page}`,
-        `${API_BASE_URL}/orders`
+        `${API_BASE_URL}/shopify/orders?limit=${limit}&page=${page}`,
+        `${API_BASE_URL}/shopify/orders?limit=${limit}&page_info=${page}`,
+        `${API_BASE_URL}/shopify/orders?per_page=${limit}&page=${page}`,
+        `${API_BASE_URL}/shopify/orders`
       ];
 
       for (const url of urls) {
@@ -460,6 +461,7 @@ function AlmacenDashboard() {
       throw error;
     }
   };
+
 
   const handleFormChange = (e) => {
     setNuevoRegistroAlmacen({ ...nuevoRegistroAlmacen, [e.target.name]: e.target.value });
@@ -588,8 +590,8 @@ function AlmacenDashboard() {
   }
 
   const mostrarColumnaAcciones = pedidosFiltrados.some(
-  pedido => ["Listo para despacho", "Despachado", "Cancelado"].includes(pedido.estadoAlmacen)
-);
+    pedido => ["Listo para despacho", "Despachado", "Cancelado"].includes(pedido.estadoAlmacen)
+  );
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f9fafb', minHeight: '100vh', width: '100%', boxSizing: 'border-box', overflowX: 'auto' }}>
@@ -702,7 +704,7 @@ function AlmacenDashboard() {
                 ))}
               </Select>
             </FormControl>
-            
+
             <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
               <Select
                 value={filtros.almacen}
@@ -822,7 +824,7 @@ function AlmacenDashboard() {
                   </TableCell>
                   {mostrarColumnaAcciones && (
                     <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 150 }}>
-                    Acciones
+                      Acciones
                     </TableCell>
                   )}
                 </TableRow>
@@ -876,7 +878,7 @@ function AlmacenDashboard() {
                         }}
                       />
                     </TableCell>
-                          
+
                     <TableCell>
                       <Button
                         size="small"
@@ -885,10 +887,10 @@ function AlmacenDashboard() {
                         sx={{
                           backgroundColor:
                             pedido.estadoAlmacen === "Pendiente" || !pedido.estadoAlmacen ? "#f59e0b"
-                            : pedido.estadoAlmacen === "Listo para despacho" ? "#4f46e5"
-                            : pedido.estadoAlmacen === "Despachado" ? "#059669"
-                            : pedido.estadoAlmacen === "Cancelado" ? "#ef4444"
-                            : "#b0b0b0",
+                              : pedido.estadoAlmacen === "Listo para despacho" ? "#4f46e5"
+                                : pedido.estadoAlmacen === "Despachado" ? "#059669"
+                                  : pedido.estadoAlmacen === "Cancelado" ? "#ef4444"
+                                    : "#b0b0b0",
                           color: "#fff",
                           textTransform: "none",
                           fontWeight: "bold",
@@ -918,7 +920,7 @@ function AlmacenDashboard() {
                                 confirmButtonColor: "#4D68E6",
                                 confirmButtonText: "Sí, cambiar",
                               });
-                               if (!ok) return;
+                              if (!ok) return;
                               const estadoMap = {
                                 "Pendiente": "pendiente",
                                 "Listo para despacho": "listo_para_despacho",
@@ -989,42 +991,42 @@ function AlmacenDashboard() {
                       </Box>
                     </TableCell>
                     {mostrarColumnaAcciones && (
-                    <TableCell align="right">
-                      {["Listo para despacho", "Despachado", "Cancelado"].includes(pedido.estadoAlmacen) && (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          sx={{
-                            textTransform: 'none',
-                            color: '#4f46e5',
-                            borderColor: '#4f46e5',
-                            borderWidth: 2,
-                            bgcolor: 'transparent',
-                            fontWeight: 600,
-                            fontSize: '0.92rem',
-                            px: 2.5,
-                            py: 1,
-                            borderRadius: '13px',
-                            minWidth: 0,
-                            minHeight: 0,
-                            boxShadow: 'none',
-                            letterSpacing: 0.5,
-                            '&:hover': {
-                              bgcolor: '#eceafe',
-                              color: '#4338ca',
-                              borderColor: '#4338ca'
-                            },
-                          }}
-                          onClick={() => {
-                            setPedidoSeleccionado(pedido);
-                            setPantalla('preparacion');
-                          }}
-                        >
-                          Generar guía de despacho
-                        </Button>
-                      )}
-                    </TableCell>
-                  
+                      <TableCell align="right">
+                        {["Listo para despacho", "Despachado", "Cancelado"].includes(pedido.estadoAlmacen) && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              textTransform: 'none',
+                              color: '#4f46e5',
+                              borderColor: '#4f46e5',
+                              borderWidth: 2,
+                              bgcolor: 'transparent',
+                              fontWeight: 600,
+                              fontSize: '0.92rem',
+                              px: 2.5,
+                              py: 1,
+                              borderRadius: '13px',
+                              minWidth: 0,
+                              minHeight: 0,
+                              boxShadow: 'none',
+                              letterSpacing: 0.5,
+                              '&:hover': {
+                                bgcolor: '#eceafe',
+                                color: '#4338ca',
+                                borderColor: '#4338ca'
+                              },
+                            }}
+                            onClick={() => {
+                              setPedidoSeleccionado(pedido);
+                              setPantalla('preparacion');
+                            }}
+                          >
+                            Generar guía de despacho
+                          </Button>
+                        )}
+                      </TableCell>
+
                     )}
                   </TableRow>
                 ))}

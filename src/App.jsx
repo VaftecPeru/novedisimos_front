@@ -47,7 +47,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "https://novedadeswow.com/api_php/login.php",
+        `https://novedadeswow.com/api_php/login.php`,
         { correo: email, contraseña: password },
         {
           headers: {
@@ -64,10 +64,9 @@ function App() {
 
       setUsuario(userWithEmail);
       localStorage.setItem("currentUser", JSON.stringify(userWithEmail));
-      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem("authToken", user.token); // Guarda el token
 
       setLoginError("");
-
       console.log("Usuario logueado:", userWithEmail);
 
       const savedRoute = localStorage.getItem("redirectAfterLogin");
