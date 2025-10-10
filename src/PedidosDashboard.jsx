@@ -6,7 +6,10 @@ import {
   InputLabel, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
-import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
+import {
+  actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos,
+  fetchOrders, getShopInfo, fetchVendedores, createSeguimiento
+} from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
@@ -352,8 +355,80 @@ function PedidosDashboard() {
       }
     };
 
+
     cargarVendedores();
   }, []);
+
+  // Cargar vendedores (useEffect)
+  useEffect(() => {
+    const loadVendedores = async () => {
+      try {
+        const response = await fetchVendedores();
+        const vendedoresArray = Array.isArray(response?.data) ? response.data : [];
+        setVendedores(vendedoresArray);
+        if (vendedoresArray.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron vendedores disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error cargando vendedores:', error);
+        setVendedores([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de vendedores.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
+    };
+    loadVendedores();
+  }, []);
+  // Función para abrir modal de vendedor
+  const handleAbrirAsignarVendedor = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setVendedorAsignado(""); // Reset
+    setModalAsignarOpen(true);
+  };
+
+  // Función para asignar vendedor
+  const handleAsignarVendedor = async () => {
+    try {
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Ventas',
+        estado: 'Pendiente',
+        responsable_id: Number(vendedorAsignado),
+      };
+
+      const response = await createSeguimiento(seguimientoData);
+      if (response && response.data) {
+        const vendedor = vendedores.find(v => v.id === Number(vendedorAsignado));
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Vendedor ${vendedor?.nombre_completo || 'desconocido'} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+        console.log('✅ Seguimiento creado:', response.data);
+        setModalAsignarOpen(false);
+        setVendedorAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando vendedor:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el vendedor. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -1412,7 +1487,9 @@ function PedidosDashboard() {
 
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
+
         setError(err.message || 'Error al cargar pedidos');
+
       } finally {
         setLoading(false);
       }
@@ -1774,7 +1851,10 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
+
               <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>
+
+
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>
                 Estado Preparación Pedido
@@ -1782,6 +1862,7 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>
                 Detalle de Pedido
               </TableCell>
+
               <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Editar</TableCell>
@@ -1796,11 +1877,11 @@ function PedidosDashboard() {
               </TableRow>
             ) : (
               pedidosPaginados.map((pedido) => (
-                <TableRow
-                  key={pedido.id}
-                  sx={{ "&:hover": { bgcolor: "#f9fafb" } }}
-                >
+                <TableRow key={pedido.id} sx={{ "&:hover": { bgcolor: "#f9fafb" } }}>
+
+                  {/* Orden Pedido */}
                   <TableCell>{pedido.id}</TableCell>
+                  {/* Fecha */}
                   <TableCell>
                     <Box sx={{ fontSize: "0.75rem" }}>
                       <FechaItem
@@ -1821,9 +1902,11 @@ function PedidosDashboard() {
                       />
                     </Box>
                   </TableCell>
+                  {/* Cliente */}
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
+
 
                   {/* NUEVA COLUMNA - VENDEDOR */}
                   <TableCell>
@@ -2002,7 +2085,7 @@ function PedidosDashboard() {
                         : "Pago pendiente"}
                     </Button>
                   </TableCell>
-
+                  {/* Estado Preparación Pedido */}
                   <TableCell>
                     <Button
                       size="small"
@@ -2164,6 +2247,7 @@ function PedidosDashboard() {
             fullWidth
             size="small"
           />
+
           
           {/* Selector de Vendedor en el modal */}
           <FormControl fullWidth size="small">
@@ -2208,6 +2292,7 @@ function PedidosDashboard() {
               setModalOpen(false);
               setTimeout(async () => {
                 try {
+
                   const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -2215,6 +2300,7 @@ function PedidosDashboard() {
                   });
 
                   if (res.ok) {
+
                     const vendedorSeleccionado = vendedores.find(v => v._id === pedidoEditado.vendedor_id);
                     
                     setPedidos(prev =>
@@ -2248,6 +2334,7 @@ function PedidosDashboard() {
                     });
                   } else {
                     Swal.fire({
+
                       title: "Error",
                       text: "No se pudo actualizar el pedido.",
                       icon: "error",
@@ -2262,7 +2349,9 @@ function PedidosDashboard() {
                     confirmButtonText: "OK"
                   });
                 }
+
               }, 200);
+
             }}
           >
             Guardar
@@ -2270,6 +2359,46 @@ function PedidosDashboard() {
         </DialogActions>
       </Dialog>
 
+
+      // Modal de asignar vendedor (dentro del return del componente)
+      <Dialog open={modalAsignarOpen} onClose={() => setModalAsignarOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}</DialogTitle>
+        <DialogContent sx={{ minWidth: 500 }}>
+          <FormControl fullWidth size="small">
+            <Select
+              value={vendedorAsignado}
+              onChange={(e) => setVendedorAsignado(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>Seleccionar vendedor</em>
+              </MenuItem>
+              {Array.isArray(vendedores) && vendedores.length > 0 ? (
+                vendedores.map((v) => (
+                  <MenuItem key={v.id} value={v.id}>
+                    {v.nombre_completo} ({v.correo})
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>
+                  {Array.isArray(vendedores) ? 'No hay vendedores disponibles' : 'Cargando vendedores...'}
+                </MenuItem>
+              )}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalAsignarOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!vendedorAsignado}
+            onClick={handleAsignarVendedor}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Drawer
         anchor="right"
         open={drawerOpen}

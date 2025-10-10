@@ -420,6 +420,88 @@ export const guardarPedidoExternoEnvio = async (data) => {
 };
 
 
+// Obtener todos los usuarios con sus roles
+export const fetchUsuarios = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener usuarios');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error en fetchUsuarios:', error);
+    return null;
+  }
+};
+
+// Obtener usuarios con rol "vendedor"
+export const fetchVendedores = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener vendedores');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error en fetchVendedores:', error);
+    return null;
+  }
+};
+
+// Obtener usuarios con rol "almacen"
+export const fetchAlmacen = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios/almacen`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener usuarios de almacén');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error en fetchAlmacen:', error);
+    return null;
+  }
+};
+
+// Obtener usuarios con rol "delivery"
+export const fetchDelivery = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios/delivery`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener usuarios de delivery');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error en fetchDelivery:', error);
+    return null;
+  }
+};
+
+export const createSeguimiento = async (seguimientoData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(seguimientoData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al crear seguimiento');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error en createSeguimiento:', error);
+    return null;
+  }
+};
+
+
 export default {
   getShopInfo,
   fetchOrders,
