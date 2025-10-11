@@ -438,15 +438,23 @@ export const fetchUsuarios = async () => {
 // Obtener usuarios con rol "vendedor"
 export const fetchVendedores = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`);
+    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`, {
+      headers: {
+        'Content-Type': 'application/json',
+        // Agregar autenticación si es necesario, ej: 'Authorization': `Bearer ${token}`
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Error al obtener vendedores');
+      throw new Error(`Error al obtener vendedores: ${response.status}`);
     }
-    return await response.json();
+
+    const data = await response.json();
+    // Verificar que data.data sea un array, si no, devolver un array vacío
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error('❌ Error en fetchVendedores:', error);
-    return null;
+    return []; // Siempre devolver un array vacío en caso de error
   }
 };
 
@@ -481,7 +489,12 @@ export const fetchDelivery = async () => {
 };
 
 export const createSeguimiento = async (seguimientoData) => {
+  console.log('🚀 ENTRANDO EN createSeguimiento'); // Log inicial
+
   try {
+    console.log('📤 URL:', `${API_BASE_URL}/seguimiento-pedido`);
+    console.log('📦 Datos:', JSON.stringify(seguimientoData, null, 2));
+
     const response = await fetch(`${API_BASE_URL}/seguimiento-pedido`, {
       method: 'POST',
       headers: {
@@ -489,15 +502,19 @@ export const createSeguimiento = async (seguimientoData) => {
       },
       body: JSON.stringify(seguimientoData),
     });
+    console.log('📬 Fetch ejecutado');
+
+    const responseBody = await response.json().catch(() => ({}));
+    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
 
     if (!response.ok) {
-      throw new Error('Error al crear seguimiento');
+      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
     }
 
-    return await response.json();
+    return responseBody;
   } catch (error) {
-    console.error('❌ Error en createSeguimiento:', error);
-    return null;
+    console.error('❌ Error en createSeguimiento:', error.message);
+    throw error;
   }
 };
 

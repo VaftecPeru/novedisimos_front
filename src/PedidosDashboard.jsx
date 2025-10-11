@@ -338,35 +338,23 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("");
   const [filtroPreparado, setFiltroPreparado] = useState("");
 
-  // Cargar lista de vendedores
+  const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
+  const [vendedorAsignado, setVendedorAsignado] = useState(''); // id del vendedor seleccionado en el modal
+
+
+  const openModalAsignar = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setModalAsignarOpen(true);
+  };
+
+
   useEffect(() => {
     const cargarVendedores = async () => {
       try {
         setLoadingVendedores(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/vendedores`);
-        if (response.ok) {
-          const data = await response.json();
-          setVendedores(data);
-        }
-      } catch (error) {
-        console.error('Error al cargar vendedores:', error);
-      } finally {
-        setLoadingVendedores(false);
-      }
-    };
-
-
-    cargarVendedores();
-  }, []);
-
-  // Cargar vendedores (useEffect)
-  useEffect(() => {
-    const loadVendedores = async () => {
-      try {
-        const response = await fetchVendedores();
-        const vendedoresArray = Array.isArray(response?.data) ? response.data : [];
-        setVendedores(vendedoresArray);
-        if (vendedoresArray.length === 0) {
+        const vendedoresData = await fetchVendedores();
+        setVendedores(vendedoresData);
+        if (vendedoresData.length === 0) {
           Swal.fire({
             title: 'Advertencia',
             text: 'No se encontraron vendedores disponibles.',
@@ -383,9 +371,11 @@ function PedidosDashboard() {
           icon: 'error',
           confirmButtonText: 'OK',
         });
+      } finally {
+        setLoadingVendedores(false);
       }
     };
-    loadVendedores();
+    cargarVendedores();
   }, []);
   // Función para abrir modal de vendedor
   const handleAbrirAsignarVendedor = (pedido) => {
@@ -1416,7 +1406,7 @@ function PedidosDashboard() {
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
           const estadoInterno = estadosInternos.find(e => e.shopify_order_id === order.id);
-          
+
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
@@ -1906,91 +1896,21 @@ function PedidosDashboard() {
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
-
-
-                  {/* NUEVA COLUMNA - VENDEDOR */}
                   <TableCell>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <Select
-                        value={pedido.vendedor?._id || ''}
-                        onChange={async (e) => {
-                          const nuevoVendedorId = e.target.value;
-                          
-                          // Verificar permisos
-                          const usuarioActual = JSON.parse(localStorage.getItem('usuario'));
-                          const rolesPermitidos = ['admin', 'supervisor', 'vendedor'];
-                          
-                          if (!rolesPermitidos.includes(usuarioActual?.rol)) {
-                            Swal.fire({
-                              title: "Sin permisos",
-                              text: "No tienes permisos para asignar vendedores",
-                              icon: "error",
-                              confirmButtonText: "OK"
-                            });
-                            return;
-                          }
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {/* Mostrar nombre del vendedor asignado o 'Sin asignar' */}
 
-                          try {
-                            const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedido.shopifyId}`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ 
-                                vendedor_id: nuevoVendedorId,
-                                cliente: pedido.cliente,
-                                telefono: pedido.telefono,
-                                direccion: pedido.ubicacion
-                              }),
-                            });
-
-                            if (res.ok) {
-                              const vendedorSeleccionado = vendedores.find(v => v._id === nuevoVendedorId);
-                              
-                              setPedidos(prev =>
-                                prev.map(p =>
-                                  p.id === pedido.id 
-                                    ? { ...p, vendedor: vendedorSeleccionado } 
-                                    : p
-                                )
-                              );
-                              setPedidosOriginales(prev =>
-                                prev.map(p =>
-                                  p.id === pedido.id 
-                                    ? { ...p, vendedor: vendedorSeleccionado } 
-                                    : p
-                                )
-                              );
-                              
-                              Swal.fire({
-                                title: "¡Vendedor asignado!",
-                                text: `El vendedor ${vendedorSeleccionado?.nombre} ha sido asignado al pedido.`,
-                                icon: "success",
-                                confirmButtonText: "OK"
-                              });
-                            }
-                          } catch (error) {
-                            Swal.fire({
-                              title: "Error",
-                              text: "No se pudo asignar el vendedor",
-                              icon: "error",
-                              confirmButtonText: "OK"
-                            });
-                          }
-                        }}
-                        displayEmpty
-                        disabled={loadingVendedores}
+                      {/* Botón 'Asignar' para abrir el modal */}
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleAbrirAsignarVendedor(pedido)}
+                        sx={{ borderColor: "#4763e4", color: "#4763e4" }}
                       >
-                        <MenuItem value="">
-                          <em>Sin asignar</em>
-                        </MenuItem>
-                        {vendedores.map((vendedor) => (
-                          <MenuItem key={vendedor._id} value={vendedor._id}>
-                            {vendedor.nombre}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        Asignar
+                      </Button>
+                    </Box>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       size="small"
@@ -2237,132 +2157,11 @@ function PedidosDashboard() {
         />
       </TableContainer>
 
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Editar Pedido</DialogTitle>
-        <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            label="Cliente"
-            value={pedidoEditado.cliente}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
-            fullWidth
-            size="small"
-          />
-
-          
-          {/* Selector de Vendedor en el modal */}
-          <FormControl fullWidth size="small">
-            <InputLabel>Vendedor</InputLabel>
-            <Select
-              value={pedidoEditado.vendedor_id || ''}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, vendedor_id: e.target.value })}
-              label="Vendedor"
-            >
-              <MenuItem value="">
-                <em>Sin asignar</em>
-              </MenuItem>
-              {vendedores.map((vendedor) => (
-                <MenuItem key={vendedor._id} value={vendedor._id}>
-                  {vendedor.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            label="Teléfono"
-            value={pedidoEditado.telefono}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="Dirección"
-            value={pedidoEditado.direccion}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
-            fullWidth
-            size="small"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={async () => {
-              setModalOpen(false);
-              setTimeout(async () => {
-                try {
-
-                  const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(pedidoEditado),
-                  });
-
-                  if (res.ok) {
-
-                    const vendedorSeleccionado = vendedores.find(v => v._id === pedidoEditado.vendedor_id);
-                    
-                    setPedidos(prev =>
-                      prev.map(p =>
-                        p.id === pedidoSeleccionado.id 
-                          ? { 
-                              ...p, 
-                              ...pedidoEditado,
-                              vendedor: vendedorSeleccionado 
-                            } 
-                          : p
-                      )
-                    );
-                    setPedidosOriginales(prev =>
-                      prev.map(p =>
-                        p.id === pedidoSeleccionado.id 
-                          ? { 
-                              ...p, 
-                              ...pedidoEditado,
-                              vendedor: vendedorSeleccionado 
-                            } 
-                          : p
-                      )
-                    );
-
-                    Swal.fire({
-                      title: "¡Pedido actualizado!",
-                      text: "La información del pedido se actualizó correctamente.",
-                      icon: "success",
-                      confirmButtonText: "OK"
-                    });
-                  } else {
-                    Swal.fire({
-
-                      title: "Error",
-                      text: "No se pudo actualizar el pedido.",
-                      icon: "error",
-                      confirmButtonText: "OK"
-                    });
-                  }
-                } catch (error) {
-                  Swal.fire({
-                    title: "Error de conexión",
-                    text: "No se pudo conectar al servidor.",
-                    icon: "error",
-                    confirmButtonText: "OK"
-                  });
-                }
-
-              }, 200);
-
-            }}
-          >
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-
-      // Modal de asignar vendedor (dentro del return del componente)
+     // Actualización del modal de asignación de vendedor
       <Dialog open={modalAsignarOpen} onClose={() => setModalAsignarOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}</DialogTitle>
+        <DialogTitle>
+          Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}
+        </DialogTitle>
         <DialogContent sx={{ minWidth: 500 }}>
           <FormControl fullWidth size="small">
             <Select
@@ -2381,7 +2180,7 @@ function PedidosDashboard() {
                 ))
               ) : (
                 <MenuItem disabled>
-                  {Array.isArray(vendedores) ? 'No hay vendedores disponibles' : 'Cargando vendedores...'}
+                  {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
                 </MenuItem>
               )}
             </Select>
@@ -2392,8 +2191,177 @@ function PedidosDashboard() {
           <Button
             variant="contained"
             color="primary"
-            disabled={!vendedorAsignado}
-            onClick={handleAsignarVendedor}
+            disabled={!vendedorAsignado || loadingVendedores}
+            onClick={async () => {
+              console.log('🔥 BOTÓN PRESIONADO: Iniciando asignación de vendedor'); // Log 1
+              console.log('Datos del pedido seleccionado:', pedidoSeleccionado); // Log 2
+              console.log('Vendedor asignado:', vendedorAsignado); // Log 3
+
+              if (!pedidoSeleccionado || !vendedorAsignado) {
+                console.error('❌ Faltan datos: pedido o vendedor no seleccionados');
+                Swal.fire({
+                  title: 'Error',
+                  text: 'Selecciona un pedido y un vendedor',
+                  icon: 'error',
+                });
+                return;
+              }
+
+              try {
+                const seguimientoData = {
+                  shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+                  area: 'Ventas',
+                  estado: 'Pendiente',
+                  responsable_id: Number(vendedorAsignado),
+                };
+                console.log('📦 Preparando datos para enviar:', seguimientoData); // Log 4
+
+                const response = await createSeguimiento(seguimientoData);
+                console.log('✅ Respuesta recibida en el botón:', response); // Log 5
+
+                if (response && response.data) {
+                  const vendedor = vendedores.find(v => v.id === Number(vendedorAsignado));
+                  setPedidos((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? { ...p, vendedor }
+                        : p
+                    )
+                  );
+                  setPedidosOriginales((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? { ...p, vendedor }
+                        : p
+                    )
+                  );
+                  Swal.fire({
+                    title: '¡Éxito!',
+                    text: `Vendedor ${vendedor?.nombre_completo || 'desconocido'} asignado al pedido #${pedidoSeleccionado.id}.`,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                  });
+                  console.log('✅ Seguimiento creado:', response.data); // Log 6: Éxito
+                  setModalAsignarOpen(false);
+                  setVendedorAsignado('');
+                } else {
+                  throw new Error('Respuesta inválida del servidor');
+                }
+              } catch (error) {
+                console.error('❌ Error en el onClick:', error.message); // Log 7: Error
+                Swal.fire({
+                  title: 'Error',
+                  text: `No se pudo asignar el vendedor: ${error.message}`,
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                });
+              }
+            }}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+// Actualización del modal de edición
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Editar Pedido</DialogTitle>
+        <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Cliente"
+            value={pedidoEditado.cliente}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <FormControl fullWidth size="small">
+            <InputLabel>Vendedor</InputLabel>
+            <Select
+              value={pedidoEditado.vendedor_id || ''}
+              onChange={(e) => setPedidoEditado({ ...pedidoEditado, vendedor_id: e.target.value })}
+              label="Vendedor"
+            >
+              <MenuItem value="">
+                <em>Sin asignar</em>
+              </MenuItem>
+              {vendedores.map((vendedor) => (
+                <MenuItem key={vendedor.id} value={vendedor.id}>
+                  {vendedor.nombre_completo}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Teléfono"
+            value={pedidoEditado.telefono}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Dirección"
+            value={pedidoEditado.direccion}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
+            fullWidth
+            size="small"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={async () => {
+              setModalOpen(false);
+              try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(pedidoEditado),
+                });
+
+                if (res.ok) {
+                  const vendedorSeleccionado = vendedores.find((v) => v.id === pedidoEditado.vendedor_id);
+                  setPedidos((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? {
+                          ...p,
+                          ...pedidoEditado,
+                          vendedor: vendedorSeleccionado || null,
+                        }
+                        : p
+                    )
+                  );
+                  setPedidosOriginales((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? {
+                          ...p,
+                          ...pedidoEditado,
+                          vendedor: vendedorSeleccionado || null,
+                        }
+                        : p
+                    )
+                  );
+                  Swal.fire({
+                    title: '¡Pedido actualizado!',
+                    text: 'La información del pedido se actualizó correctamente.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                  });
+                } else {
+                  throw new Error('No se pudo actualizar el pedido');
+                }
+              } catch (error) {
+                Swal.fire({
+                  title: 'Error',
+                  text: 'No se pudo conectar al servidor.',
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                });
+              }
+            }}
           >
             Guardar
           </Button>
