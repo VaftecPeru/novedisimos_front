@@ -8,7 +8,7 @@ import {
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
 import {
   actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos,
-  fetchOrders, getShopInfo, fetchVendedores, createSeguimiento
+  fetchOrders, getShopInfo, fetchVendedores, fetchAlmacen, createSeguimiento, fetchVentasPedidosAsignados, fetchAlmacenPedidosAsignados
 } from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
+
 
 function EstadoBadge({ label, color }) {
   return (
@@ -42,7 +43,6 @@ function EstadoBadge({ label, color }) {
     </Box>
   );
 }
-
 function NotaIcono(props) {
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
@@ -255,6 +255,13 @@ const FechaItem = ({ label, fecha }) => (
 );
 
 function PedidosDashboard() {
+
+  // Mostrar componentes por roles
+  const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+  const isVendedor = currentUser.rol === 'Vendedor';
+  const userId = Number(currentUser.id);
+  //------------------------------//
+
   const [filtros, setFiltros] = useState({
     estado: 'PENDIENTE',
     almacen: 'TODOS',
@@ -264,11 +271,7 @@ function PedidosDashboard() {
     searchTerm: ''
   });
   const { confirm } = useConfirmDialog();
-
   const navigate = useNavigate();
-  const [vendedores, setVendedores] = useState([]);
-  const [loadingVendedores, setLoadingVendedores] = useState(false);
-
   const handleExportar = () => {
     const csvRows = [];
     csvRows.push("ID,Cliente,Vendedor,Estado de Pago,Estado de Entrega,Total");
@@ -338,23 +341,20 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("");
   const [filtroPreparado, setFiltroPreparado] = useState("");
 
+  // -------------------------//
+  const [vendedores, setVendedores] = useState([]);
+  const [loadingVendedores, setLoadingVendedores] = useState(true);
   const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
-  const [vendedorAsignado, setVendedorAsignado] = useState(''); // id del vendedor seleccionado en el modal
-
-
-  const openModalAsignar = (pedido) => {
-    setPedidoSeleccionado(pedido);
-    setModalAsignarOpen(true);
-  };
-
+  const [vendedorAsignado, setVendedorAsignado] = useState('');
 
   useEffect(() => {
     const cargarVendedores = async () => {
       try {
         setLoadingVendedores(true);
         const vendedoresData = await fetchVendedores();
-        setVendedores(vendedoresData);
-        if (vendedoresData.length === 0) {
+        console.log('📥 Vendedores cargados:', vendedoresData);
+        setVendedores(Array.isArray(vendedoresData) ? vendedoresData : []);
+        if (!vendedoresData || vendedoresData.length === 0) {
           Swal.fire({
             title: 'Advertencia',
             text: 'No se encontraron vendedores disponibles.',
@@ -377,6 +377,45 @@ function PedidosDashboard() {
     };
     cargarVendedores();
   }, []);
+
+  const [usuariosAlmacen, setUsuariosAlmacen] = useState([]);
+  const [loadingUsuariosAlmacen, setLoadingUsuariosAlmacen] = useState(true);
+  const [modalAsignarAlmacenOpen, setModalAsignarAlmacenOpen] = useState(false);
+  const [usuarioAlmacenAsignado, setUsuarioAlmacenAsignado] = useState('');
+
+  useEffect(() => {
+    const cargarUsuariosAlmacen = async () => {
+      try {
+        setLoadingUsuariosAlmacen(true);
+        const response = await fetchAlmacen();
+        const usuariosData = response.data; // Extraer el campo 'data'
+        console.log('📦 Respuesta de fetchAlmacen:', usuariosData);
+        setUsuariosAlmacen(Array.isArray(usuariosData) ? usuariosData : []);
+        if (!usuariosData || usuariosData.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron usuarios de almacén disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error cargando usuarios de almacén:', error);
+        setUsuariosAlmacen([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de usuarios de almacén.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      } finally {
+        setLoadingUsuariosAlmacen(false);
+      }
+    };
+    cargarUsuariosAlmacen();
+  }, []);
+
+
   // Función para abrir modal de vendedor
   const handleAbrirAsignarVendedor = (pedido) => {
     setPedidoSeleccionado(pedido);
@@ -384,9 +423,18 @@ function PedidosDashboard() {
     setModalAsignarOpen(true);
   };
 
-  // Función para asignar vendedor
+
   const handleAsignarVendedor = async () => {
     try {
+      if (!vendedorAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del vendedor o del pedido');
+      }
+
+      const vendedor = vendedores.find(v => Number(v.id) === Number(vendedorAsignado));
+      if (!vendedor) {
+        throw new Error('Vendedor no encontrado en la lista');
+      }
+
       const seguimientoData = {
         shopify_order_id: Number(pedidoSeleccionado.shopifyId),
         area: 'Ventas',
@@ -394,16 +442,32 @@ function PedidosDashboard() {
         responsable_id: Number(vendedorAsignado),
       };
 
+      console.log('📤 Enviando datos a createSeguimiento:', seguimientoData);
       const response = await createSeguimiento(seguimientoData);
-      if (response && response.data) {
-        const vendedor = vendedores.find(v => v.id === Number(vendedorAsignado));
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable: { ...vendedor } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable: { ...vendedor } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
         Swal.fire({
           title: '¡Éxito!',
-          text: `Vendedor ${vendedor?.nombre_completo || 'desconocido'} asignado al pedido #${pedidoSeleccionado.id}.`,
+          text: `Vendedor ${vendedor.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
           icon: 'success',
           confirmButtonText: 'OK',
         });
-        console.log('✅ Seguimiento creado:', response.data);
+
         setModalAsignarOpen(false);
         setVendedorAsignado('');
       } else {
@@ -420,6 +484,78 @@ function PedidosDashboard() {
     }
   };
 
+  const handleAbrirAsignarUsuarioAlmacen = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setUsuarioAlmacenAsignado('');
+    setModalAsignarAlmacenOpen(true);
+  };
+
+  const handleAsignarUsuarioAlmacen = async () => {
+    try {
+      if (!usuarioAlmacenAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del usuario de almacén o del pedido');
+      }
+
+      const usuario = usuariosAlmacen.find(u => Number(u.id) === Number(usuarioAlmacenAsignado));
+      if (!usuario) {
+        throw new Error('Usuario de almacén no encontrado en la lista');
+      }
+
+      console.log('Usuario seleccionado:', usuario); // Depurar el objeto usuario
+
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Almacen',
+        estado: 'Pendiente',
+        responsable_id: Number(usuarioAlmacenAsignado),
+      };
+
+      console.log('📤 Enviando datos a createSeguimiento para almacén:', seguimientoData);
+      const response = await createSeguimiento(seguimientoData);
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_almacen: { ...usuario } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_almacen: { ...usuario } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Usuario de almacén ${usuario.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        setModalAsignarAlmacenOpen(false);
+        setUsuarioAlmacenAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando usuario de almacén:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el usuario de almacén. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  // -------------------------//
+
+  //----------------Incio Array de distritos y provincias -------//
+
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
     { value: 'Bongará', label: 'Bongará' },
@@ -429,7 +565,6 @@ function PedidosDashboard() {
     { value: 'Rodríguez de Mendoza', label: 'Rodríguez de Mendoza' },
     { value: 'Utcubamba', label: 'Utcubamba' },
   ]);
-
   const [provinciasAncash] = useState([
     { value: 'Aija', label: 'Aija' },
     { value: 'Antonio Raymondi', label: 'Antonio Raymondi' },
@@ -452,7 +587,6 @@ function PedidosDashboard() {
     { value: 'Sihuas', label: 'Sihuas' },
     { value: 'Yungay', label: 'Yungay' },
   ]);
-
   const [provinciasApurimac] = useState([
     { value: 'Abancay', label: 'Abancay' },
     { value: 'Andahuaylas', label: 'Andahuaylas' },
@@ -462,7 +596,6 @@ function PedidosDashboard() {
     { value: 'Chincheros', label: 'Chincheros' },
     { value: 'Grau', label: 'Grau' },
   ]);
-
   const [provinciasArequipa] = useState([
     { value: 'Arequipa', label: 'Arequipa' },
     { value: 'Camaná', label: 'Camaná' },
@@ -473,7 +606,6 @@ function PedidosDashboard() {
     { value: 'Islay', label: 'Islay' },
     { value: 'La Unión', label: 'La Unión' },
   ]);
-
   const [provinciasAyacucho] = useState([
     { value: 'Cangallo', label: 'Cangallo' },
     { value: 'Huamanga', label: 'Huamanga' },
@@ -487,7 +619,6 @@ function PedidosDashboard() {
     { value: 'Víctor Fajardo', label: 'Víctor Fajardo' },
     { value: 'Vilcas Huamán', label: 'Vilcas Huamán' },
   ]);
-
   const [provinciasCajamarca] = useState([
     { value: 'Cajabamba', label: 'Cajabamba' },
     { value: 'Cajamarca', label: 'Cajamarca' },
@@ -503,11 +634,9 @@ function PedidosDashboard() {
     { value: 'San Pablo', label: 'San Pablo' },
     { value: 'Santa Cruz', label: 'Santa Cruz' },
   ]);
-
   const [provinciasCallao] = useState([
     { value: 'Callao', label: 'Callao' },
   ]);
-
   const [provinciasCusco] = useState([
     { value: 'Acomayo', label: 'Acomayo' },
     { value: 'Anta', label: 'Anta' },
@@ -523,7 +652,6 @@ function PedidosDashboard() {
     { value: 'Quispicanchi', label: 'Quispicanchi' },
     { value: 'Urubamba', label: 'Urubamba' }
   ]);
-
   const [provinciasHuancavelica] = useState([
     { value: 'Acobamba', label: 'Acobamba' },
     { value: 'Angaraes', label: 'Angaraes' },
@@ -533,7 +661,6 @@ function PedidosDashboard() {
     { value: 'Huaytará', label: 'Huaytará' },
     { value: 'Tayacaja', label: 'Tayacaja' }
   ]);
-
   const [provinciasHuanuco] = useState([
     { value: 'Ambo', label: 'Ambo' },
     { value: 'Dos de Mayo', label: 'Dos de Mayo' },
@@ -546,7 +673,6 @@ function PedidosDashboard() {
     { value: 'Rupa-Rupa', label: 'Rupa-Rupa' },
     { value: 'Yarowilca', label: 'Yarowilca' }
   ]);
-
   const [provinciasIca] = useState([
     { value: 'Ica', label: 'Ica' },
     { value: 'Chincha', label: 'Chincha' },
@@ -554,7 +680,6 @@ function PedidosDashboard() {
     { value: 'Palpa', label: 'Palpa' },
     { value: 'Pisco', label: 'Pisco' }
   ]);
-
   const [provinciasJunin] = useState([
     { value: 'Huancayo', label: 'Huancayo' },
     { value: 'Junín', label: 'Junín' },
@@ -566,7 +691,6 @@ function PedidosDashboard() {
     { value: 'Yauli', label: 'Yauli' },
     { value: 'Satipo', label: 'Satipo' }
   ]);
-
   const [provinciasLaLibertad] = useState([
     { value: 'Trujillo', label: 'Trujillo' },
     { value: 'Ascope', label: 'Ascope' },
@@ -581,7 +705,6 @@ function PedidosDashboard() {
     { value: 'Gran Chimú', label: 'Gran Chimú' },
     { value: 'Virú', label: 'Virú' }
   ]);
-
   const [provinciasLambayeque] = useState([
     { value: 'Chiclayo', label: 'Chiclayo' },
     { value: 'Chongoyape', label: 'Chongoyape' },
@@ -595,7 +718,6 @@ function PedidosDashboard() {
     { value: 'Reque', label: 'Reque' },
     { value: 'Túcume', label: 'Túcume' }
   ]);
-
   const [provinciasLima] = useState([
     { value: 'Barranca', label: 'Barranca' },
     { value: 'Cajatambo', label: 'Cajatambo' },
@@ -608,7 +730,6 @@ function PedidosDashboard() {
     { value: 'Oyón', label: 'Oyón' },
     { value: 'Yauyos', label: 'Yauyos' },
   ]);
-
   const [provinciasLoreto] = useState([
     { value: 'Maynas', label: 'Maynas' },
     { value: 'Alto Amazonas', label: 'Alto Amazonas' },
@@ -618,26 +739,22 @@ function PedidosDashboard() {
     { value: 'Requena', label: 'Requena' },
     { value: 'Ucayali', label: 'Ucayali' }
   ]);
-
   const [provinciasMadreDeDios] = useState([
     { value: 'Tambopata', label: 'Tambopata' },
     { value: 'Manu', label: 'Manu' },
     { value: 'Tahuamanu', label: 'Tahuamanu' }
   ]);
-
   const [provinciasMoquegua] = useState([
     { value: 'Mariscal Nieto', label: 'Mariscal Nieto' },
     { value: 'Ilo', label: 'Ilo' },
     { value: 'General Sánchez Cerro', label: 'General Sánchez Cerro' },
     { value: 'Pedro Ruiz Gallo', label: 'Pedro Ruiz Gallo' }
   ]);
-
   const [provinciasPasco] = useState([
     { value: 'Pasco', label: 'Pasco' },
     { value: 'Daniel Alcides Carrión', label: 'Daniel Alcides Carrión' },
     { value: 'Oxapampa', label: 'Oxapampa' }
   ]);
-
   const [provinciasPiura] = useState([
     { value: 'Piura', label: 'Piura' },
     { value: 'Ayabaca', label: 'Ayabaca' },
@@ -648,7 +765,6 @@ function PedidosDashboard() {
     { value: 'Talara', label: 'Talara' },
     { value: 'Sechura', label: 'Sechura' }
   ]);
-
   const [provinciasPuno] = useState([
     { value: 'Puno', label: 'Puno' },
     { value: 'Azángaro', label: 'Azángaro' },
@@ -662,7 +778,6 @@ function PedidosDashboard() {
     { value: 'Sandia', label: 'Sandia' },
     { value: 'Yunguyo', label: 'Yunguyo' }
   ]);
-
   const [provinciasSanMartin] = useState([
     { value: 'Moyobamba', label: 'Moyobamba' },
     { value: 'Bellavista', label: 'Bellavista' },
@@ -675,20 +790,17 @@ function PedidosDashboard() {
     { value: 'San Martín', label: 'San Martín' },
     { value: 'Tocache', label: 'Tocache' }
   ]);
-
   const [provinciasTacna] = useState([
     { value: 'Tacna', label: 'Tacna' },
     { value: 'Candarave', label: 'Candarave' },
     { value: 'Jorge Basadre', label: 'Jorge Basadre' },
     { value: 'Tarata', label: 'Tarata' }
   ]);
-
   const [provinciasTumbes] = useState([
     { value: 'Tumbes', label: 'Tumbes' },
     { value: 'Contralmirante Villar', label: 'Contralmirante Villar' },
     { value: 'Zorritos', label: 'Zorritos' }
   ]);
-
   const [provinciasUcayali] = useState([
     { value: 'Pucallpa', label: 'Pucallpa' },
     { value: 'Atalaya', label: 'Atalaya' },
@@ -696,7 +808,6 @@ function PedidosDashboard() {
     { value: 'Padre Abad', label: 'Padre Abad' },
     { value: 'Purús', label: 'Purús' }
   ]);
-
   const provinciasPorDepartamento = {
     Amazonas: provinciasAmazonas,
     Áncash: provinciasAncash,
@@ -724,7 +835,6 @@ function PedidosDashboard() {
     Tumbes: provinciasTumbes,
     Ucayali: provinciasUcayali,
   };
-
   const distritosAmazonasData = {
     Bagua: [
       { value: 'Bagua', label: 'Bagua' },
@@ -793,7 +903,6 @@ function PedidosDashboard() {
       { value: 'La Peca', label: 'La Peca' },
     ]
   };
-
   const distritosAncashData = {
     Aija: [
       { value: 'Aija', label: 'Aija' },
@@ -956,7 +1065,6 @@ function PedidosDashboard() {
       { value: 'Pira', label: 'Pira' },
     ]
   };
-
   const distritosApurímacData = {
     Abancay: [
       { value: 'Abancay', label: 'Abancay' },
@@ -1028,7 +1136,6 @@ function PedidosDashboard() {
       { value: 'San Juan de Chancay', label: 'San Juan de Chancay' },
     ],
   };
-
   const distritosArequipaData = {
     Arequipa: [
       { value: 'Arequipa', label: 'Arequipa' },
@@ -1117,7 +1224,6 @@ function PedidosDashboard() {
       { value: 'Uctubamba', label: 'Uctubamba' },
     ]
   };
-
   const distritosCallaoData = {
     Callao: [
       { value: 'Callao', label: 'Callao' },
@@ -1129,7 +1235,6 @@ function PedidosDashboard() {
       { value: 'San Miguel', label: 'San Miguel' },
     ]
   };
-
   const distritosLimaData = {
     Barranca: [
       { value: 'Barranca', label: 'Barranca' },
@@ -1322,7 +1427,6 @@ function PedidosDashboard() {
       { value: 'Vitis', label: 'Vitis' },
     ],
   };
-
   const distritosPorDepartamentoProvincia = {
     Áncash: distritosAncashData,
     Arequipa: distritosArequipaData,
@@ -1331,12 +1435,14 @@ function PedidosDashboard() {
     Callao: distritosCallaoData,
     Lima: distritosLimaData,
   };
-
   const [provinciasSeleccionadas, setProvinciasSeleccionadas] = useState([]);
   const [distritosSeleccionados, setDistritosSeleccionados] = useState([]);
   const [estadosDisponibles, setEstadosDisponibles] = useState([]);
   const [estadosEntregaDisponibles, setEstadosEntregaDisponibles] = useState([]);
   const [almacenesDisponibles, setAlmacenesDisponibles] = useState(['TODOS', 'LIMA', 'PROVINCIA']);
+
+  //----------------Fin Array de distritos y provincias -------//
+
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros({ ...filtros, [campo]: valor });
@@ -1398,14 +1504,30 @@ function PedidosDashboard() {
         }
 
         console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
+
         const estadosInternos = await fetchEstadosPedidos();
+
+        let ventasOrders = [];
+        let almacenOrders = [];
+        try {
+          ventasOrders = await fetchVentasPedidosAsignados();
+          almacenOrders = await fetchAlmacenPedidosAsignados();
+        } catch (err) {
+          console.error('❌ Error cargando asignaciones:', err);
+          setError('Error cargando asignaciones de ventas o almacén');
+        }
+
+
+
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
           const trazabilidad = getTrazabilidadStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
-          const estadoInterno = estadosInternos.find(e => e.shopify_order_id === order.id);
+          const estadoInterno = estadosInternos.find(e => Number(e.shopify_order_id) === Number(order.id));
+          const ventaAsignada = ventasOrders.find(v => Number(v.shopify_order_id) === Number(order.id));
+          const almacenAsignado = almacenOrders.find(a => Number(a.shopify_order_id) === Number(order.id));
 
           return {
             id: order.name || `#${order.order_number}`,
@@ -1413,8 +1535,8 @@ function PedidosDashboard() {
             shopifyId: order.id,
             estado_pago: estadoInterno?.estado_pago,
             estado_preparacion: estadoInterno?.estado_preparacion,
-            vendedor: estadoInterno?.vendedor_id,
-
+            responsable: ventaAsignada?.responsable || null,
+            responsable_almacen: almacenAsignado?.responsable_almacen || null,
             cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
@@ -1471,10 +1593,6 @@ function PedidosDashboard() {
         setEstadosDisponibles(estadosUnicos);
         setEstadosEntregaDisponibles(estadosEntregaUnicos);
 
-        console.log('✅ Pedidos procesados exitosamente:', pedidosFormateados.length);
-        console.log('📊 Estados disponibles:', estadosUnicos);
-        console.log('🚚 Estados de entrega disponibles:', estadosEntregaUnicos);
-
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
 
@@ -1487,6 +1605,8 @@ function PedidosDashboard() {
 
     cargarTodosLosPedidos();
   }, []);
+
+
 
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
@@ -1584,6 +1704,11 @@ function PedidosDashboard() {
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
     const { fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+
+    // Mostrar componentes por roles
+    if (isVendedor && (!pedido.responsable || Number(pedido.responsable.id) !== userId)) { //--
+      return false; //--
+    } //-------------------------
 
     // Estado de pago: prioriza el interno, si no existe usa Shopify
     const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
@@ -1841,18 +1966,12 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
-
-              <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>
-
-
+              {!isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>} {/*//-- aplicar a todo lo que coprreponda a un rol*/}
+              {isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Almacén</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
-                Estado Preparación Pedido
+              <TableCell sx={{ fontWeight: "bold" }}>Estado Preparación Pedido</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Detalle de Pedido
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
-                Detalle de Pedido
-              </TableCell>
-
               <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Editar</TableCell>
@@ -1868,10 +1987,7 @@ function PedidosDashboard() {
             ) : (
               pedidosPaginados.map((pedido) => (
                 <TableRow key={pedido.id} sx={{ "&:hover": { bgcolor: "#f9fafb" } }}>
-
-                  {/* Orden Pedido */}
                   <TableCell>{pedido.id}</TableCell>
-                  {/* Fecha */}
                   <TableCell>
                     <Box sx={{ fontSize: "0.75rem" }}>
                       <FechaItem
@@ -1892,25 +2008,45 @@ function PedidosDashboard() {
                       />
                     </Box>
                   </TableCell>
-                  {/* Cliente */}
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {/* Mostrar nombre del vendedor asignado o 'Sin asignar' */}
-
-                      {/* Botón 'Asignar' para abrir el modal */}
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleAbrirAsignarVendedor(pedido)}
-                        sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                      >
-                        Asignar
-                      </Button>
-                    </Box>
-                  </TableCell>
+                  {!isVendedor && (
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {pedido.responsable?.nombre_completo ? (
+                          <Typography variant="body2">{pedido.responsable.nombre_completo}</Typography>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleAbrirAsignarVendedor(pedido)}
+                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                          >
+                            Asignar
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
+                  {isVendedor && (
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {pedido.responsable_almacen?.nombre_completo ? (
+                          <Typography variant="body2">{pedido.responsable_almacen.nombre_completo}</Typography>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleAbrirAsignarUsuarioAlmacen(pedido)}
+                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                          >
+                            Asignar
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Button
                       size="small"
@@ -2005,7 +2141,6 @@ function PedidosDashboard() {
                         : "Pago pendiente"}
                     </Button>
                   </TableCell>
-                  {/* Estado Preparación Pedido */}
                   <TableCell>
                     <Button
                       size="small"
@@ -2040,7 +2175,7 @@ function PedidosDashboard() {
 
                         const res = await actualizarEstadoInternoPreparacion(
                           pedido.shopifyId,
-                          estadoActual
+                          nuevoEstado
                         );
                         if (res?.data && res.data.message) {
                           setPedidos((prev) =>
@@ -2094,7 +2229,6 @@ function PedidosDashboard() {
                         : "No preparado"}
                     </Button>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       variant="outlined"
@@ -2157,113 +2291,101 @@ function PedidosDashboard() {
         />
       </TableContainer>
 
-     // Actualización del modal de asignación de vendedor
-      <Dialog open={modalAsignarOpen} onClose={() => setModalAsignarOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}
-        </DialogTitle>
-        <DialogContent sx={{ minWidth: 500 }}>
-          <FormControl fullWidth size="small">
-            <Select
-              value={vendedorAsignado}
-              onChange={(e) => setVendedorAsignado(e.target.value)}
-              displayEmpty
-            >
-              <MenuItem value="">
-                <em>Seleccionar vendedor</em>
-              </MenuItem>
-              {Array.isArray(vendedores) && vendedores.length > 0 ? (
-                vendedores.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>
-                    {v.nombre_completo} ({v.correo})
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled>
-                  {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
+      {!isVendedor && (
+        <Dialog open={modalAsignarOpen} onClose={() => setModalAsignarOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}
+          </DialogTitle>
+          <DialogContent sx={{ minWidth: 500 }}>
+            <FormControl fullWidth size="small">
+              <Select
+                value={vendedorAsignado}
+                onChange={(e) => setVendedorAsignado(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>Seleccionar vendedor</em>
                 </MenuItem>
-              )}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalAsignarOpen(false)}>Cancelar</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={!vendedorAsignado || loadingVendedores}
-            onClick={async () => {
-              console.log('🔥 BOTÓN PRESIONADO: Iniciando asignación de vendedor'); // Log 1
-              console.log('Datos del pedido seleccionado:', pedidoSeleccionado); // Log 2
-              console.log('Vendedor asignado:', vendedorAsignado); // Log 3
+                {Array.isArray(vendedores) && vendedores.length > 0 ? (
+                  vendedores.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.nombre_completo} ({v.correo})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
+                  </MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setModalAsignarOpen(false)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!vendedorAsignado || loadingVendedores}
+              onClick={handleAsignarVendedor}
+            >
+              Guardar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      {isVendedor && (
+        <Dialog open={modalAsignarAlmacenOpen} onClose={() => setModalAsignarAlmacenOpen(false)} maxWidth="sm" fullWidth>
+          {console.log('📦 Renderizando modal de almacén:', {
+            modalAsignarAlmacenOpen,
+            usuariosAlmacen,
+            usuariosAlmacenLength: usuariosAlmacen.length,
+            isArray: Array.isArray(usuariosAlmacen),
+            loadingUsuariosAlmacen,
+            usuarioAlmacenAsignado
+          })}
+          <DialogTitle>
+            Asignar Usuario de Almacén al Pedido #{pedidoSeleccionado?.id || ''}
+          </DialogTitle>
+          <DialogContent sx={{ minWidth: 500 }}>
 
-              if (!pedidoSeleccionado || !vendedorAsignado) {
-                console.error('❌ Faltan datos: pedido o vendedor no seleccionados');
-                Swal.fire({
-                  title: 'Error',
-                  text: 'Selecciona un pedido y un vendedor',
-                  icon: 'error',
-                });
-                return;
-              }
+            <FormControl fullWidth size="small">
 
-              try {
-                const seguimientoData = {
-                  shopify_order_id: Number(pedidoSeleccionado.shopifyId),
-                  area: 'Ventas',
-                  estado: 'Pendiente',
-                  responsable_id: Number(vendedorAsignado),
-                };
-                console.log('📦 Preparando datos para enviar:', seguimientoData); // Log 4
+              <Select
+                value={usuarioAlmacenAsignado}
+                onChange={(e) => setUsuarioAlmacenAsignado(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>Seleccionar usuario de almacén</em>
+                </MenuItem>
+                {Array.isArray(usuariosAlmacen) && usuariosAlmacen.length > 0 ? (
+                  usuariosAlmacen.map((u) => (
+                    <MenuItem key={u.id} value={u.id}>
+                      {u.nombre_completo} ({u.correo})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    {loadingUsuariosAlmacen ? 'Cargando usuarios de almacén...' : 'No hay usuarios de almacén disponibles'}
+                  </MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setModalAsignarAlmacenOpen(false)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!usuarioAlmacenAsignado || loadingUsuariosAlmacen}
+              onClick={handleAsignarUsuarioAlmacen}
+            >
+              Guardar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
-                const response = await createSeguimiento(seguimientoData);
-                console.log('✅ Respuesta recibida en el botón:', response); // Log 5
-
-                if (response && response.data) {
-                  const vendedor = vendedores.find(v => v.id === Number(vendedorAsignado));
-                  setPedidos((prev) =>
-                    prev.map((p) =>
-                      p.id === pedidoSeleccionado.id
-                        ? { ...p, vendedor }
-                        : p
-                    )
-                  );
-                  setPedidosOriginales((prev) =>
-                    prev.map((p) =>
-                      p.id === pedidoSeleccionado.id
-                        ? { ...p, vendedor }
-                        : p
-                    )
-                  );
-                  Swal.fire({
-                    title: '¡Éxito!',
-                    text: `Vendedor ${vendedor?.nombre_completo || 'desconocido'} asignado al pedido #${pedidoSeleccionado.id}.`,
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                  });
-                  console.log('✅ Seguimiento creado:', response.data); // Log 6: Éxito
-                  setModalAsignarOpen(false);
-                  setVendedorAsignado('');
-                } else {
-                  throw new Error('Respuesta inválida del servidor');
-                }
-              } catch (error) {
-                console.error('❌ Error en el onClick:', error.message); // Log 7: Error
-                Swal.fire({
-                  title: 'Error',
-                  text: `No se pudo asignar el vendedor: ${error.message}`,
-                  icon: 'error',
-                  confirmButtonText: 'OK',
-                });
-              }
-            }}
-          >
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-// Actualización del modal de edición
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Pedido</DialogTitle>
         <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -2435,24 +2557,29 @@ function PedidosDashboard() {
 
             <FormControl fullWidth size="small">
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography
-                  component="span"
-                  color="error"
-                  sx={{ minWidth: "8px" }}
-                >
-                  *
-                </Typography>
+                <Typography component="span" color="error" sx={{ minWidth: "8px" }}>*</Typography>
                 <Typography variant="body2">Vendedor:</Typography>
               </Box>
               <Select
                 name="vendedor"
                 value={nuevoPedido.vendedor}
                 onChange={handleFormChange}
+                disabled={loadingVendedores}
               >
-                <MenuItem value="Vendedor1">Vendedor 1</MenuItem>
-                <MenuItem value="Vendedor2">Vendedor 2</MenuItem>
-                <MenuItem value="Vendedor3">Vendedor 3</MenuItem>
-                <MenuItem value="Vendedor4">Vendedor 4</MenuItem>
+                <MenuItem value="">
+                  <em>Seleccionar vendedor</em>
+                </MenuItem>
+                {Array.isArray(vendedores) && vendedores.length > 0 ? (
+                  vendedores.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.nombre_completo} ({v.correo})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
+                  </MenuItem>
+                )}
               </Select>
             </FormControl>
 

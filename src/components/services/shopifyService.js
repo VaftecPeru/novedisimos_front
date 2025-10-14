@@ -458,6 +458,53 @@ export const fetchVendedores = async () => {
   }
 };
 
+export const fetchVentasPedidosAsignados = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/seguimiento-pedido/vendedores`, {
+      headers: {
+        'Content-Type': 'application/json',
+        // Agrega autenticación si es necesario, e.g., 'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener pedidos de ventas: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error('❌ Error en fetchVentasPedidosAsignados:', error);
+    return [];
+  }
+};
+
+export const fetchAlmacenPedidosAsignados = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/seguimiento-pedido/almacen`, {
+      headers: {
+        'Content-Type': 'application/json',
+        // Agrega autenticación si es necesario, e.g., 'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener pedidos de almacén: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('📥 Respuesta de fetchAlmacenPedidosAsignados:', data);
+    return Array.isArray(data.data) ? data.data.map(item => ({
+      shopify_order_id: item.shopify_order_id,
+      responsable_almacen: item.responsable || null
+    })) : [];
+  } catch (error) {
+    console.error('❌ Error en fetchAlmacenPedidosAsignados:', error);
+    return [];
+  }
+};
+
+
 // Obtener usuarios con rol "almacen"
 export const fetchAlmacen = async () => {
   try {
