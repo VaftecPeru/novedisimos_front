@@ -7,11 +7,16 @@ import {
 
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save, Refresh } from '@mui/icons-material';
 import './PedidosDashboard.css';
-import { fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, fetchPedidosPreparacionInterna } from './components/services/shopifyService';
+import {
+  fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, fetchPedidosPreparacionInterna,
+  fetchDelivery, fetchAlmacen, createSeguimiento, fetchDeliveryPedidosAsignados, fetchAlmacenPedidosAsignados
+} from './components/services/shopifyService';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import Swal from 'sweetalert2';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -53,6 +58,7 @@ const getInventoryStatus = (order) => {
   if (order.financial_status === 'paid') return 'DISPONIBLE';
   return 'PENDIENTE_STOCK';
 };
+
 const getOpcionesEstado = (estadoActual) => {
   switch (estadoActual) {
     case "Pendiente":
@@ -178,6 +184,118 @@ const FechaItem = ({ label, fecha }) => (
 
 function AlmacenDashboard() {
 
+  const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+  const isAlmacen = currentUser.rol === 'Almacen';
+  const userId = Number(currentUser.id);
+
+  // -------------------------//
+  const [usuariosDelivery, setUsuariosDelivery] = useState([]);
+  const [loadingUsuariosDelivery, setLoadingUsuariosDelivery] = useState(true);
+  const [modalAsignarDeliveryOpen, setModalAsignarDeliveryOpen] = useState(false);
+  const [usuarioDeliveryAsignado, setUsuarioDeliveryAsignado] = useState('');
+
+  useEffect(() => {
+    const cargarUsuariosDelivery = async () => {
+      try {
+        setLoadingUsuariosDelivery(true);
+        const usuariosData = await fetchDelivery();
+        console.log('Datos de usuariosDelivery:', usuariosData);
+        setUsuariosDelivery(Array.isArray(usuariosData) ? usuariosData : []);
+        if (!usuariosData || usuariosData.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron usuarios de delivery disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error cargando usuarios de delivery:', error);
+        setUsuariosDelivery([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de usuarios de delivery.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      } finally {
+        setLoadingUsuariosDelivery(false);
+      }
+    };
+    cargarUsuariosDelivery();
+  }, []);
+
+  const handleAbrirAsignarUsuarioDelivery = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setUsuarioDeliveryAsignado('');
+    setModalAsignarDeliveryOpen(true);
+  };
+
+  const handleAsignarUsuarioDelivery = async () => {
+    try {
+      if (!usuarioDeliveryAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del usuario de delivery o del pedido');
+      }
+
+      const usuario = usuariosDelivery.find(u => Number(u.id) === Number(usuarioDeliveryAsignado));
+      if (!usuario) {
+        throw new Error('Usuario de delivery no encontrado en la lista');
+      }
+
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Delivery',
+        estado: 'Pendiente',
+        responsable_id: Number(usuarioDeliveryAsignado),
+      };
+
+      console.log('📤 Enviando datos a createSeguimiento para delivery:', seguimientoData);
+      const response = await createSeguimiento(seguimientoData);
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_delivery: { ...usuario } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_delivery: { ...usuario } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Usuario de delivery ${usuario.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        setModalAsignarDeliveryOpen(false);
+        setUsuarioDeliveryAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando usuario de delivery:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el usuario de delivery. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+
+
+  // -------------------------//
+
+
   const [filtros, setFiltros] = useState({
     estado: 'CONFIRMADO',
     almacen: 'TODOS',
@@ -220,8 +338,6 @@ function AlmacenDashboard() {
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [notificaciones, setNotificaciones] = useState([]);
   const [anchorNotif, setAnchorNotif] = useState(null);
-
-
 
   const estadoInicialAlmacen = {
     numeroOrden: '',
@@ -336,11 +452,21 @@ function AlmacenDashboard() {
         // *** Aquí: usa la función correcta ***
         const pedidosInternos = await fetchPedidosPreparacionInterna();
 
+        let almacenAsignados = [];
+        let deliveryAsignados = [];
+        try {
+          almacenAsignados = await fetchAlmacenPedidosAsignados();
+          console.log('📥 Asignaciones de almacén:', almacenAsignados);
+          deliveryAsignados = await fetchDeliveryPedidosAsignados();
+          console.log('📥 Asignaciones de delivery:', deliveryAsignados);
+        } catch (err) {
+          console.error('❌ Error cargando asignaciones:', err);
+        }
+
         const pedidosFormateadosAlmacen = allOrders.map(order => {
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
           const inventario = getInventoryStatus(order);
-          // *** CRUZAR CON pedidosInternos ***
           const estadoInterno = pedidosInternos.find(e =>
             Number(e.shopify_order_id) === Number(order.id)
           );
@@ -349,6 +475,9 @@ function AlmacenDashboard() {
             estadoBD === 'listo_para_despacho' ? 'Listo para despacho' :
               estadoBD === 'despachado' ? 'Despachado' :
                 estadoBD === 'cancelado' ? 'Cancelado' : 'Pendiente'; 'Pendiente';
+
+          const asignacionAlmacen = almacenAsignados.find(a => Number(a.shopify_order_id) === Number(order.id));
+          const asignacionDelivery = deliveryAsignados.find(d => Number(d.shopify_order_id) === Number(order.id));
 
           return {
             id: order.name || `#${order.order_number}`,
@@ -368,6 +497,9 @@ function AlmacenDashboard() {
 
             estadoAlmacen: estadoAlmacen,
             inventario: inventario,
+
+            responsable_almacen: asignacionAlmacen?.responsable_almacen || null, // Campo para almacén
+            responsable_delivery: asignacionDelivery?.responsable_delivery || null, // Nuevo campo para delivery
 
             financial_status: order.financial_status,
             fulfillment_status: order.fulfillment_status,
@@ -462,7 +594,6 @@ function AlmacenDashboard() {
     }
   };
 
-
   const handleFormChange = (e) => {
     setNuevoRegistroAlmacen({ ...nuevoRegistroAlmacen, [e.target.name]: e.target.value });
   };
@@ -507,6 +638,12 @@ function AlmacenDashboard() {
   };
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+
+    // ✅ FILTRAR POR ID DEL USUARIO DE ALMACÉN si el rol es "Almacen"
+    if (isAlmacen && (!pedido.responsable_almacen || Number(pedido.responsable_almacen.id) !== userId)) {
+      return false;
+    }
+
     const { estado, almacen, fechaInicio, fechaFin, searchTerm, tipoFecha, estadoInventario } = filtros;
 
     if (estado && estado !== '' && pedido.estado !== estado) return false;
@@ -813,6 +950,9 @@ function AlmacenDashboard() {
                   <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
                     Estados
                   </TableCell>
+                  {isAlmacen && <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
+                    Delivery
+                  </TableCell>}
                   <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
                     Productos
                   </TableCell>
@@ -960,7 +1100,24 @@ function AlmacenDashboard() {
                         ))}
                       </Menu>
                     </TableCell>
-
+                    {isAlmacen && (
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {pedido.responsable_delivery?.nombre_completo ? (
+                            <Typography variant="body2">{pedido.responsable_delivery.nombre_completo}</Typography>
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => handleAbrirAsignarUsuarioDelivery(pedido)}
+                              sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                            >
+                              Asignar
+                            </Button>
+                          )}
+                        </Box>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Box sx={{ maxWidth: 180, maxHeight: 100, overflowY: 'auto' }}>
                         {pedido.productos.map((producto, idx) => (
@@ -1033,6 +1190,48 @@ function AlmacenDashboard() {
               </TableBody>
             </Table>
           </TableContainer>
+          {isAlmacen && (
+            <Dialog open={modalAsignarDeliveryOpen} onClose={() => setModalAsignarDeliveryOpen(false)} maxWidth="sm" fullWidth>
+              <DialogTitle>
+                Asignar Usuario de Delivery al Pedido #{pedidoSeleccionado?.id || ''}
+              </DialogTitle>
+              <DialogContent sx={{ minWidth: 500 }}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={usuarioDeliveryAsignado}
+                    onChange={(e) => setUsuarioDeliveryAsignado(e.target.value)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>Seleccionar usuario de delivery</em>
+                    </MenuItem>
+                    {Array.isArray(usuariosDelivery) && usuariosDelivery.length > 0 ? (
+                      usuariosDelivery.map((u) => (
+                        <MenuItem key={u.id} value={u.id}>
+                          {u.nombre_completo} ({u.correo})
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>
+                        {loadingUsuariosDelivery ? 'Cargando usuarios de delivery...' : 'No hay usuarios de delivery disponibles'}
+                      </MenuItem>
+                    )}
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setModalAsignarDeliveryOpen(false)}>Cancelar</Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={!usuarioDeliveryAsignado || loadingUsuariosDelivery}
+                  onClick={handleAsignarUsuarioDelivery}
+                >
+                  Guardar
+                </Button>
+              </DialogActions>
+            </Dialog>
+          )}
           <Drawer
             anchor="right"
             open={drawerOpen}

@@ -435,29 +435,6 @@ export const fetchUsuarios = async () => {
   }
 };
 
-// Obtener usuarios con rol "vendedor"
-export const fetchVendedores = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`, {
-      headers: {
-        'Content-Type': 'application/json',
-        // Agregar autenticación si es necesario, ej: 'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error al obtener vendedores: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // Verificar que data.data sea un array, si no, devolver un array vacío
-    return Array.isArray(data.data) ? data.data : [];
-  } catch (error) {
-    console.error('❌ Error en fetchVendedores:', error);
-    return []; // Siempre devolver un array vacío en caso de error
-  }
-};
-
 export const fetchVentasPedidosAsignados = async () => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/seguimiento-pedido/vendedores`, {
@@ -504,6 +481,54 @@ export const fetchAlmacenPedidosAsignados = async () => {
   }
 };
 
+export const fetchDeliveryPedidosAsignados = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/seguimiento-pedido/delivery`, {
+      headers: {
+        'Content-Type': 'application/json',
+        // Agrega autenticación si es necesario, e.g., 'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al obtener pedidos de delivery: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('📥 Respuesta de fetchDeliveryPedidosAsignados:', data);
+    return Array.isArray(data.data) ? data.data.map(item => ({
+      shopify_order_id: item.shopify_order_id,
+      responsable_delivery: item.responsable || null
+    })) : [];
+  } catch (error) {
+    console.error('❌ Error en fetchDeliveryPedidosAsignados:', error.message, error);
+    return [];
+  }
+};
+
+// Obtener usuarios con rol "vendedor"
+export const fetchVendedores = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`, {
+      headers: {
+        'Content-Type': 'application/json',
+        // Agregar autenticación si es necesario, ej: 'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener vendedores: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Verificar que data.data sea un array, si no, devolver un array vacío
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error('❌ Error en fetchVendedores:', error);
+    return []; // Siempre devolver un array vacío en caso de error
+  }
+};
 
 // Obtener usuarios con rol "almacen"
 export const fetchAlmacen = async () => {
@@ -520,18 +545,19 @@ export const fetchAlmacen = async () => {
   }
 };
 
-// Obtener usuarios con rol "delivery"
 export const fetchDelivery = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/usuarios/delivery`);
-
     if (!response.ok) {
-      throw new Error('Error al obtener usuarios de delivery');
+      throw new Error(`Error al obtener usuarios de delivery: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    console.log('Respuesta de fetchDelivery:', data); // Para depurar
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
-    console.error('❌ Error en fetchDelivery:', error);
-    return null;
+    console.error('❌ Error en fetchDelivery:', error.message);
+    Swal.fire('Error', 'No se pudo cargar la lista de usuarios de delivery.', 'error');
+    return [];
   }
 };
 
