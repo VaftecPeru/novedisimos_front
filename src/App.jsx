@@ -12,10 +12,12 @@ import RegistroCorreoFinal from "./RegistroCorreoFinal";
 import Dashboard from "./Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import { useState } from "react";
-import axios from "axios";
 import { useUser } from "./UserContext";
 import DetallePedido from "./DetallePedido";
 import DetalleMotorizado from "./DetalleMotorizados";
+import { loginUser } from './components/services/shopifyService';
+import RoleProtectedRoute from './RoleProtectedRoute';
+
 import {
   Box,
   TextField,
@@ -46,28 +48,18 @@ function App() {
     event.preventDefault();
 
     try {
-      const response = await axios.post(
-        `https://novedadeswow.com/api_php/login.php`,
-        { correo: email, contraseña: password },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // USAR FUNCIÓN EXISTENTE loginUser
+      const { user, token } = await loginUser({
+        correo: email,
+        contraseña: password
+      });
 
-      const user = response.data;
-      const userWithEmail = {
-        ...user,
-        email: email,
-      };
-
-      setUsuario(userWithEmail);
-      localStorage.setItem("currentUser", JSON.stringify(userWithEmail));
-      localStorage.setItem("authToken", user.token); // Guarda el token
+      setUsuario(user);
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      localStorage.setItem("authToken", token);
 
       setLoginError("");
-      console.log("Usuario logueado:", userWithEmail);
+      console.log("Usuario logueado:", user);
 
       const savedRoute = localStorage.getItem("redirectAfterLogin");
       if (savedRoute) {
@@ -79,7 +71,14 @@ function App() {
       }
     } catch (err) {
       console.error("Error en login:", err);
-      setLoginError("Correo o contraseña incorrectos");
+      
+      if (err.response?.status === 401) {
+        setLoginError("Correo o contraseña incorrectos");
+      } else if (err.response?.status === 422) {
+        setLoginError("Por favor verifica tu correo y contraseña");
+      } else {
+        setLoginError("Error de conexión. Intenta nuevamente");
+      }
     }
   };
 
@@ -291,15 +290,92 @@ function MainApp() {
   return (
     <Router>
       <Routes>
+        {/* RUTAS PÚBLICAS */}
         <Route path="/" element={<App />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
 
-        <Route path="/dashboard/*" element={<ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
-        <Route path="/motorizados/:id" element={<ProtectedRoute> <DetalleMotorizado /> </ProtectedRoute>} />
-        <Route path="/pedidos/:orderId" element={<ProtectedRoute> <DetallePedido /> </ProtectedRoute>} />
+        {/* DASHBOARD GENERAL - CUALQUIER ROL */}
+        <Route path="/dashboard" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor', 'Almacen', 'Delivery']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
 
+        {/* PEDIDOS - Administrador + Vendedor */}
+        <Route path="/dashboard/ordenDePedido" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+        <Route path="/dashboard/busquedaInterna" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+        <Route path="/dashboard/busquedaExterna" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* MANTENIMIENTO - Administrador + Almacen */}
+        <Route path="/dashboard/almacenes" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacen']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+        <Route path="/dashboard/controlUsuarios" element={
+          <RoleProtectedRoute allowedRoles={['Administrador']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* MOTORIZADOS - Administrador + Delivery */}
+        <Route path="/dashboard/motorizados" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Delivery']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+        <Route path="/dashboard/detallemotorizados" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Delivery']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* ASESORES - Solo Administrador */}
+        <Route path="/dashboard/asesores" element={
+          <RoleProtectedRoute allowedRoles={['Administrador']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* INTEGRACIONES - Solo Administrador */}
+        <Route path="/dashboard/shopify" element={
+          <RoleProtectedRoute allowedRoles={['Administrador']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* CATCH-ALL - Redirige a dashboard */}
+        <Route path="/dashboard/*" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor', 'Almacen', 'Delivery']}>
+            <Dashboard />
+          </RoleProtectedRoute>
+        } />
+
+        {/* DETALLES */}
+        <Route path="/motorizados/:id" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Delivery']}>
+            <DetalleMotorizado />
+          </RoleProtectedRoute>
+        } />
+        <Route path="/pedidos/:orderId" element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Vendedor']}>
+            <DetallePedido />
+          </RoleProtectedRoute>
+        } />
       </Routes>
     </Router>
   );

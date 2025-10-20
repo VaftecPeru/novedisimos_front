@@ -1966,8 +1966,8 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
-              {!isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>} {/*//-- aplicar a todo lo que coprreponda a un rol*/}
-              {isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Almacén</TableCell>}
+              {!isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>}
+              <TableCell sx={{ fontWeight: "bold" }}>Almacén</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado Preparación Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Detalle de Pedido
@@ -2029,24 +2029,24 @@ function PedidosDashboard() {
                       </Box>
                     </TableCell>
                   )}
-                  {isVendedor && (
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {pedido.responsable_almacen?.nombre_completo ? (
-                          <Typography variant="body2">{pedido.responsable_almacen.nombre_completo}</Typography>
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleAbrirAsignarUsuarioAlmacen(pedido)}
-                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                          >
-                            Asignar
-                          </Button>
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
+
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {pedido.responsable_almacen?.nombre_completo ? (
+                        <Typography variant="body2">{pedido.responsable_almacen.nombre_completo}</Typography>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleAbrirAsignarUsuarioAlmacen(pedido)}
+                          sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                        >
+                          Asignar
+                        </Button>
+                      )}
+                    </Box>
+                  </TableCell>
+
                   <TableCell>
                     <Button
                       size="small"
@@ -2333,58 +2333,57 @@ function PedidosDashboard() {
           </DialogActions>
         </Dialog>
       )}
-      {isVendedor && (
-        <Dialog open={modalAsignarAlmacenOpen} onClose={() => setModalAsignarAlmacenOpen(false)} maxWidth="sm" fullWidth>
-          {console.log('📦 Renderizando modal de almacén:', {
-            modalAsignarAlmacenOpen,
-            usuariosAlmacen,
-            usuariosAlmacenLength: usuariosAlmacen.length,
-            isArray: Array.isArray(usuariosAlmacen),
-            loadingUsuariosAlmacen,
-            usuarioAlmacenAsignado
-          })}
-          <DialogTitle>
-            Asignar Usuario de Almacén al Pedido #{pedidoSeleccionado?.id || ''}
-          </DialogTitle>
-          <DialogContent sx={{ minWidth: 500 }}>
+      <Dialog open={modalAsignarAlmacenOpen} onClose={() => setModalAsignarAlmacenOpen(false)} maxWidth="sm" fullWidth>
+        {console.log('📦 Renderizando modal de almacén:', {
+          modalAsignarAlmacenOpen,
+          usuariosAlmacen,
+          usuariosAlmacenLength: usuariosAlmacen.length,
+          isArray: Array.isArray(usuariosAlmacen),
+          loadingUsuariosAlmacen,
+          usuarioAlmacenAsignado
+        })}
+        <DialogTitle>
+          Asignar Usuario de Almacén al Pedido #{pedidoSeleccionado?.id || ''}
+        </DialogTitle>
+        <DialogContent sx={{ minWidth: 500 }}>
 
-            <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small">
 
-              <Select
-                value={usuarioAlmacenAsignado}
-                onChange={(e) => setUsuarioAlmacenAsignado(e.target.value)}
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>Seleccionar usuario de almacén</em>
-                </MenuItem>
-                {Array.isArray(usuariosAlmacen) && usuariosAlmacen.length > 0 ? (
-                  usuariosAlmacen.map((u) => (
-                    <MenuItem key={u.id} value={u.id}>
-                      {u.nombre_completo} ({u.correo})
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>
-                    {loadingUsuariosAlmacen ? 'Cargando usuarios de almacén...' : 'No hay usuarios de almacén disponibles'}
-                  </MenuItem>
-                )}
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setModalAsignarAlmacenOpen(false)}>Cancelar</Button>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!usuarioAlmacenAsignado || loadingUsuariosAlmacen}
-              onClick={handleAsignarUsuarioAlmacen}
+            <Select
+              value={usuarioAlmacenAsignado}
+              onChange={(e) => setUsuarioAlmacenAsignado(e.target.value)}
+              displayEmpty
             >
-              Guardar
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+              <MenuItem value="">
+                <em>Seleccionar usuario de almacén</em>
+              </MenuItem>
+              {Array.isArray(usuariosAlmacen) && usuariosAlmacen.length > 0 ? (
+                usuariosAlmacen.map((u) => (
+                  <MenuItem key={u.id} value={u.id}>
+                    {u.nombre_completo} ({u.correo})
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>
+                  {loadingUsuariosAlmacen ? 'Cargando usuarios de almacén...' : 'No hay usuarios de almacén disponibles'}
+                </MenuItem>
+              )}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalAsignarAlmacenOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!usuarioAlmacenAsignado || loadingUsuariosAlmacen}
+            onClick={handleAsignarUsuarioAlmacen}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
 
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Pedido</DialogTitle>

@@ -1,12 +1,13 @@
-import { createContext, useContext, useState, useEffect } from "react"; // ¡Importa useEffect!
-import { fetchAuthUser } from "./components/services/shopifyService";
+// src/UserContext.jsx
+import { createContext, useContext, useState, useEffect } from "react";
+import { fetchAuthUser, logoutUser } from "./components/services/shopifyService";
 
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(() => {
     const storedUser = localStorage.getItem("currentUser");
-    console.log("Stored user raw:", storedUser); // Debug
+    console.log("Stored user raw:", storedUser);
     try {
       return storedUser ? JSON.parse(storedUser) : null;
     } catch (e) {
@@ -15,15 +16,18 @@ const UserProvider = ({ children }) => {
     }
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (usuario) {
       localStorage.setItem("currentUser", JSON.stringify(usuario));
     } else {
       localStorage.removeItem("currentUser");
-      localStorage.removeItem("authToken"); // Limpia authToken
+      localStorage.removeItem("authToken");
     }
   }, [usuario]);
 
+  // VERIFICAR USUARIO (usa fetchAuthUser existente)
   useEffect(() => {
     if (!usuario) {
       fetchAuthUser().then(fetchedUser => {
@@ -33,12 +37,23 @@ const UserProvider = ({ children }) => {
           localStorage.removeItem("authToken");
           localStorage.removeItem("currentUser");
         }
+        setLoading(false);
       });
+    } else {
+      setLoading(false);
     }
   }, []);
 
+  // LOGOUT (nuevo)
+  const logout = async () => {
+    await logoutUser();
+    setUsuario(null);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
+  };
+
   return (
-    <UserContext.Provider value={{ usuario, setUsuario }}>
+    <UserContext.Provider value={{ usuario, setUsuario, loading, logout }}>
       {children}
     </UserContext.Provider>
   );

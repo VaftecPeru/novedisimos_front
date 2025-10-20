@@ -7,11 +7,6 @@ const CUSTOM_API_BASE_URL = isDevelopment
   ? 'http://localhost:8000/api'
   : 'https://api.novedadeswow.com/api';
 
-const CUSTOM_API_AUTH = isDevelopment
-  ? "http://localhost/api_php"
-  : "https://novedadeswow.com/api_php";
-
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;
 
@@ -24,7 +19,8 @@ export const fetchAuthUser = async () => {
       return null;
     }
 
-    const response = await axios.get(`${CUSTOM_API_AUTH}/user.php`, {
+    // CAMBIO: /user.php → /usuario
+    const response = await axios.get(`${API_BASE_URL}/usuario`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -32,10 +28,66 @@ export const fetchAuthUser = async () => {
     });
 
     console.log("fetchAuthUser response:", response.data);
-    return response.data;
+
+    // NORMALIZAR DATOS DE LARAVEL
+    const userData = response.data.data;
+    return {
+      id: userData.id,
+      name: userData.nombre_completo,
+      email: userData.correo,
+      rol: userData.rol
+    };
   } catch (error) {
     console.error("⚠️ No se pudo obtener el usuario autenticado:", error.response?.data || error.message);
     return null;
+  }
+};
+
+// NUEVA FUNCIÓN: LOGIN (agregar aquí)
+export const loginUser = async (credentials) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/login`, {
+      correo: credentials.correo,
+      contraseña: credentials.contraseña
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const userData = response.data.data;
+
+    // NORMALIZAR PARA FRONTEND
+    const user = {
+      id: userData.id,
+      name: userData.nombre_completo,
+      email: credentials.correo,
+      rol: userData.rol
+    };
+
+    return {
+      user,
+      token: userData.token
+    };
+  } catch (error) {
+    console.error("Error en login:", error);
+    throw error;
+  }
+};
+
+// NUEVA FUNCIÓN: LOGOUT (agregar aquí)
+export const logoutUser = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      await axios.post(`${API_BASE_URL}/logout`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error en logout:", error);
   }
 };
 
@@ -263,7 +315,8 @@ export const getProducts = async () => {
   return response.data;
 };
 
-//  Buscar pedido por name  y devolver el objeto completo
+// Listar pedido por nombre
+
 export const fetchOrderByName = async (valorBuscar) => {
   try {
 
@@ -302,7 +355,7 @@ export const fetchOrderByName = async (valorBuscar) => {
   }
 };
 
-
+//  Busqueda interna y externa
 
 export const fetchPedidoInterno = async (shopifyOrderId) => {
   try {
@@ -319,8 +372,6 @@ export const fetchPedidoInterno = async (shopifyOrderId) => {
     return null;
   }
 };
-
-
 
 export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
   try {
@@ -348,7 +399,6 @@ export const guardarPedidoInterno = async (payload, shopifyOrderId) => {
   }
 };
 
-// Buscar pedido externo por shopify_order_id (incluye productos y envio)
 export const fetchPedidoExterno = async (shopifyOrderId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/pedido-externo/shopify/${shopifyOrderId}`);
@@ -363,7 +413,6 @@ export const fetchPedidoExterno = async (shopifyOrderId) => {
   }
 };
 
-// Guardar/Actualizar pedido externo y productos (usa POST para store/update)
 export const guardarPedidoExterno = async (data) => {
   try {
     // Si ya existe shopify_order_id, usa PUT; si no, POST
@@ -391,7 +440,6 @@ export const guardarPedidoExterno = async (data) => {
   }
 };
 
-// Guardar/Actualizar envío externo (usa POST para store/update, separada)
 export const guardarPedidoExternoEnvio = async (data) => {
   try {
     // Siempre incluye shopify_order_id para updateOrCreate
@@ -420,20 +468,7 @@ export const guardarPedidoExternoEnvio = async (data) => {
 };
 
 
-// Obtener todos los usuarios con sus roles
-export const fetchUsuarios = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/usuarios`);
 
-    if (!response.ok) {
-      throw new Error('Error al obtener usuarios');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('❌ Error en fetchUsuarios:', error);
-    return null;
-  }
-};
 
 export const fetchVentasPedidosAsignados = async () => {
   try {
@@ -507,60 +542,6 @@ export const fetchDeliveryPedidosAsignados = async () => {
   }
 };
 
-// Obtener usuarios con rol "vendedor"
-export const fetchVendedores = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/usuarios/vendedores`, {
-      headers: {
-        'Content-Type': 'application/json',
-        // Agregar autenticación si es necesario, ej: 'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error al obtener vendedores: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // Verificar que data.data sea un array, si no, devolver un array vacío
-    return Array.isArray(data.data) ? data.data : [];
-  } catch (error) {
-    console.error('❌ Error en fetchVendedores:', error);
-    return []; // Siempre devolver un array vacío en caso de error
-  }
-};
-
-// Obtener usuarios con rol "almacen"
-export const fetchAlmacen = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/usuarios/almacen`);
-
-    if (!response.ok) {
-      throw new Error('Error al obtener usuarios de almacén');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('❌ Error en fetchAlmacen:', error);
-    return null;
-  }
-};
-
-export const fetchDelivery = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/usuarios/delivery`);
-    if (!response.ok) {
-      throw new Error(`Error al obtener usuarios de delivery: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log('Respuesta de fetchDelivery:', data); // Para depurar
-    return Array.isArray(data.data) ? data.data : [];
-  } catch (error) {
-    console.error('❌ Error en fetchDelivery:', error.message);
-    Swal.fire('Error', 'No se pudo cargar la lista de usuarios de delivery.', 'error');
-    return [];
-  }
-};
-
 export const createSeguimiento = async (seguimientoData) => {
   console.log('🚀 ENTRANDO EN createSeguimiento'); // Log inicial
 
@@ -591,6 +572,110 @@ export const createSeguimiento = async (seguimientoData) => {
   }
 };
 
+// Obtener todos los usuarios con sus roles
+export const fetchUsuarios = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.log("No token found");
+      return null;
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/usuarios`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ← EXACTO PARA MIDDLEWARE
+        Accept: "application/json",
+      },
+    });
+
+    console.log("fetchUsuarios response:", response.data);
+    return response.data; // ← MISMO QUE ORIGINAL
+  } catch (error) {
+    console.error('❌ Error en fetchUsuarios:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+// Obtener usuarios con rol "vendedor"
+export const fetchVendedores = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.log("No token found");
+      return [];
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/usuarios/vendedores`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ← EXACTO PARA MIDDLEWARE
+        Accept: "application/json",
+      },
+    });
+
+    console.log("fetchVendedores response:", response.data);
+    const data = response.data;
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error('❌ Error en fetchVendedores:', error.response?.data || error.message);
+    return [];
+  }
+};
+
+// Obtener usuarios con rol "almacen"
+export const fetchAlmacen = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.log("No token found");
+      return null;
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/usuarios/almacen`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ← EXACTO PARA MIDDLEWARE
+        Accept: "application/json",
+      },
+    });
+
+    console.log("fetchAlmacen response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error en fetchAlmacen:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+// Obtener usuarios con rol "delivery"
+export const fetchDelivery = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.log("No token found");
+      return [];
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/usuarios/delivery`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ← EXACTO PARA MIDDLEWARE
+        Accept: "application/json",
+      },
+    });
+
+    console.log("fetchDelivery response:", response.data);
+    const data = response.data;
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error('❌ Error en fetchDelivery:', error.response?.data || error.message);
+    // Manejo de errores 401 del middleware
+    if (error.response?.status === 401) {
+      Swal.fire('Sesión expirada', 'Por favor, inicia sesión nuevamente.', 'warning');
+      localStorage.removeItem("authToken");
+      window.location.href = '/login';
+    }
+    Swal.fire('Error', 'No se pudo cargar la lista de usuarios de delivery.', 'error');
+    return [];
+  }
+};
 
 export default {
   getShopInfo,

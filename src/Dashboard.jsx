@@ -139,27 +139,20 @@ function Dashboard() {
 
     if (!usuario) {
       navigate("/");
-    } else if (location.pathname === "/dashboard" || activeSection === "") {
+      return;
+    }
 
-      let defaultSection = "";
-      switch (usuario.rol) {
-        case "Administrador":
-          defaultSection = "pedidos";
-          break;
-        case "Vendedor":
-          defaultSection = "ordenDePedido";
-          break;
-        case "Almacen":
-          defaultSection = "almacenes";
-          break;
-        case "Delivery":
-          defaultSection = "motorizados";
-          break;
-        default:
-          defaultSection = "dashboard";
-      }
-      setActiveSection(defaultSection);
-      navigate(`/dashboard/${defaultSection}`);
+    // REDIRECCIÓN AUTOMÁTICA POR ROL
+    if (location.pathname === "/dashboard") {
+      const defaultRoutes = {
+        'Administrador': '/dashboard/ordenDePedido',
+        'Vendedor': '/dashboard/ordenDePedido',
+        'Almacen': '/dashboard/almacenes',
+        'Delivery': '/dashboard/motorizados'
+      };
+      const defaultRoute = defaultRoutes[usuario.rol] || '/dashboard/ordenDePedido';
+      navigate(defaultRoute);
+      return;
     }
 
     const path = location.pathname.split("/");
@@ -706,8 +699,10 @@ function Dashboard() {
     localStorage.setItem("clientsData", JSON.stringify(updatedClients));
   };
 
-  const handleCerrarSesion = () => {
-    setUsuario(null); // Limpia el usuario del contexto
+  const { logout } = useUser(); // ← USAR logout del contexto
+
+  const handleCerrarSesion = async () => {
+    await logout(); // ← LLAMA logout del contexto
     navigate("/");
   };
 
@@ -852,7 +847,7 @@ function Dashboard() {
       case "asesores":
         return <Asesores />;
       case "controlUsuarios":
-      return <ControlUsuarios />;
+        return <ControlUsuarios />;
       default:
         return <DashboardPage />;
     }

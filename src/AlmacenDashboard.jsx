@@ -297,7 +297,7 @@ function AlmacenDashboard() {
 
 
   const [filtros, setFiltros] = useState({
-    estado: 'CONFIRMADO',
+    estado: '',
     almacen: 'TODOS',
     tipoFecha: 'ingreso',
     fechaInicio: '',
@@ -639,9 +639,15 @@ function AlmacenDashboard() {
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
 
-    // ✅ FILTRAR POR ID DEL USUARIO DE ALMACÉN si el rol es "Almacen"
-    if (isAlmacen && (!pedido.responsable_almacen || Number(pedido.responsable_almacen.id) !== userId)) {
-      return false;
+    if (isAlmacen) {
+      // Si el usuario YA tiene asignado este pedido
+      const tieneAsignado = pedido.responsable_almacen && Number(pedido.responsable_almacen.id) === userId;
+      // O si NO hay filtro de almacén (muestra todos)
+      const sinFiltroAlmacen = !filtros.almacen || filtros.almacen === '';
+
+      if (!tieneAsignado && !sinFiltroAlmacen) {
+        return false; // ← Solo bloquea si NO es suyo Y hay filtro
+      }
     }
 
     const { estado, almacen, fechaInicio, fechaFin, searchTerm, tipoFecha, estadoInventario } = filtros;
@@ -950,9 +956,9 @@ function AlmacenDashboard() {
                   <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
                     Estados
                   </TableCell>
-                  {isAlmacen && <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
+                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
                     Delivery
-                  </TableCell>}
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
                     Productos
                   </TableCell>
@@ -1100,24 +1106,24 @@ function AlmacenDashboard() {
                         ))}
                       </Menu>
                     </TableCell>
-                    {isAlmacen && (
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {pedido.responsable_delivery?.nombre_completo ? (
-                            <Typography variant="body2">{pedido.responsable_delivery.nombre_completo}</Typography>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleAbrirAsignarUsuarioDelivery(pedido)}
-                              sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                            >
-                              Asignar
-                            </Button>
-                          )}
-                        </Box>
-                      </TableCell>
-                    )}
+
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {pedido.responsable_delivery?.nombre_completo ? (
+                          <Typography variant="body2">{pedido.responsable_delivery.nombre_completo}</Typography>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleAbrirAsignarUsuarioDelivery(pedido)}
+                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                          >
+                            Asignar
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+
                     <TableCell>
                       <Box sx={{ maxWidth: 180, maxHeight: 100, overflowY: 'auto' }}>
                         {pedido.productos.map((producto, idx) => (
@@ -1190,48 +1196,48 @@ function AlmacenDashboard() {
               </TableBody>
             </Table>
           </TableContainer>
-          {isAlmacen && (
-            <Dialog open={modalAsignarDeliveryOpen} onClose={() => setModalAsignarDeliveryOpen(false)} maxWidth="sm" fullWidth>
-              <DialogTitle>
-                Asignar Usuario de Delivery al Pedido #{pedidoSeleccionado?.id || ''}
-              </DialogTitle>
-              <DialogContent sx={{ minWidth: 500 }}>
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={usuarioDeliveryAsignado}
-                    onChange={(e) => setUsuarioDeliveryAsignado(e.target.value)}
-                    displayEmpty
-                  >
-                    <MenuItem value="">
-                      <em>Seleccionar usuario de delivery</em>
-                    </MenuItem>
-                    {Array.isArray(usuariosDelivery) && usuariosDelivery.length > 0 ? (
-                      usuariosDelivery.map((u) => (
-                        <MenuItem key={u.id} value={u.id}>
-                          {u.nombre_completo} ({u.correo})
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>
-                        {loadingUsuariosDelivery ? 'Cargando usuarios de delivery...' : 'No hay usuarios de delivery disponibles'}
-                      </MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setModalAsignarDeliveryOpen(false)}>Cancelar</Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={!usuarioDeliveryAsignado || loadingUsuariosDelivery}
-                  onClick={handleAsignarUsuarioDelivery}
+
+          <Dialog open={modalAsignarDeliveryOpen} onClose={() => setModalAsignarDeliveryOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>
+              Asignar Usuario de Delivery al Pedido #{pedidoSeleccionado?.id || ''}
+            </DialogTitle>
+            <DialogContent sx={{ minWidth: 500 }}>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={usuarioDeliveryAsignado}
+                  onChange={(e) => setUsuarioDeliveryAsignado(e.target.value)}
+                  displayEmpty
                 >
-                  Guardar
-                </Button>
-              </DialogActions>
-            </Dialog>
-          )}
+                  <MenuItem value="">
+                    <em>Seleccionar usuario de delivery</em>
+                  </MenuItem>
+                  {Array.isArray(usuariosDelivery) && usuariosDelivery.length > 0 ? (
+                    usuariosDelivery.map((u) => (
+                      <MenuItem key={u.id} value={u.id}>
+                        {u.nombre_completo} ({u.correo})
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>
+                      {loadingUsuariosDelivery ? 'Cargando usuarios de delivery...' : 'No hay usuarios de delivery disponibles'}
+                    </MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setModalAsignarDeliveryOpen(false)}>Cancelar</Button>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!usuarioDeliveryAsignado || loadingUsuariosDelivery}
+                onClick={handleAsignarUsuarioDelivery}
+              >
+                Guardar
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           <Drawer
             anchor="right"
             open={drawerOpen}
