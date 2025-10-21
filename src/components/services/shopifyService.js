@@ -677,6 +677,81 @@ export const fetchDelivery = async () => {
   }
 };
 
+export const fetchSeguimientoVentas = async () => {
+  console.log('🚀 ENTRANDO EN fetchSeguimientoVentas');
+  try {
+    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido/vendedores`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('📬 Fetch ejecutado para seguimiento de ventas');
+
+    const responseBody = await response.json();
+    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
+    }
+
+    return responseBody.data || [];
+  } catch (error) {
+    console.error('❌ Error en fetchSeguimientoVentas:', error.message);
+    throw error;
+  }
+};
+
+export const fetchSeguimientoAlmacen = async () => {
+  console.log('🚀 ENTRANDO EN fetchSeguimientoAlmacen');
+  try {
+    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido/almacen`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('📬 Fetch ejecutado para seguimiento de almacén');
+
+    const responseBody = await response.json();
+    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
+    }
+
+    return responseBody.data || [];
+  } catch (error) {
+    console.error('❌ Error en fetchSeguimientoAlmacen:', error.message);
+    throw error;
+  }
+};
+
+export const fetchSeguimientoDelivery = async () => {
+  console.log('🚀 ENTRANDO EN fetchSeguimientoDelivery');
+  try {
+    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido/delivery`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('📬 Fetch ejecutado para seguimiento de delivery');
+
+    const responseBody = await response.json();
+    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
+    }
+
+    return responseBody.data || [];
+  } catch (error) {
+    console.error('❌ Error en fetchSeguimientoDelivery:', error.message);
+    throw error;
+  }
+};
+
 export default {
   getShopInfo,
   fetchOrders,

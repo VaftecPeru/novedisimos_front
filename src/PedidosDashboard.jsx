@@ -8,7 +8,8 @@ import {
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
 import {
   actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos,
-  fetchOrders, getShopInfo, fetchVendedores, fetchAlmacen, createSeguimiento, fetchVentasPedidosAsignados, fetchAlmacenPedidosAsignados
+  fetchOrders, getShopInfo, fetchVendedores, fetchAlmacen, createSeguimiento, fetchVentasPedidosAsignados, fetchAlmacenPedidosAsignados,
+  fetchSeguimientoVentas
 } from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
@@ -256,7 +257,7 @@ const FechaItem = ({ label, fecha }) => (
 
 function PedidosDashboard() {
 
-  // Mostrar componentes por roles
+  /// -------------------------------------- Mostrar componentes por roles -------------------------------------- //
   const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
   const isVendedor = currentUser.rol === 'Vendedor';
   const userId = Number(currentUser.id);
@@ -341,7 +342,7 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("");
   const [filtroPreparado, setFiltroPreparado] = useState("");
 
-  // -------------------------//
+  // -----------------------------------------------------------------------//
   const [vendedores, setVendedores] = useState([]);
   const [loadingVendedores, setLoadingVendedores] = useState(true);
   const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
@@ -422,7 +423,6 @@ function PedidosDashboard() {
     setVendedorAsignado(""); // Reset
     setModalAsignarOpen(true);
   };
-
 
   const handleAsignarVendedor = async () => {
     try {
@@ -506,7 +506,7 @@ function PedidosDashboard() {
       const seguimientoData = {
         shopify_order_id: Number(pedidoSeleccionado.shopifyId),
         area: 'Almacen',
-        estado: 'Pendiente',
+        estado: 'Listo_Para_Despacho',
         responsable_id: Number(usuarioAlmacenAsignado),
       };
 
@@ -552,8 +552,7 @@ function PedidosDashboard() {
     }
   };
 
-  // -------------------------//
-
+  // -----------------------------------------------------------------------//
   //----------------Incio Array de distritos y provincias -------//
 
   const [provinciasAmazonas] = useState([
@@ -1517,6 +1516,8 @@ function PedidosDashboard() {
           setError('Error cargando asignaciones de ventas o almacén');
         }
 
+        const estadosVentas = await fetchSeguimientoVentas();
+        console.log('📥 Estados de seguimiento cargados:', estadosVentas);
 
 
         const pedidosFormateados = allOrders.map(order => {
@@ -1528,11 +1529,13 @@ function PedidosDashboard() {
           const estadoInterno = estadosInternos.find(e => Number(e.shopify_order_id) === Number(order.id));
           const ventaAsignada = ventasOrders.find(v => Number(v.shopify_order_id) === Number(order.id));
           const almacenAsignado = almacenOrders.find(a => Number(a.shopify_order_id) === Number(order.id));
+          const seguimientoVenta = estadosVentas.find(s => Number(s.shopify_order_id) === Number(order.id));
 
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
+            estadoSeguimiento: seguimientoVenta?.estado || 'Pendiente',
             estado_pago: estadoInterno?.estado_pago,
             estado_preparacion: estadoInterno?.estado_preparacion,
             responsable: ventaAsignada?.responsable || null,
@@ -1967,6 +1970,7 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
               {!isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>}
+              <TableCell sx={{ fontWeight: "bold" }}>Estado del Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Almacén</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado Preparación Pedido</TableCell>
@@ -1974,7 +1978,6 @@ function PedidosDashboard() {
               </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Editar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -2029,7 +2032,67 @@ function PedidosDashboard() {
                       </Box>
                     </TableCell>
                   )}
+                  <TableCell>
+                    {console.log('Estado seguimiento para pedido', pedido.id, ':', pedido.estadoSeguimiento)}
+                    <FormControl size="small">
+                      <Select
+                        value={pedido.estadoSeguimiento || 'PENDIENTE'}
+                        onChange={async (e) => {
+                          const nuevoEstado = e.target.value;
+                          const ok = await confirm({
+                            title: '¿Confirmar cambio de estado?',
+                            text: `¿Cambiar el estado del pedido #${pedido.id} a ${nuevoEstado}?`,
+                            confirmButtonColor: '#4D68E6',
+                            confirmButtonText: 'Sí, cambiar',
+                          });
+                          if (!ok) return;
 
+                          try {
+                            const seguimientoData = {
+                              shopify_order_id: Number(pedido.shopifyId),
+                              estado: nuevoEstado,
+                              responsable_id: pedido.responsable?.id || null,
+                              area: 'Ventas',
+                              mensaje: `El pedido #${pedido.id} cambió a ${nuevoEstado}.`,
+                              tipo: 'CAMBIO_ESTADO',
+                            };
+                            const response = await createSeguimiento(seguimientoData);
+                            if (response) {
+                              setPedidos(prev =>
+                                prev.map(p =>
+                                  p.shopifyId === pedido.shopifyId ? { ...p, estadoSeguimiento: nuevoEstado } : p
+                                )
+                              );
+                              setPedidosOriginales(prev =>
+                                prev.map(p =>
+                                  p.shopifyId === pedido.shopifyId ? { ...p, estadoSeguimiento: nuevoEstado } : p
+                                )
+                              );
+                              Swal.fire({
+                                title: '¡Estado actualizado!',
+                                text: `El pedido #${pedido.id} ahora está en ${nuevoEstado}.`,
+                                icon: 'success',
+                                confirmButtonText: 'OK',
+                              });
+                            }
+                          } catch (error) {
+                            console.error('❌ Error al actualizar estado:', error);
+                            Swal.fire({
+                              title: 'Error',
+                              text: 'No se pudo actualizar el estado.',
+                              icon: 'error',
+                              confirmButtonText: 'OK',
+                            });
+                          }
+                        }}
+                        sx={{ minWidth: 120 }}
+                      >
+                        <MenuItem value="Pendiente">Pendiente</MenuItem>
+                        <MenuItem value="Confirmado">Confirmado</MenuItem>
+                        <MenuItem value="Cancelado">Cancelado</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {pedido.responsable_almacen?.nombre_completo ? (
@@ -2253,24 +2316,7 @@ function PedidosDashboard() {
                       Icono={NotaIcono}
                     />
                   </TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => {
-                        setPedidoSeleccionado(pedido);
-                        setPedidoEditado({
-                          cliente: pedido.cliente || "",
-                          direccion: pedido.ubicacion || "",
-                          telefono: pedido.telefono || "",
-                          vendedor_id: pedido.vendedor?._id || "",
-                          fecha: pedido.fechas?.ingreso || "",
-                        });
-                        setModalOpen(true);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
+                 
                 </TableRow>
               ))
             )}
