@@ -16,6 +16,7 @@ import axios from "axios";
 import { useUser } from "./UserContext";
 import DetallePedido from "./DetallePedido";
 import DetalleMotorizado from "./DetalleMotorizados";
+import RecuperarContraseña from "./RecuperarContraseña";
 import {
   Box,
   TextField,
@@ -245,8 +246,14 @@ function App() {
             fontSize: "18px",
           }}
         >
-          ¿Olvidaste tu contraseña?
+          <Link
+            to="/recuperar-contraseña"
+            style={{ color: "#5c73db", textDecoration: "underline" }}
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
         </Typography>
+
         <Button
           type="submit"
           variant="contained"
@@ -295,7 +302,7 @@ function MainApp() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/registro/correo" element={<RegistroCorreo />} />
         <Route path="/registro/correo/final" element={<RegistroCorreoFinal />} />
-
+        <Route path="/recuperar-contraseña" element={<RecuperarContraseña />} />
         <Route path="/dashboard/*" element={<ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
         <Route path="/motorizados/:id" element={<ProtectedRoute> <DetalleMotorizado /> </ProtectedRoute>} />
         <Route path="/pedidos/:orderId" element={<ProtectedRoute> <DetallePedido /> </ProtectedRoute>} />

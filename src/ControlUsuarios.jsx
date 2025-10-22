@@ -1,7 +1,7 @@
-// ControlUsuarios.jsx
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './ControlUsuarios.css';
+import apiClient from './config/api';
 
 const ControlUsuarios = () => {
   const { usuario } = useUser();
@@ -17,7 +17,7 @@ const ControlUsuarios = () => {
     nombre: '',
     correo: '',
     rol: 'Vendedor',
-    estado: true
+    estado: true,
   });
 
   // Verificar permisos de administrador
@@ -29,42 +29,12 @@ const ControlUsuarios = () => {
     cargarUsuarios();
   }, [usuario]);
 
-  // Simular carga de usuarios desde API
+  // Cargar usuarios desde el backend
   const cargarUsuarios = async () => {
     try {
       setLoading(true);
-      // En producción, esto sería una llamada a tu API
-      const usuariosMock = [
-        { 
-          id: 1, 
-          nombre: 'Juan Pérez', 
-          correo: 'juan@novedadeswow.com', 
-          rol: 'Administrador', 
-          estado: true 
-        },
-        { 
-          id: 2, 
-          nombre: 'María García', 
-          correo: 'maria@novedadeswow.com', 
-          rol: 'Vendedor', 
-          estado: true 
-        },
-        { 
-          id: 3, 
-          nombre: 'Carlos López', 
-          correo: 'carlos@novedadeswow.com', 
-          rol: 'Almacen', 
-          estado: false 
-        },
-        { 
-          id: 4, 
-          nombre: 'Ana Martínez', 
-          correo: 'ana@novedadeswow.com', 
-          rol: 'Delivery', 
-          estado: true 
-        },
-      ];
-      setUsuarios(usuariosMock);
+      const response = await apiClient.get('/usuarios');
+      setUsuarios(response.data);
     } catch (error) {
       setError('Error al cargar los usuarios');
       console.error('Error:', error);
@@ -73,31 +43,19 @@ const ControlUsuarios = () => {
     }
   };
 
-  // Abrir modal de edición
-  const abrirModalEdicion = (usuario) => {
-    setUsuarioEditando(usuario);
-    setFormData({
-      nombre: usuario.nombre,
-      correo: usuario.correo,
-      rol: usuario.rol,
-      estado: usuario.estado
-    });
-    setShowEditModal(true);
-  };
-
   // Guardar cambios
   const guardarCambios = async () => {
     try {
-      const usuariosActualizados = usuarios.map(user =>
-        user.id === usuarioEditando.id
-          ? { ...user, ...formData }
-          : user
+      await apiClient.put(`/usuarios/${usuarioEditando.id}`, formData);
+      setUsuarios((prev) =>
+        prev.map((user) =>
+          user.id === usuarioEditando.id ? { ...user, ...formData } : user
+        )
       );
-      setUsuarios(usuariosActualizados);
-      setShowEditModal(false);
-      setUsuarioEditando(null);
+      cerrarModalEdicion();
     } catch (error) {
       setError('Error al actualizar el usuario');
+      console.error('Error:', error);
     }
   };
 
@@ -108,23 +66,12 @@ const ControlUsuarios = () => {
         setError('Nombre y correo son obligatorios');
         return;
       }
-
-      const nuevoUsuario = {
-        ...formData,
-        id: Math.max(...usuarios.map(u => u.id), 0) + 1
-      };
-      
-      setUsuarios([...usuarios, nuevoUsuario]);
-      setShowAddModal(false);
-      setFormData({
-        nombre: '',
-        correo: '',
-        rol: 'Vendedor',
-        estado: true
-      });
-      setError('');
+      const response = await apiClient.post('/usuarios', formData);
+      setUsuarios((prev) => [...prev, response.data]);
+      cerrarModalAgregar();
     } catch (error) {
       setError('Error al agregar el usuario');
+      console.error('Error:', error);
     }
   };
 
@@ -132,22 +79,38 @@ const ControlUsuarios = () => {
   const eliminarUsuario = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        const usuariosFiltrados = usuarios.filter(user => user.id !== id);
-        setUsuarios(usuariosFiltrados);
+        await apiClient.delete(`/usuarios/${id}`);
+        setUsuarios((prev) => prev.filter((user) => user.id !== id));
       } catch (error) {
         setError('Error al eliminar el usuario');
+        console.error('Error:', error);
       }
     }
+  };
+
+  // Funciones para cerrar modales
+  const cerrarModalEdicion = () => {
+    setShowEditModal(false);
+    setUsuarioEditando(null);
+  };
+
+  const cerrarModalAgregar = () => {
+    setShowAddModal(false);
+    setFormData({
+      nombre: '',
+      correo: '',
+      rol: 'Vendedor',
+      estado: true,
+    });
+    setError('');
   };
 
   // Si no es administrador
   if (usuario?.rol !== 'Administrador') {
     return (
-      <div className="control-usuarios-container">
-        <div className="acceso-denegado">
-          <h2>Acceso Denegado</h2>
-          <p>No tienes permisos para acceder a esta sección</p>
-        </div>
+      <div className="control-usuarios-container acceso-denegado">
+        <h2>Acceso Denegado</h2>
+        <p>No tienes permisos para acceder a esta sección</p>
       </div>
     );
   }
@@ -162,15 +125,12 @@ const ControlUsuarios = () => {
 
   return (
     <div className="control-usuarios-container">
-      <div className="control-usuarios-header">
+      <header className="control-usuarios-header">
         <h1>Control de Usuarios</h1>
-        <button 
-          className="btn-agregar"
-          onClick={() => setShowAddModal(true)}
-        >
+        <button className="btn-agregar" onClick={() => setShowAddModal(true)}>
           + Agregar Usuario
         </button>
-      </div>
+      </header>
 
       {error && (
         <div className="error-message">
@@ -179,7 +139,7 @@ const ControlUsuarios = () => {
         </div>
       )}
 
-      <div className="tabla-usuarios-container">
+      <section className="tabla-usuarios-container">
         <table className="tabla-usuarios">
           <thead>
             <tr>
@@ -191,7 +151,7 @@ const ControlUsuarios = () => {
             </tr>
           </thead>
           <tbody>
-            {usuarios.map(usuarioItem => (
+            {usuarios.map((usuarioItem) => (
               <tr key={usuarioItem.id}>
                 <td>{usuarioItem.nombre}</td>
                 <td>{usuarioItem.correo}</td>
@@ -201,24 +161,32 @@ const ControlUsuarios = () => {
                   </span>
                 </td>
                 <td>
-                  <span className={`estado ${usuarioItem.estado ? 'activo' : 'inactivo'}`}>
+                  <span
+                    className={`estado ${
+                      usuarioItem.estado ? 'activo' : 'inactivo'
+                    }`}
+                  >
                     {usuarioItem.estado ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
                 <td className="acciones">
                   <button
                     className="btn-restablecer"
-                    onclick={() => restablcerContraseña(usuarioItem.correo)}
+                    onClick={() => console.log('Restablecer contraseña')}
                   >
                     Restablecer Contraseña
-                  </button>  
-                  <button 
+                  </button>
+                  <button
                     className="btn-editar"
-                    onClick={() => abrirModalEdicion(usuarioItem)}
+                    onClick={() => {
+                      setUsuarioEditando(usuarioItem);
+                      setFormData(usuarioItem);
+                      setShowEditModal(true);
+                    }}
                   >
                     Editar
                   </button>
-                  <button 
+                  <button
                     className="btn-eliminar"
                     onClick={() => eliminarUsuario(usuarioItem.id)}
                     disabled={usuarioItem.id === usuario?.id}
@@ -232,11 +200,9 @@ const ControlUsuarios = () => {
         </table>
 
         {usuarios.length === 0 && (
-          <div className="sin-usuarios">
-            No hay usuarios registrados
-          </div>
+          <div className="sin-usuarios">No hay usuarios registrados</div>
         )}
-      </div>
+      </section>
 
       {/* Modal de Edición */}
       {showEditModal && (
@@ -246,25 +212,31 @@ const ControlUsuarios = () => {
             <div className="modal-content">
               <div className="form-group">
                 <label>Nombre:</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nombre: e.target.value })
+                  }
                 />
               </div>
               <div className="form-group">
                 <label>Correo:</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={formData.correo}
-                  onChange={(e) => setFormData({...formData, correo: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, correo: e.target.value })
+                  }
                 />
               </div>
               <div className="form-group">
                 <label>Rol:</label>
-                <select 
+                <select
                   value={formData.rol}
-                  onChange={(e) => setFormData({...formData, rol: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rol: e.target.value })
+                  }
                 >
                   <option value="Administrador">Administrador</option>
                   <option value="Vendedor">Vendedor</option>
@@ -274,9 +246,14 @@ const ControlUsuarios = () => {
               </div>
               <div className="form-group">
                 <label>Estado:</label>
-                <select 
+                <select
                   value={formData.estado}
-                  onChange={(e) => setFormData({...formData, estado: e.target.value === 'true'})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      estado: e.target.value === 'true',
+                    })
+                  }
                 >
                   <option value={true}>Activo</option>
                   <option value={false}>Inactivo</option>
@@ -284,7 +261,7 @@ const ControlUsuarios = () => {
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn-cancelar" onClick={() => setShowEditModal(false)}>
+              <button className="btn-cancelar" onClick={cerrarModalEdicion}>
                 Cancelar
               </button>
               <button className="btn-guardar" onClick={guardarCambios}>
@@ -303,27 +280,33 @@ const ControlUsuarios = () => {
             <div className="modal-content">
               <div className="form-group">
                 <label>Nombre:</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nombre: e.target.value })
+                  }
                   placeholder="Ingrese el nombre completo"
                 />
               </div>
               <div className="form-group">
                 <label>Correo:</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={formData.correo}
-                  onChange={(e) => setFormData({...formData, correo: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, correo: e.target.value })
+                  }
                   placeholder="Ingrese el correo electrónico"
                 />
               </div>
               <div className="form-group">
                 <label>Rol:</label>
-                <select 
+                <select
                   value={formData.rol}
-                  onChange={(e) => setFormData({...formData, rol: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rol: e.target.value })
+                  }
                 >
                   <option value="Vendedor">Vendedor</option>
                   <option value="Almacen">Almacen</option>
@@ -333,7 +316,7 @@ const ControlUsuarios = () => {
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn-cancelar" onClick={() => setShowAddModal(false)}>
+              <button className="btn-cancelar" onClick={cerrarModalAgregar}>
                 Cancelar
               </button>
               <button className="btn-guardar" onClick={agregarUsuario}>
