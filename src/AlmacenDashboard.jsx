@@ -218,7 +218,7 @@ function AlmacenDashboard() {
       const seguimientoData = {
         shopify_order_id: Number(pedidoSeleccionado.shopifyId),
         area: 'Delivery',
-        estado: 'Pendiente',
+        estado: 'En_Camino',
         responsable_id: Number(usuarioDeliveryAsignado),
       };
 

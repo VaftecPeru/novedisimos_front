@@ -13,7 +13,7 @@ import axios from "axios";
 import "./Motorizados.css";
 import Swal from "sweetalert2";
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { listarNotificacionesDelivery, crearNotificacionDelivery, actualizarEstadoInternoDelivery } from './components/services/shopifyService';
+import { listarNotificacionesDelivery, crearNotificacionDelivery, actualizarEstadoInternoDelivery, fetchSeguimientoDelivery, createSeguimiento } from './components/services/shopifyService';
 
 const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_BASE_URL = isDevelopment
@@ -26,6 +26,20 @@ const ESTADOS_DELIVERY = [
   { value: "entregado", label: "Entregado", color: "#10b981" },
   { value: "cancelado", label: "Cancelado", color: "#ef4444" },
 ];
+
+const DB_TO_VALUE = {
+  "Pendiente": "pendiente",
+  "En_Camino": "en_camino",
+  "Entregado": "entregado",
+  "Cancelado": "cancelado"
+};
+
+const VALUE_TO_DB = {
+  "pendiente": "Pendiente",
+  "en_camino": "En_Camino",
+  "entregado": "Entregado",
+  "cancelado": "Cancelado"
+};
 
 const getEstadoObj = (estado) => {
   return ESTADOS_DELIVERY.find(e => e.value === estado) || {
@@ -70,8 +84,8 @@ const mapOrderToMotorizado = order => ({
     ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
     : order.email || "Cliente no registrado",
   telefono: order.phone || (order.customer && order.customer.phone) || "",
-  metodo: order.payment_gateway_names ? 
-    order.payment_gateway_names.map(m => traducirMetodoPago(m)).join(", ") : 
+  metodo: order.payment_gateway_names ?
+    order.payment_gateway_names.map(m => traducirMetodoPago(m)).join(", ") :
     "No especificado",
   cantidad: `${order.presentment_currency || "PEN"} ${order.current_total_price || order.total_price || "0.00"}`,
   estado: order.estado_delivery || "pendiente",
@@ -136,7 +150,20 @@ const MotorizadosDashboard = () => {
     setError(null);
     try {
       const res = await axios.get(`${API_BASE_URL}/orders?page=${pageNum + 1}&limit=${limit}`);
-      const pedidosMapeados = (res.data.orders || []).map(mapOrderToMotorizado);
+      const seguimientos = await fetchSeguimientoDelivery();
+      const pedidosMapeados = (res.data.orders || []).map(order => {
+        const mapped = mapOrderToMotorizado(order);
+        const segs = seguimientos.filter(s => s.shopify_order_id === mapped.shopifyId)
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const latestSeg = segs[0];
+        let estado = "pendiente";
+        let motorizado = "Pendiente";
+        if (latestSeg) {
+          estado = DB_TO_VALUE[latestSeg.estado] || "pendiente";
+          motorizado = latestSeg.responsable.nombre_completo || "Pendiente";
+        }
+        return { ...mapped, estado, motorizado };
+      });
       setPedidos(pedidosMapeados);
       setPedidosOriginales(pedidosMapeados);
       setTotal(res.data.total || pedidosMapeados.length);
@@ -201,11 +228,16 @@ const MotorizadosDashboard = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await actualizarEstadoInternoDelivery(pedido.shopifyId, nuevoEstado);
+      await createSeguimiento({
+        shopify_order_id: pedido.shopifyId,
+        area: "Delivery",
+        estado: VALUE_TO_DB[nuevoEstado],
+        responsable_id: 4
+      });
 
-      const updatePedido = (p) => 
+      const updatePedido = (p) =>
         p.factura === pedido.factura ? { ...p, estado: nuevoEstado } : p;
-      
+
       setPedidos(prev => prev.map(updatePedido));
       setPedidosOriginales(prev => prev.map(updatePedido));
 
@@ -269,13 +301,13 @@ const MotorizadosDashboard = () => {
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
               Gestión de Entrega <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
             </Typography>
-            
+
             {/* Link de Almacén Mejorado */}
-            <Link 
+            <Link
               href="/dashboard/almacenes"
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
                 textDecoration: 'none',
                 background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: 'white',
@@ -291,12 +323,12 @@ const MotorizadosDashboard = () => {
                 }
               }}
             >
-              <InventoryIcon sx={{ 
-                mr: 1, 
+              <InventoryIcon sx={{
+                mr: 1,
                 fontSize: '1.2rem',
                 transition: 'transform 0.3s ease'
               }} />
-              <Typography variant="body1" sx={{ 
+              <Typography variant="body1" sx={{
                 fontWeight: '600',
                 fontSize: '0.95rem'
               }}>
@@ -416,8 +448,8 @@ const MotorizadosDashboard = () => {
 
         {/* Tabla con scroll horizontal */}
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <TableContainer 
-            component={Paper} 
+          <TableContainer
+            component={Paper}
             className="motorizados-tablecontainer"
           >
             <Table stickyHeader>
@@ -436,7 +468,7 @@ const MotorizadosDashboard = () => {
               </TableHead>
               <TableBody>
                 {pedidosFiltrados.map((pedido, idx) => (
-                  <TableRow 
+                  <TableRow
                     key={pedido.factura || idx}
                     sx={{ '&:hover': { backgroundColor: '#f8fafc' } }}
                   >
@@ -451,9 +483,9 @@ const MotorizadosDashboard = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           fontSize: '13px',
                           color: pedido.motorizado === "Pendiente" ? "#059669" : "inherit",
                           fontWeight: pedido.motorizado === "Pendiente" ? "bold" : "normal"
@@ -463,9 +495,9 @@ const MotorizadosDashboard = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           fontSize: '13px',
                           maxWidth: '150px',
                           overflow: 'hidden',
@@ -493,9 +525,9 @@ const MotorizadosDashboard = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           fontSize: '13px',
                           maxWidth: '140px',
                           overflow: 'hidden',
@@ -507,10 +539,10 @@ const MotorizadosDashboard = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          fontWeight: "bold", 
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: "bold",
                           color: "#059669",
                           fontSize: '13px'
                         }}
@@ -587,7 +619,7 @@ const MotorizadosDashboard = () => {
           labelRowsPerPage="Pedidos por página"
           labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
-          sx={{ 
+          sx={{
             borderTop: '1px solid #e5e7eb',
             padding: '16px',
             '& .MuiTablePagination-toolbar': {
@@ -604,8 +636,8 @@ const MotorizadosDashboard = () => {
             <Typography variant="body2" sx={{ color: "#9ca3af" }}>
               Ajusta los filtros para ver más resultados
             </Typography>
-            <Button 
-              onClick={() => fetchPedidosMotorizado(page, rowsPerPage)} 
+            <Button
+              onClick={() => fetchPedidosMotorizado(page, rowsPerPage)}
               sx={{ mt: 2 }}
               variant="outlined"
             >
