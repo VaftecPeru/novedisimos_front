@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box, Badge, Divider, Button, FormControl, IconButton, InputAdornment, Menu, MenuItem,
   Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Typography, TablePagination, Link
+  TextField, Typography, TablePagination, Link, Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import { Search, Refresh, ArrowDropDown, WhatsApp } from "@mui/icons-material";
 import PrintIcon from "@mui/icons-material/Print";
@@ -11,9 +11,13 @@ import DeliveryDiningIcon from "@mui/icons-material/DeliveryDining";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import axios from "axios";
 import "./Motorizados.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Swal from "sweetalert2";
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import DescriptionIcon from "@mui/icons-material/Description";
 import { listarNotificacionesDelivery, crearNotificacionDelivery, actualizarEstadoInternoDelivery, fetchSeguimientoDelivery, createSeguimiento } from './components/services/shopifyService';
+import logo from "../public/images/img.png";
 
 const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_BASE_URL = isDevelopment
@@ -83,16 +87,26 @@ const mapOrderToMotorizado = order => ({
   cliente: order.customer
     ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
     : order.email || "Cliente no registrado",
-  telefono: order.phone || (order.customer && order.customer.phone) || "",
-  metodo: order.payment_gateway_names ?
-    order.payment_gateway_names.map(m => traducirMetodoPago(m)).join(", ") :
-    "No especificado",
+  telefono: order.phone || (order.customer && order.customer.phone) || "Sin teléfono",
+  metodo: order.payment_gateway_names
+    ? order.payment_gateway_names.map(m => traducirMetodoPago(m)).join(", ")
+    : "No especificado",
   cantidad: `${order.presentment_currency || "PEN"} ${order.current_total_price || order.total_price || "0.00"}`,
   estado: order.estado_delivery || "pendiente",
   shopifyId: order.id,
-  originalOrder: order
+  originalOrder: order,
+  productos: order.line_items
+    ? order.line_items.map(item => ({
+      nombre: item.name || "Producto sin nombre",
+      cantidad: item.quantity || 0,
+      precioUnitario: item.price ? parseFloat(item.price).toFixed(2) : "0.00",
+      importe: item.price && item.quantity ? (parseFloat(item.price) * item.quantity).toFixed(2) : "0.00",
+    }))
+    : [],
+  ubicacion: order.shipping_address
+    ? `${order.shipping_address.address1 || ""}, ${order.shipping_address.city || ""}, ${order.shipping_address.province || ""}`.trim() || "Sin dirección"
+    : "Sin dirección",
 });
-
 const PAGE_SIZE = 25;
 
 const MotorizadosDashboard = () => {
@@ -112,6 +126,11 @@ const MotorizadosDashboard = () => {
   const [error, setError] = useState(null);
   const [notificaciones, setNotificaciones] = useState([]);
   const [anchorNotif, setAnchorNotif] = useState(null);
+
+  const [comprobantes, setComprobantes] = useState([]); // Estado para almacenar comprobantes
+  const [vistaPreviaOpen, setVistaPreviaOpen] = useState(false);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
+  const [vistaComprobantesOpen, setVistaComprobantesOpen] = useState(false);
 
   const handleNotifClick = (event) => {
     setAnchorNotif(event.currentTarget);
@@ -274,6 +293,220 @@ const MotorizadosDashboard = () => {
     }
   };
 
+  // Updated handleGenerarComprobante with improved header
+  // Updated handleGenerarComprobante
+  const handleGenerarComprobante = (pedido, action = 'download') => {
+    if (!pedido) {
+      Swal.fire({
+        title: 'Error',
+        text: 'No hay un pedido seleccionado para generar el comprobante.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    // Evitar duplicados
+    if (comprobantes.some(c => c.id === pedido.factura)) {
+      Swal.fire({
+        title: 'Advertencia',
+        text: `El comprobante para el pedido ${pedido.factura} ya fue generado.`,
+        icon: 'warning',
+        confirmButtonText: 'OK',
+      });
+      if (action === 'preview') {
+        setPedidoSeleccionado(pedido);
+        setVistaPreviaOpen(true);
+      }
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let y = 10;
+      const marginX = 14;
+      const col1_X = marginX;
+      const col2_X = pageWidth / 2;
+
+      // Cabecera
+      doc.setFont("helvetica", "normal");
+      try {
+        doc.addImage(logo, 'PNG', col1_X, y, 65, 15); 
+      } catch (error) {
+        console.warn("No se pudo cargar el logo:", error.message);
+      }
+      y += 15;
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("COMPROBANTE DE ENTREGA", pageWidth / 2, y + 15, { align: 'center' });
+      doc.setFontSize(10);
+      y += 30;
+
+      // Datos del pedido y cliente
+    
+      const clienteText = pedido.cliente || 'N/A';
+      const direccionText = pedido.ubicacion || 'N/A';
+      const clienteLines = doc.splitTextToSize(clienteText, pageWidth / 2 - marginX - 10);
+      const direccionLines = doc.splitTextToSize(direccionText, pageWidth / 2 - marginX - 10);
+      const lineHeight = 5;
+      const dataHeight = Math.max(40, (clienteLines.length + direccionLines.length + 3) * lineHeight + 10);
+
+      const startYData = y;
+      doc.setDrawColor(180, 180, 180);
+      doc.rect(marginX, startYData - 2, pageWidth - 2 * marginX, dataHeight, 'S');
+      y += 3;
+
+      // Datos del Pedido
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("DATOS DEL PEDIDO", col1_X + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+
+      doc.text(`Nro. Factura:`, col1_X + 2, y);
+      doc.text(pedido.factura || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Fecha:`, col1_X + 2, y);
+      doc.text(pedido.fecha || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Motorizado:`, col1_X + 2, y);
+      doc.text(pedido.motorizado || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Estado:`, col1_X + 2, y);
+      doc.text(getEstadoObj(pedido.estado).label || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Método de Pago:`, col1_X + 2, y);
+      doc.text(pedido.metodo || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      // Datos del Cliente
+      y = startYData + 3;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("DATOS DEL CLIENTE", col2_X + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+
+      doc.text(`Cliente:`, col2_X + 2, y);
+      doc.text(clienteLines, col2_X + 20, y);
+      y += clienteLines.length * lineHeight;
+
+      doc.text(`Teléfono:`, col2_X + 2, y);
+      doc.text(pedido.telefono || 'N/A', col2_X + 20, y);
+      y += lineHeight;
+
+      doc.text(`Dirección:`, col2_X + 2, y);
+      doc.text(direccionLines, col2_X + 20, y);
+      y += direccionLines.length * lineHeight;
+
+      y = startYData + dataHeight + 5;
+
+      // Productos
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("DETALLE DE PRODUCTOS ENTREGADOS", marginX, y);
+      y += 5;
+
+      let tableEndY = y;
+      if (pedido.productos && Array.isArray(pedido.productos) && pedido.productos.length > 0) {
+        const tableBody = pedido.productos.map((p, index) => [
+          index + 1,
+          p.nombre || 'Producto sin nombre',
+          p.cantidad || 0,
+          `${pedido.originalOrder.presentment_currency || 'PEN'} ${p.precioUnitario || '0.00'}`,
+          `${pedido.originalOrder.presentment_currency || 'PEN'} ${p.importe || '0.00'}`,
+        ]);
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Nro.", "Descripción del Producto", "Cantidad", "Precio Unitario", "Importe"]],
+          body: tableBody,
+          styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+          headStyles: {
+            fillColor: [30, 30, 30],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          margin: { left: marginX, right: marginX },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: 75 },
+            2: { cellWidth: 20 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 30 },
+          },
+          didDrawPage: (data) => {
+            tableEndY = data.cursor.y + 10; // Guardar la posición Y después de la tabla
+          },
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.text("No hay productos registrados para este pedido.", marginX, y + 5);
+        tableEndY = y + 15;
+      }
+
+      // Total 
+      const importeColumnX = marginX + 15 + 75 + 20 + 30; 
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Total: ${pedido.cantidad || 'N/A'}`, importeColumnX, tableEndY, { align: 'left' });
+      tableEndY += 10;
+
+      const pdfOutput = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfOutput);
+      const fileName = `Comprobante_Entrega_${pedido.factura.replace('#', '')}.pdf`;
+
+      // Guardar comprobante en el estado
+      setComprobantes(prev => [
+        ...prev,
+        { id: pedido.factura, fileName, url: pdfUrl, timestamp: new Date().toLocaleString('es-PE') }
+      ]);
+
+      if (action === 'download') {
+        doc.save(fileName);
+        const printWindow = window.open(pdfUrl);
+        printWindow.print();
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Comprobante de entrega para el pedido ${pedido.factura} generado y descargado.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+      } else if (action === 'preview') {
+        setPedidoSeleccionado(pedido);
+        setVistaPreviaOpen(true);
+      }
+    } catch (error) {
+      console.error("Error al generar el comprobante:", error);
+      Swal.fire({
+        title: 'Error',
+        text: `No se pudo generar el comprobante de entrega. Detalle: ${error.message}`,
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  const handleVistaPrevia = (pedido) => {
+    handleGenerarComprobante(pedido, 'preview');
+  };
+
+  const handleDescargarComprobante = (pedido) => {
+    handleGenerarComprobante(pedido, 'download');
+  };
+
+  useEffect(() => {
+    return () => {
+      // Liberar URLs de blobs al desmontar el componente
+      comprobantes.forEach(comprobante => URL.revokeObjectURL(comprobante.url));
+      setComprobantes([]);
+    };
+  }, []);
   if (loading) {
     return (
       <Box className="motorizados-loading">
@@ -335,6 +568,14 @@ const MotorizadosDashboard = () => {
                 Ir a Almacén
               </Typography>
             </Link>
+            <Button
+              variant="outlined"
+              startIcon={<DescriptionIcon />}
+              onClick={() => setVistaComprobantesOpen(true)}
+              sx={{ textTransform: 'none', color: '#10b981', borderColor: '#10b981' }}
+            >
+              Ver Comprobantes
+            </Button>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Button
@@ -594,14 +835,23 @@ const MotorizadosDashboard = () => {
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
-                        <IconButton size="small" title="Imprimir">
+                        <IconButton
+                          size="small"
+                          title="Imprimir comprobante"
+                          onClick={() => handleDescargarComprobante(pedido)}
+                        >
                           <PrintIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" title="Ver detalle">
+                        <IconButton
+                          size="small"
+                          title="Ver comprobante"
+                          onClick={() => handleVistaPrevia(pedido)}
+                        >
                           <VisibilityIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     </TableCell>
+
                   </TableRow>
                 ))}
               </TableBody>
@@ -627,6 +877,161 @@ const MotorizadosDashboard = () => {
             }
           }}
         />
+
+        {/* Dialog para vista previa */}
+        <Dialog
+          open={vistaPreviaOpen}
+          onClose={() => setVistaPreviaOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            Vista Previa - Comprobante de Entrega #{pedidoSeleccionado?.factura || 'N/A'}
+          </DialogTitle>
+          <DialogContent>
+            {pedidoSeleccionado && (
+              <Box sx={{ p: 2, bgcolor: 'white', border: '1px solid #e5e7eb', borderRadius: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  COMPROBANTE DE ENTREGA
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  NOVEDÍSIMOS E-COMMERCE
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                      DATOS DEL PEDIDO
+                    </Typography>
+                    <Typography variant="body2">Nro. Factura: {pedidoSeleccionado.factura || 'N/A'}</Typography>
+                    <Typography variant="body2">Fecha: {pedidoSeleccionado.fecha || 'N/A'}</Typography>
+                    <Typography variant="body2">Motorizado: {pedidoSeleccionado.motorizado || 'N/A'}</Typography>
+                    <Typography variant="body2">Estado: {getEstadoObj(pedidoSeleccionado.estado).label || 'N/A'}</Typography>
+                    <Typography variant="body2">Método de Pago: {pedidoSeleccionado.metodo || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                      DATOS DEL CLIENTE
+                    </Typography>
+                    <Typography variant="body2">Cliente: {pedidoSeleccionado.cliente || 'N/A'}</Typography>
+                    <Typography variant="body2">Teléfono: {pedidoSeleccionado.telefono || 'N/A'}</Typography>
+                    <Typography variant="body2">Dirección: {pedidoSeleccionado.ubicacion || 'N/A'}</Typography>
+                  </Box>
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  DETALLE DE PRODUCTOS ENTREGADOS
+                </Typography>
+                <TableContainer component={Paper}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Nro.</TableCell>
+                        <TableCell>SKU</TableCell>
+                        <TableCell>Descripción</TableCell>
+                        <TableCell>Cantidad</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pedidoSeleccionado.productos && pedidoSeleccionado.productos.length > 0 ? (
+                        pedidoSeleccionado.productos.map((p, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{p.sku || 'N/A'}</TableCell>
+                            <TableCell>{p.nombre || 'Producto sin nombre'}</TableCell>
+                            <TableCell>{p.cantidad || 0}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4}>No hay productos registrados.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Typography variant="body1" sx={{ mt: 2, fontWeight: 'bold' }}>
+                  Total: {pedidoSeleccionado.cantidad || 'N/A'}
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=Pedido%20ID%20-%20${encodeURIComponent(pedidoSeleccionado.factura || 'N/A')}`}
+                    alt="QR Code"
+                    style={{ width: 100, height: 100 }}
+                  />
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setVistaPreviaOpen(false)}>Cerrar</Button>
+            <Button
+              variant="contained"
+              onClick={() => handleDescargarComprobante(pedidoSeleccionado)}
+              startIcon={<PrintIcon />}
+            >
+              Descargar PDF
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog para lista de comprobantes */}
+        <Dialog
+          open={vistaComprobantesOpen}
+          onClose={() => setVistaComprobantesOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Comprobantes Generados</DialogTitle>
+          <DialogContent>
+            {comprobantes.length === 0 ? (
+              <Typography>No hay comprobantes generados.</Typography>
+            ) : (
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Factura</TableCell>
+                      <TableCell>Fecha</TableCell>
+                      <TableCell>Acciones</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {comprobantes.map((comprobante, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{comprobante.id}</TableCell>
+                        <TableCell>{comprobante.timestamp}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => window.open(comprobante.url, '_blank')}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = comprobante.url;
+                                link.download = comprobante.fileName;
+                                link.click();
+                              }}
+                            >
+                              <PrintIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setVistaComprobantesOpen(false)}>Cerrar</Button>
+          </DialogActions>
+        </Dialog>
 
         {pedidosFiltrados.length === 0 && !loading && (
           <Box className="motorizados-vacio">
