@@ -293,8 +293,6 @@ const MotorizadosDashboard = () => {
     }
   };
 
-  // Updated handleGenerarComprobante with improved header
-  // Updated handleGenerarComprobante
   const handleGenerarComprobante = (pedido, action = 'download') => {
     if (!pedido) {
       Swal.fire({
@@ -306,7 +304,6 @@ const MotorizadosDashboard = () => {
       return;
     }
 
-    // Evitar duplicados
     if (comprobantes.some(c => c.id === pedido.factura)) {
       Swal.fire({
         title: 'Advertencia',
