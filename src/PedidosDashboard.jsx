@@ -6,7 +6,11 @@ import {
   InputLabel, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save } from '@mui/icons-material';
-import { actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos, fetchOrders, getShopInfo } from './components/services/shopifyService';
+import {
+  actualizarEstadoInternoPago, actualizarEstadoInternoPreparacion, crearNotificacionAlmacen, fetchEstadosPedidos,
+  fetchOrders, getShopInfo, fetchVendedores, fetchAlmacen, createSeguimiento, fetchVentasPedidosAsignados, fetchAlmacenPedidosAsignados,
+  fetchSeguimientoVentas
+} from './components/services/shopifyService';
 import './PedidosDashboard.css';
 import NoteIcon from '@mui/icons-material/Note';
 import SaveIcon from '@mui/icons-material/Save';
@@ -16,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
+
 
 function EstadoBadge({ label, color }) {
   return (
@@ -39,7 +44,6 @@ function EstadoBadge({ label, color }) {
     </Box>
   );
 }
-
 function NotaIcono(props) {
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
@@ -252,6 +256,13 @@ const FechaItem = ({ label, fecha }) => (
 );
 
 function PedidosDashboard() {
+
+  /// -------------------------------------- Mostrar componentes por roles -------------------------------------- //
+  const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+  const isVendedor = currentUser.rol === 'Vendedor';
+  const userId = Number(currentUser.id);
+  //------------------------------//
+
   const [filtros, setFiltros] = useState({
     estado: 'PENDIENTE',
     almacen: 'TODOS',
@@ -261,11 +272,7 @@ function PedidosDashboard() {
     searchTerm: ''
   });
   const { confirm } = useConfirmDialog();
-
   const navigate = useNavigate();
-  const [vendedores, setVendedores] = useState([]);
-  const [loadingVendedores, setLoadingVendedores] = useState(false);
-
   const handleExportar = () => {
     const csvRows = [];
     csvRows.push("ID,Cliente,Vendedor,Estado de Pago,Estado de Entrega,Total");
@@ -335,25 +342,218 @@ function PedidosDashboard() {
   const [filtroPago, setFiltroPago] = useState("");
   const [filtroPreparado, setFiltroPreparado] = useState("");
 
-  // Cargar lista de vendedores
+  // -----------------------------------------------------------------------//
+  const [vendedores, setVendedores] = useState([]);
+  const [loadingVendedores, setLoadingVendedores] = useState(true);
+  const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
+  const [vendedorAsignado, setVendedorAsignado] = useState('');
+
   useEffect(() => {
     const cargarVendedores = async () => {
       try {
         setLoadingVendedores(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/vendedores`);
-        if (response.ok) {
-          const data = await response.json();
-          setVendedores(data);
+        const vendedoresData = await fetchVendedores();
+        console.log('📥 Vendedores cargados:', vendedoresData);
+        setVendedores(Array.isArray(vendedoresData) ? vendedoresData : []);
+        if (!vendedoresData || vendedoresData.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron vendedores disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
         }
       } catch (error) {
-        console.error('Error al cargar vendedores:', error);
+        console.error('❌ Error cargando vendedores:', error);
+        setVendedores([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de vendedores.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
       } finally {
         setLoadingVendedores(false);
       }
     };
-
     cargarVendedores();
   }, []);
+
+  const [usuariosAlmacen, setUsuariosAlmacen] = useState([]);
+  const [loadingUsuariosAlmacen, setLoadingUsuariosAlmacen] = useState(true);
+  const [modalAsignarAlmacenOpen, setModalAsignarAlmacenOpen] = useState(false);
+  const [usuarioAlmacenAsignado, setUsuarioAlmacenAsignado] = useState('');
+
+  useEffect(() => {
+    const cargarUsuariosAlmacen = async () => {
+      try {
+        setLoadingUsuariosAlmacen(true);
+        const response = await fetchAlmacen();
+        const usuariosData = response.data; // Extraer el campo 'data'
+        console.log('📦 Respuesta de fetchAlmacen:', usuariosData);
+        setUsuariosAlmacen(Array.isArray(usuariosData) ? usuariosData : []);
+        if (!usuariosData || usuariosData.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron usuarios de almacén disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error cargando usuarios de almacén:', error);
+        setUsuariosAlmacen([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de usuarios de almacén.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      } finally {
+        setLoadingUsuariosAlmacen(false);
+      }
+    };
+    cargarUsuariosAlmacen();
+  }, []);
+
+
+  // Función para abrir modal de vendedor
+  const handleAbrirAsignarVendedor = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setVendedorAsignado(""); // Reset
+    setModalAsignarOpen(true);
+  };
+
+  const handleAsignarVendedor = async () => {
+    try {
+      if (!vendedorAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del vendedor o del pedido');
+      }
+
+      const vendedor = vendedores.find(v => Number(v.id) === Number(vendedorAsignado));
+      if (!vendedor) {
+        throw new Error('Vendedor no encontrado en la lista');
+      }
+
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Ventas',
+        estado: 'Pendiente',
+        responsable_id: Number(vendedorAsignado),
+      };
+
+      console.log('📤 Enviando datos a createSeguimiento:', seguimientoData);
+      const response = await createSeguimiento(seguimientoData);
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable: { ...vendedor } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable: { ...vendedor } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Vendedor ${vendedor.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        setModalAsignarOpen(false);
+        setVendedorAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando vendedor:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el vendedor. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  const handleAbrirAsignarUsuarioAlmacen = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setUsuarioAlmacenAsignado('');
+    setModalAsignarAlmacenOpen(true);
+  };
+
+  const handleAsignarUsuarioAlmacen = async () => {
+    try {
+      if (!usuarioAlmacenAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del usuario de almacén o del pedido');
+      }
+
+      const usuario = usuariosAlmacen.find(u => Number(u.id) === Number(usuarioAlmacenAsignado));
+      if (!usuario) {
+        throw new Error('Usuario de almacén no encontrado en la lista');
+      }
+
+      console.log('Usuario seleccionado:', usuario); // Depurar el objeto usuario
+
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Almacen',
+        estado: 'Listo_Para_Despacho',
+        responsable_id: Number(usuarioAlmacenAsignado),
+      };
+
+      console.log('📤 Enviando datos a createSeguimiento para almacén:', seguimientoData);
+      const response = await createSeguimiento(seguimientoData);
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_almacen: { ...usuario } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_almacen: { ...usuario } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Usuario de almacén ${usuario.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        setModalAsignarAlmacenOpen(false);
+        setUsuarioAlmacenAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando usuario de almacén:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el usuario de almacén. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  // -----------------------------------------------------------------------//
+  //----------------Incio Array de distritos y provincias -------//
 
   const [provinciasAmazonas] = useState([
     { value: 'Bagua', label: 'Bagua' },
@@ -364,7 +564,6 @@ function PedidosDashboard() {
     { value: 'Rodríguez de Mendoza', label: 'Rodríguez de Mendoza' },
     { value: 'Utcubamba', label: 'Utcubamba' },
   ]);
-
   const [provinciasAncash] = useState([
     { value: 'Aija', label: 'Aija' },
     { value: 'Antonio Raymondi', label: 'Antonio Raymondi' },
@@ -387,7 +586,6 @@ function PedidosDashboard() {
     { value: 'Sihuas', label: 'Sihuas' },
     { value: 'Yungay', label: 'Yungay' },
   ]);
-
   const [provinciasApurimac] = useState([
     { value: 'Abancay', label: 'Abancay' },
     { value: 'Andahuaylas', label: 'Andahuaylas' },
@@ -397,7 +595,6 @@ function PedidosDashboard() {
     { value: 'Chincheros', label: 'Chincheros' },
     { value: 'Grau', label: 'Grau' },
   ]);
-
   const [provinciasArequipa] = useState([
     { value: 'Arequipa', label: 'Arequipa' },
     { value: 'Camaná', label: 'Camaná' },
@@ -408,7 +605,6 @@ function PedidosDashboard() {
     { value: 'Islay', label: 'Islay' },
     { value: 'La Unión', label: 'La Unión' },
   ]);
-
   const [provinciasAyacucho] = useState([
     { value: 'Cangallo', label: 'Cangallo' },
     { value: 'Huamanga', label: 'Huamanga' },
@@ -422,7 +618,6 @@ function PedidosDashboard() {
     { value: 'Víctor Fajardo', label: 'Víctor Fajardo' },
     { value: 'Vilcas Huamán', label: 'Vilcas Huamán' },
   ]);
-
   const [provinciasCajamarca] = useState([
     { value: 'Cajabamba', label: 'Cajabamba' },
     { value: 'Cajamarca', label: 'Cajamarca' },
@@ -438,11 +633,9 @@ function PedidosDashboard() {
     { value: 'San Pablo', label: 'San Pablo' },
     { value: 'Santa Cruz', label: 'Santa Cruz' },
   ]);
-
   const [provinciasCallao] = useState([
     { value: 'Callao', label: 'Callao' },
   ]);
-
   const [provinciasCusco] = useState([
     { value: 'Acomayo', label: 'Acomayo' },
     { value: 'Anta', label: 'Anta' },
@@ -458,7 +651,6 @@ function PedidosDashboard() {
     { value: 'Quispicanchi', label: 'Quispicanchi' },
     { value: 'Urubamba', label: 'Urubamba' }
   ]);
-
   const [provinciasHuancavelica] = useState([
     { value: 'Acobamba', label: 'Acobamba' },
     { value: 'Angaraes', label: 'Angaraes' },
@@ -468,7 +660,6 @@ function PedidosDashboard() {
     { value: 'Huaytará', label: 'Huaytará' },
     { value: 'Tayacaja', label: 'Tayacaja' }
   ]);
-
   const [provinciasHuanuco] = useState([
     { value: 'Ambo', label: 'Ambo' },
     { value: 'Dos de Mayo', label: 'Dos de Mayo' },
@@ -481,7 +672,6 @@ function PedidosDashboard() {
     { value: 'Rupa-Rupa', label: 'Rupa-Rupa' },
     { value: 'Yarowilca', label: 'Yarowilca' }
   ]);
-
   const [provinciasIca] = useState([
     { value: 'Ica', label: 'Ica' },
     { value: 'Chincha', label: 'Chincha' },
@@ -489,7 +679,6 @@ function PedidosDashboard() {
     { value: 'Palpa', label: 'Palpa' },
     { value: 'Pisco', label: 'Pisco' }
   ]);
-
   const [provinciasJunin] = useState([
     { value: 'Huancayo', label: 'Huancayo' },
     { value: 'Junín', label: 'Junín' },
@@ -501,7 +690,6 @@ function PedidosDashboard() {
     { value: 'Yauli', label: 'Yauli' },
     { value: 'Satipo', label: 'Satipo' }
   ]);
-
   const [provinciasLaLibertad] = useState([
     { value: 'Trujillo', label: 'Trujillo' },
     { value: 'Ascope', label: 'Ascope' },
@@ -516,7 +704,6 @@ function PedidosDashboard() {
     { value: 'Gran Chimú', label: 'Gran Chimú' },
     { value: 'Virú', label: 'Virú' }
   ]);
-
   const [provinciasLambayeque] = useState([
     { value: 'Chiclayo', label: 'Chiclayo' },
     { value: 'Chongoyape', label: 'Chongoyape' },
@@ -530,7 +717,6 @@ function PedidosDashboard() {
     { value: 'Reque', label: 'Reque' },
     { value: 'Túcume', label: 'Túcume' }
   ]);
-
   const [provinciasLima] = useState([
     { value: 'Barranca', label: 'Barranca' },
     { value: 'Cajatambo', label: 'Cajatambo' },
@@ -543,7 +729,6 @@ function PedidosDashboard() {
     { value: 'Oyón', label: 'Oyón' },
     { value: 'Yauyos', label: 'Yauyos' },
   ]);
-
   const [provinciasLoreto] = useState([
     { value: 'Maynas', label: 'Maynas' },
     { value: 'Alto Amazonas', label: 'Alto Amazonas' },
@@ -553,26 +738,22 @@ function PedidosDashboard() {
     { value: 'Requena', label: 'Requena' },
     { value: 'Ucayali', label: 'Ucayali' }
   ]);
-
   const [provinciasMadreDeDios] = useState([
     { value: 'Tambopata', label: 'Tambopata' },
     { value: 'Manu', label: 'Manu' },
     { value: 'Tahuamanu', label: 'Tahuamanu' }
   ]);
-
   const [provinciasMoquegua] = useState([
     { value: 'Mariscal Nieto', label: 'Mariscal Nieto' },
     { value: 'Ilo', label: 'Ilo' },
     { value: 'General Sánchez Cerro', label: 'General Sánchez Cerro' },
     { value: 'Pedro Ruiz Gallo', label: 'Pedro Ruiz Gallo' }
   ]);
-
   const [provinciasPasco] = useState([
     { value: 'Pasco', label: 'Pasco' },
     { value: 'Daniel Alcides Carrión', label: 'Daniel Alcides Carrión' },
     { value: 'Oxapampa', label: 'Oxapampa' }
   ]);
-
   const [provinciasPiura] = useState([
     { value: 'Piura', label: 'Piura' },
     { value: 'Ayabaca', label: 'Ayabaca' },
@@ -583,7 +764,6 @@ function PedidosDashboard() {
     { value: 'Talara', label: 'Talara' },
     { value: 'Sechura', label: 'Sechura' }
   ]);
-
   const [provinciasPuno] = useState([
     { value: 'Puno', label: 'Puno' },
     { value: 'Azángaro', label: 'Azángaro' },
@@ -597,7 +777,6 @@ function PedidosDashboard() {
     { value: 'Sandia', label: 'Sandia' },
     { value: 'Yunguyo', label: 'Yunguyo' }
   ]);
-
   const [provinciasSanMartin] = useState([
     { value: 'Moyobamba', label: 'Moyobamba' },
     { value: 'Bellavista', label: 'Bellavista' },
@@ -610,20 +789,17 @@ function PedidosDashboard() {
     { value: 'San Martín', label: 'San Martín' },
     { value: 'Tocache', label: 'Tocache' }
   ]);
-
   const [provinciasTacna] = useState([
     { value: 'Tacna', label: 'Tacna' },
     { value: 'Candarave', label: 'Candarave' },
     { value: 'Jorge Basadre', label: 'Jorge Basadre' },
     { value: 'Tarata', label: 'Tarata' }
   ]);
-
   const [provinciasTumbes] = useState([
     { value: 'Tumbes', label: 'Tumbes' },
     { value: 'Contralmirante Villar', label: 'Contralmirante Villar' },
     { value: 'Zorritos', label: 'Zorritos' }
   ]);
-
   const [provinciasUcayali] = useState([
     { value: 'Pucallpa', label: 'Pucallpa' },
     { value: 'Atalaya', label: 'Atalaya' },
@@ -631,7 +807,6 @@ function PedidosDashboard() {
     { value: 'Padre Abad', label: 'Padre Abad' },
     { value: 'Purús', label: 'Purús' }
   ]);
-
   const provinciasPorDepartamento = {
     Amazonas: provinciasAmazonas,
     Áncash: provinciasAncash,
@@ -659,7 +834,6 @@ function PedidosDashboard() {
     Tumbes: provinciasTumbes,
     Ucayali: provinciasUcayali,
   };
-
   const distritosAmazonasData = {
     Bagua: [
       { value: 'Bagua', label: 'Bagua' },
@@ -728,7 +902,6 @@ function PedidosDashboard() {
       { value: 'La Peca', label: 'La Peca' },
     ]
   };
-
   const distritosAncashData = {
     Aija: [
       { value: 'Aija', label: 'Aija' },
@@ -891,7 +1064,6 @@ function PedidosDashboard() {
       { value: 'Pira', label: 'Pira' },
     ]
   };
-
   const distritosApurímacData = {
     Abancay: [
       { value: 'Abancay', label: 'Abancay' },
@@ -963,7 +1135,6 @@ function PedidosDashboard() {
       { value: 'San Juan de Chancay', label: 'San Juan de Chancay' },
     ],
   };
-
   const distritosArequipaData = {
     Arequipa: [
       { value: 'Arequipa', label: 'Arequipa' },
@@ -1052,7 +1223,6 @@ function PedidosDashboard() {
       { value: 'Uctubamba', label: 'Uctubamba' },
     ]
   };
-
   const distritosCallaoData = {
     Callao: [
       { value: 'Callao', label: 'Callao' },
@@ -1064,7 +1234,6 @@ function PedidosDashboard() {
       { value: 'San Miguel', label: 'San Miguel' },
     ]
   };
-
   const distritosLimaData = {
     Barranca: [
       { value: 'Barranca', label: 'Barranca' },
@@ -1257,7 +1426,6 @@ function PedidosDashboard() {
       { value: 'Vitis', label: 'Vitis' },
     ],
   };
-
   const distritosPorDepartamentoProvincia = {
     Áncash: distritosAncashData,
     Arequipa: distritosArequipaData,
@@ -1266,12 +1434,14 @@ function PedidosDashboard() {
     Callao: distritosCallaoData,
     Lima: distritosLimaData,
   };
-
   const [provinciasSeleccionadas, setProvinciasSeleccionadas] = useState([]);
   const [distritosSeleccionados, setDistritosSeleccionados] = useState([]);
   const [estadosDisponibles, setEstadosDisponibles] = useState([]);
   const [estadosEntregaDisponibles, setEstadosEntregaDisponibles] = useState([]);
   const [almacenesDisponibles, setAlmacenesDisponibles] = useState(['TODOS', 'LIMA', 'PROVINCIA']);
+
+  //----------------Fin Array de distritos y provincias -------//
+
 
   const handleFiltroChange = (campo, valor) => {
     setFiltros({ ...filtros, [campo]: valor });
@@ -1333,23 +1503,43 @@ function PedidosDashboard() {
         }
 
         console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
+
         const estadosInternos = await fetchEstadosPedidos();
+
+        let ventasOrders = [];
+        let almacenOrders = [];
+        try {
+          ventasOrders = await fetchVentasPedidosAsignados();
+          almacenOrders = await fetchAlmacenPedidosAsignados();
+        } catch (err) {
+          console.error('❌ Error cargando asignaciones:', err);
+          setError('Error cargando asignaciones de ventas o almacén');
+        }
+
+        const estadosVentas = await fetchSeguimientoVentas();
+        console.log('📥 Estados de seguimiento cargados:', estadosVentas);
+
+
         const pedidosFormateados = allOrders.map(order => {
           const estado = mapShopifyStatus(order);
           const estadoAdicional = mapDeliveryStatus(order);
           const trazabilidad = getTrazabilidadStatus(order);
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
-          const estadoInterno = estadosInternos.find(e => e.shopify_order_id === order.id);
-          
+          const estadoInterno = estadosInternos.find(e => Number(e.shopify_order_id) === Number(order.id));
+          const ventaAsignada = ventasOrders.find(v => Number(v.shopify_order_id) === Number(order.id));
+          const almacenAsignado = almacenOrders.find(a => Number(a.shopify_order_id) === Number(order.id));
+          const seguimientoVenta = estadosVentas.find(s => Number(s.shopify_order_id) === Number(order.id));
+
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
+            estadoSeguimiento: seguimientoVenta?.estado || 'Pendiente',
             estado_pago: estadoInterno?.estado_pago,
             estado_preparacion: estadoInterno?.estado_preparacion,
-            vendedor: estadoInterno?.vendedor_id,
-
+            responsable: ventaAsignada?.responsable || null,
+            responsable_almacen: almacenAsignado?.responsable_almacen || null,
             cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
@@ -1406,13 +1596,11 @@ function PedidosDashboard() {
         setEstadosDisponibles(estadosUnicos);
         setEstadosEntregaDisponibles(estadosEntregaUnicos);
 
-        console.log('✅ Pedidos procesados exitosamente:', pedidosFormateados.length);
-        console.log('📊 Estados disponibles:', estadosUnicos);
-        console.log('🚚 Estados de entrega disponibles:', estadosEntregaUnicos);
-
       } catch (err) {
         console.error('❌ Error al cargar pedidos:', err);
+
         setError(err.message || 'Error al cargar pedidos');
+
       } finally {
         setLoading(false);
       }
@@ -1420,6 +1608,8 @@ function PedidosDashboard() {
 
     cargarTodosLosPedidos();
   }, []);
+
+
 
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
@@ -1517,6 +1707,11 @@ function PedidosDashboard() {
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
     const { fechaInicio, fechaFin, searchTerm, tipoFecha } = filtros;
+
+    // Mostrar componentes por roles
+    if (isVendedor && (!pedido.responsable || Number(pedido.responsable.id) !== userId)) { //--
+      return false; //--
+    } //-------------------------
 
     // Estado de pago: prioriza el interno, si no existe usa Shopify
     const estadoPago = pedido.estado_pago || (pedido.financial_status === 'paid' ? 'pagado' : 'pendiente');
@@ -1774,17 +1969,15 @@ function PedidosDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>Orden Pedido</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Fecha</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Cliente</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>
+              {!isVendedor && <TableCell sx={{ fontWeight: "bold" }}>Vendedor</TableCell>}
+              <TableCell sx={{ fontWeight: "bold" }}>Estado del Pedido</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Almacén</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Estado de Pago</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
-                Estado Preparación Pedido
-              </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
-                Detalle de Pedido
+              <TableCell sx={{ fontWeight: "bold" }}>Estado Preparación Pedido</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Detalle de Pedido
               </TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Dirección</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Nota</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Editar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1796,10 +1989,7 @@ function PedidosDashboard() {
               </TableRow>
             ) : (
               pedidosPaginados.map((pedido) => (
-                <TableRow
-                  key={pedido.id}
-                  sx={{ "&:hover": { bgcolor: "#f9fafb" } }}
-                >
+                <TableRow key={pedido.id} sx={{ "&:hover": { bgcolor: "#f9fafb" } }}>
                   <TableCell>{pedido.id}</TableCell>
                   <TableCell>
                     <Box sx={{ fontSize: "0.75rem" }}>
@@ -1824,88 +2014,100 @@ function PedidosDashboard() {
                   <TableCell sx={{ maxWidth: 150 }}>
                     <Typography noWrap>{pedido.cliente || "-"}</Typography>
                   </TableCell>
-
-                  {/* NUEVA COLUMNA - VENDEDOR */}
+                  {!isVendedor && (
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {pedido.responsable?.nombre_completo ? (
+                          <Typography variant="body2">{pedido.responsable.nombre_completo}</Typography>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleAbrirAsignarVendedor(pedido)}
+                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                          >
+                            Asignar
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
                   <TableCell>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                    {console.log('Estado seguimiento para pedido', pedido.id, ':', pedido.estadoSeguimiento)}
+                    <FormControl size="small">
                       <Select
-                        value={pedido.vendedor?._id || ''}
+                        value={pedido.estadoSeguimiento || 'PENDIENTE'}
                         onChange={async (e) => {
-                          const nuevoVendedorId = e.target.value;
-                          
-                          // Verificar permisos
-                          const usuarioActual = JSON.parse(localStorage.getItem('usuario'));
-                          const rolesPermitidos = ['admin', 'supervisor', 'vendedor'];
-                          
-                          if (!rolesPermitidos.includes(usuarioActual?.rol)) {
-                            Swal.fire({
-                              title: "Sin permisos",
-                              text: "No tienes permisos para asignar vendedores",
-                              icon: "error",
-                              confirmButtonText: "OK"
-                            });
-                            return;
-                          }
+                          const nuevoEstado = e.target.value;
+                          const ok = await confirm({
+                            title: '¿Confirmar cambio de estado?',
+                            text: `¿Cambiar el estado del pedido #${pedido.id} a ${nuevoEstado}?`,
+                            confirmButtonColor: '#4D68E6',
+                            confirmButtonText: 'Sí, cambiar',
+                          });
+                          if (!ok) return;
 
                           try {
-                            const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedido.shopifyId}`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ 
-                                vendedor_id: nuevoVendedorId,
-                                cliente: pedido.cliente,
-                                telefono: pedido.telefono,
-                                direccion: pedido.ubicacion
-                              }),
-                            });
-
-                            if (res.ok) {
-                              const vendedorSeleccionado = vendedores.find(v => v._id === nuevoVendedorId);
-                              
+                            const seguimientoData = {
+                              shopify_order_id: Number(pedido.shopifyId),
+                              estado: nuevoEstado,
+                              responsable_id: pedido.responsable?.id || null,
+                              area: 'Ventas',
+                              mensaje: `El pedido #${pedido.id} cambió a ${nuevoEstado}.`,
+                              tipo: 'CAMBIO_ESTADO',
+                            };
+                            const response = await createSeguimiento(seguimientoData);
+                            if (response) {
                               setPedidos(prev =>
                                 prev.map(p =>
-                                  p.id === pedido.id 
-                                    ? { ...p, vendedor: vendedorSeleccionado } 
-                                    : p
+                                  p.shopifyId === pedido.shopifyId ? { ...p, estadoSeguimiento: nuevoEstado } : p
                                 )
                               );
                               setPedidosOriginales(prev =>
                                 prev.map(p =>
-                                  p.id === pedido.id 
-                                    ? { ...p, vendedor: vendedorSeleccionado } 
-                                    : p
+                                  p.shopifyId === pedido.shopifyId ? { ...p, estadoSeguimiento: nuevoEstado } : p
                                 )
                               );
-                              
                               Swal.fire({
-                                title: "¡Vendedor asignado!",
-                                text: `El vendedor ${vendedorSeleccionado?.nombre} ha sido asignado al pedido.`,
-                                icon: "success",
-                                confirmButtonText: "OK"
+                                title: '¡Estado actualizado!',
+                                text: `El pedido #${pedido.id} ahora está en ${nuevoEstado}.`,
+                                icon: 'success',
+                                confirmButtonText: 'OK',
                               });
                             }
                           } catch (error) {
+                            console.error('❌ Error al actualizar estado:', error);
                             Swal.fire({
-                              title: "Error",
-                              text: "No se pudo asignar el vendedor",
-                              icon: "error",
-                              confirmButtonText: "OK"
+                              title: 'Error',
+                              text: 'No se pudo actualizar el estado.',
+                              icon: 'error',
+                              confirmButtonText: 'OK',
                             });
                           }
                         }}
-                        displayEmpty
-                        disabled={loadingVendedores}
+                        sx={{ minWidth: 120 }}
                       >
-                        <MenuItem value="">
-                          <em>Sin asignar</em>
-                        </MenuItem>
-                        {vendedores.map((vendedor) => (
-                          <MenuItem key={vendedor._id} value={vendedor._id}>
-                            {vendedor.nombre}
-                          </MenuItem>
-                        ))}
+                        <MenuItem value="Pendiente">Pendiente</MenuItem>
+                        <MenuItem value="Confirmado">Confirmado</MenuItem>
+                        <MenuItem value="Cancelado">Cancelado</MenuItem>
                       </Select>
                     </FormControl>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {pedido.responsable_almacen?.nombre_completo ? (
+                        <Typography variant="body2">{pedido.responsable_almacen.nombre_completo}</Typography>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleAbrirAsignarUsuarioAlmacen(pedido)}
+                          sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                        >
+                          Asignar
+                        </Button>
+                      )}
+                    </Box>
                   </TableCell>
 
                   <TableCell>
@@ -2002,7 +2204,6 @@ function PedidosDashboard() {
                         : "Pago pendiente"}
                     </Button>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       size="small"
@@ -2037,7 +2238,7 @@ function PedidosDashboard() {
 
                         const res = await actualizarEstadoInternoPreparacion(
                           pedido.shopifyId,
-                          estadoActual
+                          nuevoEstado
                         );
                         if (res?.data && res.data.message) {
                           setPedidos((prev) =>
@@ -2091,7 +2292,6 @@ function PedidosDashboard() {
                         : "No preparado"}
                     </Button>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       variant="outlined"
@@ -2116,24 +2316,7 @@ function PedidosDashboard() {
                       Icono={NotaIcono}
                     />
                   </TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => {
-                        setPedidoSeleccionado(pedido);
-                        setPedidoEditado({
-                          cliente: pedido.cliente || "",
-                          direccion: pedido.ubicacion || "",
-                          telefono: pedido.telefono || "",
-                          vendedor_id: pedido.vendedor?._id || "",
-                          fecha: pedido.fechas?.ingreso || "",
-                        });
-                        setModalOpen(true);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
+                 
                 </TableRow>
               ))
             )}
@@ -2154,47 +2337,138 @@ function PedidosDashboard() {
         />
       </TableContainer>
 
+      {!isVendedor && (
+        <Dialog open={modalAsignarOpen} onClose={() => setModalAsignarOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            Asignar Vendedor al Pedido #{pedidoSeleccionado?.id || ''}
+          </DialogTitle>
+          <DialogContent sx={{ minWidth: 500 }}>
+            <FormControl fullWidth size="small">
+              <Select
+                value={vendedorAsignado}
+                onChange={(e) => setVendedorAsignado(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>Seleccionar vendedor</em>
+                </MenuItem>
+                {Array.isArray(vendedores) && vendedores.length > 0 ? (
+                  vendedores.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.nombre_completo} ({v.correo})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
+                  </MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setModalAsignarOpen(false)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!vendedorAsignado || loadingVendedores}
+              onClick={handleAsignarVendedor}
+            >
+              Guardar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      <Dialog open={modalAsignarAlmacenOpen} onClose={() => setModalAsignarAlmacenOpen(false)} maxWidth="sm" fullWidth>
+        {console.log('📦 Renderizando modal de almacén:', {
+          modalAsignarAlmacenOpen,
+          usuariosAlmacen,
+          usuariosAlmacenLength: usuariosAlmacen.length,
+          isArray: Array.isArray(usuariosAlmacen),
+          loadingUsuariosAlmacen,
+          usuarioAlmacenAsignado
+        })}
+        <DialogTitle>
+          Asignar Usuario de Almacén al Pedido #{pedidoSeleccionado?.id || ''}
+        </DialogTitle>
+        <DialogContent sx={{ minWidth: 500 }}>
+
+          <FormControl fullWidth size="small">
+
+            <Select
+              value={usuarioAlmacenAsignado}
+              onChange={(e) => setUsuarioAlmacenAsignado(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>Seleccionar usuario de almacén</em>
+              </MenuItem>
+              {Array.isArray(usuariosAlmacen) && usuariosAlmacen.length > 0 ? (
+                usuariosAlmacen.map((u) => (
+                  <MenuItem key={u.id} value={u.id}>
+                    {u.nombre_completo} ({u.correo})
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>
+                  {loadingUsuariosAlmacen ? 'Cargando usuarios de almacén...' : 'No hay usuarios de almacén disponibles'}
+                </MenuItem>
+              )}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalAsignarAlmacenOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!usuarioAlmacenAsignado || loadingUsuariosAlmacen}
+            onClick={handleAsignarUsuarioAlmacen}
+          >
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Pedido</DialogTitle>
         <DialogContent sx={{ minWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
             label="Cliente"
             value={pedidoEditado.cliente}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, cliente: e.target.value })}
             fullWidth
             size="small"
           />
-          
-          {/* Selector de Vendedor en el modal */}
           <FormControl fullWidth size="small">
             <InputLabel>Vendedor</InputLabel>
             <Select
               value={pedidoEditado.vendedor_id || ''}
-              onChange={e => setPedidoEditado({ ...pedidoEditado, vendedor_id: e.target.value })}
+              onChange={(e) => setPedidoEditado({ ...pedidoEditado, vendedor_id: e.target.value })}
               label="Vendedor"
             >
               <MenuItem value="">
                 <em>Sin asignar</em>
               </MenuItem>
               {vendedores.map((vendedor) => (
-                <MenuItem key={vendedor._id} value={vendedor._id}>
-                  {vendedor.nombre}
+                <MenuItem key={vendedor.id} value={vendedor.id}>
+                  {vendedor.nombre_completo}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-
           <TextField
             label="Teléfono"
             value={pedidoEditado.telefono}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, telefono: e.target.value })}
             fullWidth
             size="small"
           />
           <TextField
             label="Dirección"
             value={pedidoEditado.direccion}
-            onChange={e => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
+            onChange={(e) => setPedidoEditado({ ...pedidoEditado, direccion: e.target.value })}
             fullWidth
             size="small"
           />
@@ -2206,70 +2480,60 @@ function PedidosDashboard() {
             color="primary"
             onClick={async () => {
               setModalOpen(false);
-              setTimeout(async () => {
-                try {
-                  const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(pedidoEditado),
-                  });
+              try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/pedido-interno/${pedidoSeleccionado.shopifyId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(pedidoEditado),
+                });
 
-                  if (res.ok) {
-                    const vendedorSeleccionado = vendedores.find(v => v._id === pedidoEditado.vendedor_id);
-                    
-                    setPedidos(prev =>
-                      prev.map(p =>
-                        p.id === pedidoSeleccionado.id 
-                          ? { 
-                              ...p, 
-                              ...pedidoEditado,
-                              vendedor: vendedorSeleccionado 
-                            } 
-                          : p
-                      )
-                    );
-                    setPedidosOriginales(prev =>
-                      prev.map(p =>
-                        p.id === pedidoSeleccionado.id 
-                          ? { 
-                              ...p, 
-                              ...pedidoEditado,
-                              vendedor: vendedorSeleccionado 
-                            } 
-                          : p
-                      )
-                    );
-
-                    Swal.fire({
-                      title: "¡Pedido actualizado!",
-                      text: "La información del pedido se actualizó correctamente.",
-                      icon: "success",
-                      confirmButtonText: "OK"
-                    });
-                  } else {
-                    Swal.fire({
-                      title: "Error",
-                      text: "No se pudo actualizar el pedido.",
-                      icon: "error",
-                      confirmButtonText: "OK"
-                    });
-                  }
-                } catch (error) {
+                if (res.ok) {
+                  const vendedorSeleccionado = vendedores.find((v) => v.id === pedidoEditado.vendedor_id);
+                  setPedidos((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? {
+                          ...p,
+                          ...pedidoEditado,
+                          vendedor: vendedorSeleccionado || null,
+                        }
+                        : p
+                    )
+                  );
+                  setPedidosOriginales((prev) =>
+                    prev.map((p) =>
+                      p.id === pedidoSeleccionado.id
+                        ? {
+                          ...p,
+                          ...pedidoEditado,
+                          vendedor: vendedorSeleccionado || null,
+                        }
+                        : p
+                    )
+                  );
                   Swal.fire({
-                    title: "Error de conexión",
-                    text: "No se pudo conectar al servidor.",
-                    icon: "error",
-                    confirmButtonText: "OK"
+                    title: '¡Pedido actualizado!',
+                    text: 'La información del pedido se actualizó correctamente.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
                   });
+                } else {
+                  throw new Error('No se pudo actualizar el pedido');
                 }
-              }, 200);
+              } catch (error) {
+                Swal.fire({
+                  title: 'Error',
+                  text: 'No se pudo conectar al servidor.',
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                });
+              }
             }}
           >
             Guardar
           </Button>
         </DialogActions>
       </Dialog>
-
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -2338,24 +2602,29 @@ function PedidosDashboard() {
 
             <FormControl fullWidth size="small">
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography
-                  component="span"
-                  color="error"
-                  sx={{ minWidth: "8px" }}
-                >
-                  *
-                </Typography>
+                <Typography component="span" color="error" sx={{ minWidth: "8px" }}>*</Typography>
                 <Typography variant="body2">Vendedor:</Typography>
               </Box>
               <Select
                 name="vendedor"
                 value={nuevoPedido.vendedor}
                 onChange={handleFormChange}
+                disabled={loadingVendedores}
               >
-                <MenuItem value="Vendedor1">Vendedor 1</MenuItem>
-                <MenuItem value="Vendedor2">Vendedor 2</MenuItem>
-                <MenuItem value="Vendedor3">Vendedor 3</MenuItem>
-                <MenuItem value="Vendedor4">Vendedor 4</MenuItem>
+                <MenuItem value="">
+                  <em>Seleccionar vendedor</em>
+                </MenuItem>
+                {Array.isArray(vendedores) && vendedores.length > 0 ? (
+                  vendedores.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.nombre_completo} ({v.correo})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    {loadingVendedores ? 'Cargando vendedores...' : 'No hay vendedores disponibles'}
+                  </MenuItem>
+                )}
               </Select>
             </FormControl>
 

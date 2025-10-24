@@ -7,11 +7,17 @@ import {
 
 import { Search, WhatsApp, FilterList, MusicNote, Instagram, Close, Add, Save, Refresh } from '@mui/icons-material';
 import './PedidosDashboard.css';
-import { fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, fetchPedidosPreparacionInterna } from './components/services/shopifyService';
+import {
+  fetchOrders, listarNotificacionesAlmacen, actualizarEstadoPreparacion, fetchPedidosPreparacionInterna,
+  fetchDelivery, fetchAlmacen, createSeguimiento, fetchDeliveryPedidosAsignados, fetchAlmacenPedidosAsignados,
+  fetchSeguimientoAlmacen
+} from './components/services/shopifyService';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import Swal from 'sweetalert2';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -29,20 +35,6 @@ const getNoteAttributeValue = (order, attributeName) => {
   return attribute ? attribute.value : 'No disponible';
 };
 
-const mapShopifyStatus = (order) => {
-  if (order.cancelled_at) return 'CANCELADO';
-  if (order.financial_status === 'paid') return 'CONFIRMADO';
-  if (order.financial_status === 'pending') return 'PENDIENTE';
-  return 'PENDIENTE';
-};
-
-const mapAlmacenStatus = (order) => {
-  if (order.cancelled_at) return 'Cancelado';
-  if (order.fulfillment_status === 'fulfilled') return 'Despachado';
-  if (order.tags && order.tags.includes('listo-despacho')) return 'Listo para despacho';
-  return 'Pendiente';
-};
-
 const getInventoryStatus = (order) => {
   if (order.cancelled_at) return 'ANULADO';
   if (order.fulfillment_status === 'fulfilled') return 'DESPACHADO';
@@ -53,20 +45,7 @@ const getInventoryStatus = (order) => {
   if (order.financial_status === 'paid') return 'DISPONIBLE';
   return 'PENDIENTE_STOCK';
 };
-const getOpcionesEstado = (estadoActual) => {
-  switch (estadoActual) {
-    case "Pendiente":
-      return ["Pendiente", "Listo para despacho", "Despachado", "Cancelado"];
-    case "Listo para despacho":
-      return ["Listo para despacho", "Despachado", "Cancelado"];
-    case "Despachado":
-      return ["Despachado", "Cancelado"];
-    case "Cancelado":
-      return ["Cancelado"];
-    default:
-      return ["Pendiente", "Listo para despacho", "Despachado", "Cancelado"];
-  }
-};
+
 
 const getLocationFromOrder = (order) => {
   const provincia = getNoteAttributeValue(order, 'Provincia y Distrito:');
@@ -178,8 +157,120 @@ const FechaItem = ({ label, fecha }) => (
 
 function AlmacenDashboard() {
 
+  const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+  const isAlmacen = currentUser.rol === 'Almacen';
+  const userId = Number(currentUser.id);
+
+  // -------------------------//
+  const [usuariosDelivery, setUsuariosDelivery] = useState([]);
+  const [loadingUsuariosDelivery, setLoadingUsuariosDelivery] = useState(true);
+  const [modalAsignarDeliveryOpen, setModalAsignarDeliveryOpen] = useState(false);
+  const [usuarioDeliveryAsignado, setUsuarioDeliveryAsignado] = useState('');
+
+  useEffect(() => {
+    const cargarUsuariosDelivery = async () => {
+      try {
+        setLoadingUsuariosDelivery(true);
+        const usuariosData = await fetchDelivery();
+        console.log('Datos de usuariosDelivery:', usuariosData);
+        setUsuariosDelivery(Array.isArray(usuariosData) ? usuariosData : []);
+        if (!usuariosData || usuariosData.length === 0) {
+          Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontraron usuarios de delivery disponibles.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error cargando usuarios de delivery:', error);
+        setUsuariosDelivery([]);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar la lista de usuarios de delivery.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      } finally {
+        setLoadingUsuariosDelivery(false);
+      }
+    };
+    cargarUsuariosDelivery();
+  }, []);
+
+  const handleAbrirAsignarUsuarioDelivery = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setUsuarioDeliveryAsignado('');
+    setModalAsignarDeliveryOpen(true);
+  };
+
+  const handleAsignarUsuarioDelivery = async () => {
+    try {
+      if (!usuarioDeliveryAsignado || !pedidoSeleccionado?.shopifyId) {
+        throw new Error('Falta el ID del usuario de delivery o del pedido');
+      }
+
+      const usuario = usuariosDelivery.find(u => Number(u.id) === Number(usuarioDeliveryAsignado));
+      if (!usuario) {
+        throw new Error('Usuario de delivery no encontrado en la lista');
+      }
+
+      const seguimientoData = {
+        shopify_order_id: Number(pedidoSeleccionado.shopifyId),
+        area: 'Delivery',
+        estado: 'Pendiente',
+        responsable_id: Number(usuarioDeliveryAsignado),
+      };
+
+      console.log('📤 Enviando datos a createSeguimiento para delivery:', seguimientoData);
+      const response = await createSeguimiento(seguimientoData);
+      console.log('📥 Respuesta de createSeguimiento:', response);
+
+      if (response) {
+        const updatedPedidos = pedidos.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_delivery: { ...usuario } }
+            : p
+        );
+        const updatedPedidosOriginales = pedidosOriginales.map((p) =>
+          p.shopifyId === pedidoSeleccionado.shopifyId
+            ? { ...p, responsable_delivery: { ...usuario } }
+            : p
+        );
+
+        setPedidos(updatedPedidos);
+        setPedidosOriginales(updatedPedidosOriginales);
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Usuario de delivery ${usuario.nombre_completo} asignado al pedido #${pedidoSeleccionado.id}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        setModalAsignarDeliveryOpen(false);
+        setUsuarioDeliveryAsignado('');
+      } else {
+        throw new Error('Respuesta inválida del servidor');
+      }
+    } catch (error) {
+      console.error('❌ Error asignando usuario de delivery:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo asignar el usuario de delivery. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+
+
+  // -------------------------//
+
+
   const [filtros, setFiltros] = useState({
-    estado: 'CONFIRMADO',
+    estado: '',
     almacen: 'TODOS',
     tipoFecha: 'ingreso',
     fechaInicio: '',
@@ -220,8 +311,6 @@ function AlmacenDashboard() {
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [notificaciones, setNotificaciones] = useState([]);
   const [anchorNotif, setAnchorNotif] = useState(null);
-
-
 
   const estadoInicialAlmacen = {
     numeroOrden: '',
@@ -280,20 +369,11 @@ function AlmacenDashboard() {
   };
 
   useEffect(() => {
-    const cargarEstados = async () => {
-      const estados = await fetchEstadosAlmacenDisponibles();
-      const formateados = estados.map(e => {
-        if (e === 'listo_para_despacho') return 'Listo para despacho';
-        if (e === 'despachado') return 'Despachado';
-        if (e === 'cancelado') return 'Cancelado';
-        return 'Pendiente';
-      });
-      setEstadosDisponibles(formateados);
-    };
-
     const cargarPedidosAlmacen = async () => {
       try {
         setLoading(true);
+        console.log('Cargando pedidos para almacén desde Shopify...');
+
         let allOrders = [];
         let hasMore = true;
         let page = 1;
@@ -301,6 +381,7 @@ function AlmacenDashboard() {
 
         while (hasMore && page <= 10) {
           try {
+            console.log(`Cargando página ${page} de pedidos...`);
             const response = await fetchOrdersWithPagination(page, limit);
             let ordersData = [];
             if (response && response.orders) {
@@ -316,62 +397,82 @@ function AlmacenDashboard() {
               hasMore = ordersData.length === limit;
               page++;
             }
+            console.log(`Página ${page - 1}: ${ordersData.length} pedidos. Total acumulado: ${allOrders.length}`);
           } catch (pageError) {
+            console.error(`Error en página ${page}:`, pageError);
             hasMore = false;
           }
         }
 
         if (allOrders.length === 0) {
+          console.log('Fallback: Cargando con método original...');
           const response = await fetchOrders();
           if (response && response.orders) {
             allOrders = response.orders;
           } else if (Array.isArray(response)) {
             allOrders = response;
           } else {
+            console.error('Formato de respuesta no reconocido:', response);
             setError('No se pudo obtener la lista de pedidos. Formato de respuesta inválido.');
             return;
           }
         }
 
-        // *** Aquí: usa la función correcta ***
-        const pedidosInternos = await fetchPedidosPreparacionInterna();
+        console.log(`TOTAL DE PEDIDOS CARGADOS: ${allOrders.length}`);
+
+        const estadosAlmacen = await fetchSeguimientoAlmacen().catch(err => {
+          console.error('❌ Error cargando estados de almacén:', err);
+          return [];
+        });
+        console.log('📥 Estados de almacén cargados:', estadosAlmacen);
+
+        let almacenAsignados = [];
+        let deliveryAsignados = [];
+        try {
+          almacenAsignados = await fetchAlmacenPedidosAsignados();
+          console.log('📥 Asignaciones de almacén:', almacenAsignados);
+          deliveryAsignados = await fetchDeliveryPedidosAsignados();
+          console.log('📥 Asignaciones de delivery:', deliveryAsignados);
+        } catch (err) {
+          console.error('❌ Error cargando asignaciones:', err);
+        }
 
         const pedidosFormateadosAlmacen = allOrders.map(order => {
           const ubicacion = getLocationFromOrder(order);
           const almacen = getAlmacenFromLocation(ubicacion);
           const inventario = getInventoryStatus(order);
-          // *** CRUZAR CON pedidosInternos ***
-          const estadoInterno = pedidosInternos.find(e =>
+          const estadoInterno = estadosAlmacen.find(e =>
             Number(e.shopify_order_id) === Number(order.id)
           );
-          const estadoBD = estadoInterno?.estado || 'pendiente';
-          const estadoAlmacen =
-            estadoBD === 'listo_para_despacho' ? 'Listo para despacho' :
-              estadoBD === 'despachado' ? 'Despachado' :
-                estadoBD === 'cancelado' ? 'Cancelado' : 'Pendiente'; 'Pendiente';
+          const estadoBD = estadoInterno?.estado || null; // Usar null si no hay datos
+          const estadoAlmacen = estadoBD
+            ? (estadoBD === 'Listo_Para_Despacho' ? 'Listo para despacho' :
+              estadoBD === 'Despachado' ? 'Despachado' :
+                estadoBD === 'Cancelado' ? 'Cancelado' :
+                  'Pendiente') // Si hay estado, mapea; si no, "Pendiente"
+            : 'Pendiente'; // Si no hay datos de seguimiento, asignar "Pendiente"
+
+          const asignacionAlmacen = almacenAsignados.find(a => Number(a.shopify_order_id) === Number(order.id));
+          const asignacionDelivery = deliveryAsignados.find(d => Number(d.shopify_order_id) === Number(order.id));
 
           return {
             id: order.name || `#${order.order_number}`,
             orderNumber: order.order_number,
             shopifyId: order.id,
-
             cliente: getNoteAttributeValue(order, 'Nombre y Apellidos') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Nombre y Apellidos')
               : (order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : order.email || 'Cliente no registrado'),
-
             telefono: getNoteAttributeValue(order, 'Celular') !== 'No disponible'
               ? getNoteAttributeValue(order, 'Celular')
               : (order.phone || 'Sin teléfono'),
-
             ubicacion: ubicacion,
             almacen: almacen,
-
             estadoAlmacen: estadoAlmacen,
             inventario: inventario,
-
+            responsable_almacen: asignacionAlmacen?.responsable_almacen || null,
+            responsable_delivery: asignacionDelivery?.responsable_delivery || null,
             financial_status: order.financial_status,
             fulfillment_status: order.fulfillment_status,
-
             productos: order.line_items ? order.line_items.map(item => ({
               nombre: item.name || 'Producto',
               cantidad: item.quantity || 1,
@@ -379,13 +480,11 @@ function AlmacenDashboard() {
               precio: `${order.presentment_currency || 'PEN'} ${item.price || '0.00'}`,
               stockDisponible: item.inventory_quantity || 0
             })) : [],
-
             importes: {
               total: `${order.presentment_currency || 'PEN'} ${order.current_total_price || order.total_price || '0.00'}`,
               subtotal: order.subtotal_price || '0.00',
               currency: order.presentment_currency || order.currency || 'PEN'
             },
-
             fechas: {
               ingreso: formatDate(order.created_at),
               registro: formatDate(order.processed_at),
@@ -393,15 +492,11 @@ function AlmacenDashboard() {
               entrega: order.fulfilled_at ? formatDate(order.fulfilled_at) :
                 (order.fulfillment_status === 'fulfilled' ? formatDate(order.updated_at) : '-')
             },
-
             medioPago: order.payment_gateway_names ? order.payment_gateway_names.join(', ') : 'No especificado',
-
             tags: order.tags || '',
             note: order.note || '',
-
             fechaCreacion: new Date(order.created_at),
             fechaActualizacion: new Date(order.updated_at),
-
             originalOrder: order
           };
         });
@@ -418,7 +513,6 @@ function AlmacenDashboard() {
         console.log('✅ Pedidos procesados para almacén exitosamente:', pedidosFormateadosAlmacen.length);
         console.log('📊 Estados disponibles:', estadosUnicos);
         console.log('🏪 Estados de almacén disponibles:', estadosAlmacenUnicos);
-
       } catch (err) {
         console.error('❌ Error al cargar pedidos para almacén:', err);
         setError(err.message || 'Error al cargar pedidos');
@@ -461,7 +555,6 @@ function AlmacenDashboard() {
       throw error;
     }
   };
-
 
   const handleFormChange = (e) => {
     setNuevoRegistroAlmacen({ ...nuevoRegistroAlmacen, [e.target.name]: e.target.value });
@@ -507,6 +600,18 @@ function AlmacenDashboard() {
   };
 
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
+
+    if (isAlmacen) {
+      // Si el usuario YA tiene asignado este pedido
+      const tieneAsignado = pedido.responsable_almacen && Number(pedido.responsable_almacen.id) === userId;
+      // O si NO hay filtro de almacén (muestra todos)
+      const sinFiltroAlmacen = !filtros.almacen || filtros.almacen === '';
+
+      if (!tieneAsignado && !sinFiltroAlmacen) {
+        return false; // ← Solo bloquea si NO es suyo Y hay filtro
+      }
+    }
+
     const { estado, almacen, fechaInicio, fechaFin, searchTerm, tipoFecha, estadoInventario } = filtros;
 
     if (estado && estado !== '' && pedido.estado !== estado) return false;
@@ -795,35 +900,38 @@ function AlmacenDashboard() {
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 120 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>
                     Orden
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>
                     Cliente
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 150 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 150 }}>
                     Teléfono
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>
                     Ubicación
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 120 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>
                     Almacén
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 180 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 180 }}>
                     Estados
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 180 }}>
+                    Delivery
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>
                     Productos
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 120 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>
                     Total
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 200 }}>
+                  <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>
                     Fechas
                   </TableCell>
                   {mostrarColumnaAcciones && (
-                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', minWidth: 150 }}>
+                    <TableCell sx={{ fontWeight: 'bold', minWidth: 150 }}>
                       Acciones
                     </TableCell>
                   )}
@@ -880,13 +988,14 @@ function AlmacenDashboard() {
                     </TableCell>
 
                     <TableCell>
+                      {console.log('📍 Estado almacén para pedido', pedido.id, ':', pedido.estadoAlmacen)}
                       <Button
                         size="small"
                         variant="contained"
                         endIcon={<ArrowDropDownIcon />}
                         sx={{
                           backgroundColor:
-                            pedido.estadoAlmacen === "Pendiente" || !pedido.estadoAlmacen ? "#f59e0b"
+                            !pedido.estadoAlmacen || pedido.estadoAlmacen === "Pendiente" ? "#b0b0b0"
                               : pedido.estadoAlmacen === "Listo para despacho" ? "#4f46e5"
                                 : pedido.estadoAlmacen === "Despachado" ? "#059669"
                                   : pedido.estadoAlmacen === "Cancelado" ? "#ef4444"
@@ -907,7 +1016,7 @@ function AlmacenDashboard() {
                         open={Boolean(anchorElEstado?.[pedido.id])}
                         onClose={() => setAnchorElEstado({ ...anchorElEstado, [pedido.id]: null })}
                       >
-                        {getOpcionesEstado(pedido.estadoAlmacen || "Pendiente").map((estado) => (
+                        {["Pendiente", "Listo para despacho", "Despachado", "Cancelado"].map((estado) => (
                           <MenuItem
                             key={estado}
                             selected={estado === (pedido.estadoAlmacen || "Pendiente")}
@@ -921,37 +1030,52 @@ function AlmacenDashboard() {
                                 confirmButtonText: "Sí, cambiar",
                               });
                               if (!ok) return;
+
                               const estadoMap = {
-                                "Pendiente": "pendiente",
-                                "Listo para despacho": "listo_para_despacho",
-                                "Cancelado": "cancelado",
-                                "Despachado": "despachado",
+                                "Pendiente": "Pendiente",
+                                "Listo para despacho": "Listo_Para_Despacho",
+                                "Despachado": "Despachado",
+                                "Cancelado": "Cancelado",
                               };
 
-                              const estadoNormalizado = estadoMap[estado]; // <-- este es el valor que espera Laravel
+                              const estadoNormalizado = estadoMap[estado];
 
-                              const res = await actualizarEstadoPreparacion(pedido.shopifyId, { estado: estadoNormalizado });
-                              if (res && res.success) {
-                                setPedidos((prev) =>
-                                  prev.map((p) =>
-                                    p.id === pedido.id
-                                      ? { ...p, estadoAlmacen: estado }
-                                      : p
-                                  )
-                                );
-                                setPedidosOriginales((prev) =>
-                                  prev.map((p) =>
-                                    p.id === pedido.id
-                                      ? { ...p, estadoAlmacen: estado }
-                                      : p
-                                  )
-                                );
-                              } else {
-                                Swal.fire(
-                                  "Error",
-                                  "No se pudo actualizar el estado en almacén.",
-                                  "error"
-                                );
+                              try {
+                                const seguimientoData = {
+                                  shopify_order_id: Number(pedido.shopifyId),
+                                  estado: estadoNormalizado,
+                                  responsable_id: pedido.responsable_almacen?.id || null,
+                                  area: 'Almacen',
+                                  mensaje: `El pedido #${pedido.id} cambió a ${estado} en almacén.`,
+                                  tipo: 'CAMBIO_ESTADO',
+                                };
+                                const response = await createSeguimiento(seguimientoData);
+                                if (response) {
+                                  setPedidos(prev =>
+                                    prev.map(p =>
+                                      p.shopifyId === pedido.shopifyId ? { ...p, estadoAlmacen: estado } : p
+                                    )
+                                  );
+                                  setPedidosOriginales(prev =>
+                                    prev.map(p =>
+                                      p.shopifyId === pedido.shopifyId ? { ...p, estadoAlmacen: estado } : p
+                                    )
+                                  );
+                                  Swal.fire({
+                                    title: '¡Estado actualizado!',
+                                    text: `El pedido #${pedido.id} ahora está en ${estado} en almacén.`,
+                                    icon: 'success',
+                                    confirmButtonText: 'OK',
+                                  });
+                                }
+                              } catch (error) {
+                                console.error('❌ Error al actualizar estado de almacén:', error);
+                                Swal.fire({
+                                  title: 'Error',
+                                  text: 'No se pudo actualizar el estado en almacén.',
+                                  icon: 'error',
+                                  confirmButtonText: 'OK',
+                                });
                               }
                             }}
                           >
@@ -959,6 +1083,23 @@ function AlmacenDashboard() {
                           </MenuItem>
                         ))}
                       </Menu>
+                    </TableCell>
+
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {pedido.responsable_delivery?.nombre_completo ? (
+                          <Typography variant="body2">{pedido.responsable_delivery.nombre_completo}</Typography>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleAbrirAsignarUsuarioDelivery(pedido)}
+                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
+                          >
+                            Asignar
+                          </Button>
+                        )}
+                      </Box>
                     </TableCell>
 
                     <TableCell>
@@ -1033,6 +1174,48 @@ function AlmacenDashboard() {
               </TableBody>
             </Table>
           </TableContainer>
+
+          <Dialog open={modalAsignarDeliveryOpen} onClose={() => setModalAsignarDeliveryOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>
+              Asignar Usuario de Delivery al Pedido #{pedidoSeleccionado?.id || ''}
+            </DialogTitle>
+            <DialogContent sx={{ minWidth: 500 }}>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={usuarioDeliveryAsignado}
+                  onChange={(e) => setUsuarioDeliveryAsignado(e.target.value)}
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Seleccionar usuario de delivery</em>
+                  </MenuItem>
+                  {Array.isArray(usuariosDelivery) && usuariosDelivery.length > 0 ? (
+                    usuariosDelivery.map((u) => (
+                      <MenuItem key={u.id} value={u.id}>
+                        {u.nombre_completo} ({u.correo})
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>
+                      {loadingUsuariosDelivery ? 'Cargando usuarios de delivery...' : 'No hay usuarios de delivery disponibles'}
+                    </MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setModalAsignarDeliveryOpen(false)}>Cancelar</Button>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!usuarioDeliveryAsignado || loadingUsuariosDelivery}
+                onClick={handleAsignarUsuarioDelivery}
+              >
+                Guardar
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           <Drawer
             anchor="right"
             open={drawerOpen}

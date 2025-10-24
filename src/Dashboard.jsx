@@ -28,13 +28,7 @@ function Dashboard() {
   const location = useLocation();
   const { usuario, setUsuario } = useUser();
 
-  // Redirigir al login si no hay usuario
-  useEffect(() => {
-    if (!usuario) {
-      navigate("/");
-    }
-  }, [usuario, navigate]);
-  
+
   console.log("Objeto usuario en Dashboard:", usuario);
   const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
 
@@ -142,6 +136,24 @@ function Dashboard() {
   });
 
   useEffect(() => {
+
+    if (!usuario) {
+      navigate("/");
+      return;
+    }
+
+    // REDIRECCIÓN AUTOMÁTICA POR ROL
+    if (location.pathname === "/dashboard") {
+      const defaultRoutes = {
+        'Administrador': '/dashboard/ordenDePedido',
+        'Vendedor': '/dashboard/ordenDePedido',
+        'Almacen': '/dashboard/almacenes',
+        'Delivery': '/dashboard/motorizados'
+      };
+      const defaultRoute = defaultRoutes[usuario.rol] || '/dashboard/ordenDePedido';
+      navigate(defaultRoute);
+      return;
+    }
 
     const path = location.pathname.split("/");
     const lastSegment = path[path.length - 1];
@@ -333,7 +345,7 @@ function Dashboard() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [location.pathname]);
+  }, [usuario, navigate, location.pathname, activeSection]);
 
   const toggleSidebar = () => {
     const newCollapsedState = !sidebarCollapsed;
@@ -687,8 +699,10 @@ function Dashboard() {
     localStorage.setItem("clientsData", JSON.stringify(updatedClients));
   };
 
-  const handleCerrarSesion = () => {
-    setUsuario(null); // Limpia el usuario del contexto
+  const { logout } = useUser(); // ← USAR logout del contexto
+
+  const handleCerrarSesion = async () => {
+    await logout(); // ← LLAMA logout del contexto
     navigate("/");
   };
 
@@ -833,7 +847,7 @@ function Dashboard() {
       case "asesores":
         return <Asesores />;
       case "controlUsuarios":
-      return <ControlUsuarios />;
+        return <ControlUsuarios />;
       default:
         return <DashboardPage />;
     }

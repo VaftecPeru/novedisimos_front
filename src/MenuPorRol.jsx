@@ -14,13 +14,11 @@ const MenuPorRol = ({
     Administrador: [
       "pedidos",
       "mantenimiento",
-      // "integraciones",
-      // "clientes",
       "motorizados",
       "asesores",
     ],
-    Vendedor: ["pedidos", "motorizados"],
-    Almacen: ["pedidos", "mantenimiento"],
+    Vendedor: ["pedidos"],
+    Almacen: ["mantenimiento"],
     Delivery: ["motorizados"],
   };
 
@@ -207,87 +205,67 @@ const MenuPorRol = ({
             )}
           </li>
         )}
-        {/* {seccionesPermitidas.includes("clientes") && (
-          <li
-            className={`main-menu-item ${expanded.clientes ? "expanded" : ""} ${
-              activeSection === "clientes" ? "active-single-item" : ""
-            }`}
-          >
-            <div
-              className="menu-item-header"
-              onClick={() => onMenuItemClick("clientes")}
-            >
-              <img
-                src={gearImages.clientes}
-                alt="Clientes"
-                style={{ width: "22px", height: "22px" }}
-              />
-              {/* <i className="fas fa-users"></i>}
-              {/* Resaltado del TÍTULO de Clientes}
-              <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "clientes"
-                      ? "white"
-                      : spanColors.clientes,
-                }}
-              >
-                Clientes
-              </span>
-            </div>
-          </li>
-        )} */}
         {seccionesPermitidas.includes("motorizados") && (
-          <li
-            className={`main-menu-item ${
-              expanded.motorizados ? "expanded" : ""
-            }`}
-          >
-            <div
-              className="menu-item-header"
-              onClick={() => onMenuItemClick("motorizados")}
-            >
-              <img
-                src={gearImages.motorizados}
-                alt="Motorizados"
-                style={{ width: "22px", height: "22px" }}
-              />
-              <i className="fas fa-motorcycle"></i>
-              <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "motorizados"
-                      ? "white"
-                      : spanColors.motorizados,
-                }}
-              >
-                Motorizados
-              </span>
-              <i className={`fas fa-chevron-${expanded.motorizados ? "down" : "right"}`}></i>
-              <img
-                src={arrowImages.motorizados}
-                alt="Motorizados"
-                className="menu-icon"
-              />
-            </div>
-            {expanded.motorizados && (
-              <ul className="submenu">
-                <li
-                  onClick={() => onMenuItemClick("detallemotorizados")}
-                  className={
-                    activeSection === "detallemotorizados" ? "active" : ""
-                  }
-                >
-                  Detalle Motorizados
-                </li>
-              </ul>
-            )}
-          </li>
-        )}
+  <li
+    className={`main-menu-item ${
+      expanded.motorizados ? "expanded" : ""
+    }`}
+  >
+    {/* ✅ HEADER: ABRE SUBMENU */}
+    <div
+      className="menu-item-header"
+      onClick={() => onExpandMenu("motorizados")}
+    >
+      <img
+        src={gearImages.motorizados}
+        alt="Motorizados"
+        style={{ width: "22px", height: "22px" }}
+      />
+      <i className="fas fa-motorcycle"></i>
+      <span
+        style={{
+          fontWeight: 400,
+          fontSize: 18,
+          color:
+            activeSection === "motorizados"
+              ? "white"
+              : spanColors.motorizados,
+        }}
+      >
+        Motorizados
+      </span>
+      <i className={`fas fa-chevron-${expanded.motorizados ? "down" : "right"}`}></i>
+      <img
+        src={arrowImages.motorizados}
+        alt="Motorizados"
+        className="menu-icon"
+      />
+    </div>
+    
+    {/* ✅ SUBMENU CON 2 ÍTEMES */}
+    {expanded.motorizados && (
+      <ul className="submenu">
+        {/* 🆕 ÍTEM 1: MOTORIZADOS (DIRECTO A PÁGINA) */}
+        <li
+          onClick={() => onMenuItemClick("motorizados")}
+          className={activeSection === "motorizados" ? "active" : ""}
+        >
+          Motorizados
+        </li>
+        
+        {/* 🆕 ÍTEM 2: DETALLE MOTORIZADOS */}
+        <li
+          onClick={() => onMenuItemClick("detallemotorizados")}
+          className={
+            activeSection === "detallemotorizados" ? "active" : ""
+          }
+        >
+          Detalle Motorizados
+        </li>
+      </ul>
+    )}
+  </li>
+)}
         
         {seccionesPermitidas.includes("asesores") && (
           <li

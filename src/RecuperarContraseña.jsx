@@ -135,7 +135,7 @@ function RecuperarContraseña() {
       >
         {isSubmitted 
           ? "Revisa tu correo electrónico para las instrucciones de recuperación"
-          : "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña"
+          : "Ingresa tu correo para recibir un enlace de restablecimiento."
         }
       </Typography>
 
@@ -242,7 +242,7 @@ function RecuperarContraseña() {
             {loading ? (
               <CircularProgress size={24} sx={{ color: "white" }} />
             ) : (
-              'Enviar Enlace de Recuperación ➜'
+              'Enviar Enlace ➜'
             )}
           </Button>
         </Box>
