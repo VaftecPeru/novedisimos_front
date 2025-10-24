@@ -18,6 +18,10 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useConfirmDialog } from './components/Modals/useConfirmDialog';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import Swal from 'sweetalert2';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import logo from "../public/images/img.png";
+
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -218,7 +222,7 @@ function AlmacenDashboard() {
       const seguimientoData = {
         shopify_order_id: Number(pedidoSeleccionado.shopifyId),
         area: 'Delivery',
-        estado: 'Pendiente',
+        estado: 'En_Camino',
         responsable_id: Number(usuarioDeliveryAsignado),
       };
 
@@ -599,6 +603,170 @@ function AlmacenDashboard() {
     setNuevoRegistroAlmacen(estadoInicialAlmacen);
   };
 
+  const handleGenerarPDF = () => {
+    // Validación inicial
+    if (!pedidoSeleccionado) {
+      Swal.fire({
+        title: 'Error',
+        text: 'No hay un pedido seleccionado para generar la guía.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 10; 
+      const marginX = 14;
+      const col1_X = marginX;
+      const col2_X = pageWidth / 2; 
+
+      // Cabecera
+      doc.setFont("helvetica", "normal");
+      try {
+        doc.addImage(logo, 'PNG', col1_X, y, 65, 15); 
+      } catch (error) {
+        console.warn("No se pudo cargar el logo:", error.message);
+      }
+      y += 15;
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("GUÍA DE DESPACHO", pageWidth / 2, y + 15, { align: 'center' });
+      doc.setFontSize(10);
+      y += 30;
+
+      // --- Datos de envío y pedido ---
+      const startYData = y;
+      const dataHeight = 50;
+      doc.setDrawColor(180, 180, 180);
+      doc.rect(marginX, startYData - 2, pageWidth - 2 * marginX, dataHeight, 'S');
+      y += 3;
+
+      // Información del Pedido
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("DATOS DEL PEDIDO", col1_X + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+
+      doc.text(`Nro. Pedido (ID):`, col1_X + 2, y);
+      doc.text(pedidoSeleccionado.id || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Fecha de Ingreso:`, col1_X + 2, y);
+      doc.text(pedidoSeleccionado.fechas?.ingreso || 'N/A', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Fecha Despacho:`, col1_X + 2, y);
+      doc.text(pedidoSeleccionado.fechas?.despacho || 'PENDIENTE', col1_X + 35, y);
+      y += 5;
+
+      doc.text(`Responsable Almacén:`, col1_X + 2, y);
+      doc.text(
+        pedidoSeleccionado.responsable_almacen?.nombre_completo || pedidoSeleccionado.responsable_almacen || 'N/A',
+        col1_X + 45,
+        y
+      );
+      y += 5;
+
+      // Datos del Destinatario
+      y = startYData + 3;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("DATOS DEL DESTINATARIO", col2_X + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+
+      doc.text(`Cliente:`, col2_X + 2, y);
+      const clienteText = pedidoSeleccionado.cliente || 'N/A';
+      const clienteLines = doc.splitTextToSize(clienteText, pageWidth / 2 - marginX - 10);
+      doc.text(clienteLines, col2_X + 20, y);
+      y += clienteLines.length * 5;
+
+      doc.text(`Teléfono:`, col2_X + 2, y);
+      doc.text(pedidoSeleccionado.telefono || 'N/A', col2_X + 20, y);
+      y += 5;
+
+      doc.text(`Dirección de Envío:`, col2_X + 2, y);
+      const direccionText = pedidoSeleccionado.ubicacion || 'N/A';
+      const direccionLines = doc.splitTextToSize(direccionText, pageWidth / 2 - marginX - 10);
+      doc.text(direccionLines, col2_X + 35, y);
+      y += direccionLines.length * 5;
+      y = startYData + dataHeight + 5;
+
+      // --- Productos ---
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("DETALLE DE BIENES A DESPACHAR", marginX, y);
+      y += 5;
+
+      if (pedidoSeleccionado.productos && Array.isArray(pedidoSeleccionado.productos) && pedidoSeleccionado.productos.length > 0) {
+        const tableBody = pedidoSeleccionado.productos.map((p, index) => [
+          index + 1,
+          p.nombre || 'Producto sin nombre',
+          p.cantidad || 0,
+        ]);
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Nro.", "Descripción del Producto", "Cantidad"]],
+          body: tableBody,
+          styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+          headStyles: {
+            fillColor: [30, 30, 30],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          margin: { left: marginX, right: marginX },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: 105 }, 
+            2: { cellWidth: 30 },
+          },
+          didDrawPage: (data) => {
+            y = data.cursor.y + 10; 
+          },
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.text("No hay productos registrados para este pedido.", marginX, y + 5);
+        y += 15;
+      }
+
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=Pedido%20ID%20-%20${encodeURIComponent(
+        pedidoSeleccionado.id || 'N/A'
+      )}`;
+      try {
+        doc.addImage(qrUrl, 'PNG', marginX, y, 40, 40);
+        y += 45;
+      } catch (error) {
+        console.warn("No se pudo cargar el código QR:", error.message);
+      }
+
+      // --- Guardar el PDF ---
+      const orderIdClean = pedidoSeleccionado.id ? pedidoSeleccionado.id.toString().replace('#', '') : 'SinID';
+      const fileName = `Guia_Despacho_${orderIdClean}.pdf`;
+      doc.save(fileName);
+
+      Swal.fire({
+        title: '¡Éxito!',
+        text: `Guía de despacho para el pedido #${pedidoSeleccionado.id} generada correctamente.`,
+        icon: 'success',
+        confirmButtonText: 'OK',
+      });
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+      Swal.fire({
+        title: 'Error',
+        text: `No se pudo generar la Guía de Despacho. Detalle: ${error.message}`,
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
   const pedidosFiltrados = pedidosOriginales.filter(pedido => {
 
     if (isAlmacen) {
@@ -1167,7 +1335,6 @@ function AlmacenDashboard() {
                           </Button>
                         )}
                       </TableCell>
-
                     )}
                   </TableRow>
                 ))}
@@ -1643,7 +1810,8 @@ function AlmacenDashboard() {
           <Button
             variant="contained"
             sx={{ bgcolor: '#2563eb', mt: 2 }}
-            onClick={() => setPantalla('confirmacion')}
+            onClick={handleGenerarPDF}
+          //onClick={() => setPantalla('confirmacion')}
           >
             Descargar PDF
           </Button>
