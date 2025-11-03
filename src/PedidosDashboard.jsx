@@ -1613,7 +1613,7 @@ function PedidosDashboard() {
 
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
-      const API_BASE_URL = 'https://api.novedadeswow.com/api';
+      const API_BASE_URL = 'https://apiz.psicologosenlima.com/api';
 
       const urls = [
         `${API_BASE_URL}/shopify/orders?limit=${limit}&page=${page}`,
