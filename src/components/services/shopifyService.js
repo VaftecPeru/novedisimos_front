@@ -5,7 +5,7 @@ const isDevelopment = window.location.hostname === 'localhost' || window.locatio
 
 const CUSTOM_API_BASE_URL = isDevelopment
   ? 'http://localhost:8000/api'
-  : 'https://apiz.psicologosenlima.com/api';
+  : 'https://api2025.psicologosenlima.com/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const SHOPIFY_API_BASE_URL = `${API_BASE_URL}/shopify`;

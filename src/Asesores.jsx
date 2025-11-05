@@ -17,7 +17,7 @@ import { listarNotificacionesDelivery, crearNotificacionDelivery, actualizarEsta
 const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_BASE_URL = isDevelopment
   ? "http://localhost:8000/api/shopify"
-  : "https://apiz.psicologosenlima.com/api/shopify";
+  : "https://api2025.psicologosenlima.com/api/shopify";
 
 const ESTADOS_DELIVERY = [
   { value: "pendiente", label: "Pendiente", color: "#f59e0b" },
