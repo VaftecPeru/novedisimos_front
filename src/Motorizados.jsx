@@ -22,7 +22,7 @@ import logo from "../public/images/img.png";
 const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_BASE_URL = isDevelopment
   ? "http://localhost:8000/api/shopify"
-  : "https://api2025.psicologosenlima.com/api/shopify";
+  : "https://psicologosenlima.com/shopify/public/api/shopify";
 
 const ESTADOS_DELIVERY = [
   { value: "pendiente", label: "Pendiente", color: "#f59e0b" },

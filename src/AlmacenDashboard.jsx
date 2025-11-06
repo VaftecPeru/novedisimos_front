@@ -531,7 +531,7 @@ function AlmacenDashboard() {
   // Modificación: Actualizacion de las rutas api
   const fetchOrdersWithPagination = async (page = 1, limit = 250) => {
     try {
-      const API_BASE_URL = 'https://api2025.psicologosenlima.com/api';
+      const API_BASE_URL = 'https://psicologosenlima.com/shopify/public/api';
 
       const urls = [
         `${API_BASE_URL}/shopify/orders?limit=${limit}&page=${page}`,
