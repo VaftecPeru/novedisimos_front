@@ -98,3 +98,7 @@
     font-size: 0.9rem !important;
   }
 }
+
+.swal2-zindex-superior {
+  z-index: 1600 !important;
+}

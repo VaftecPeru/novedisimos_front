@@ -1,11 +1,26 @@
 import React, { useState } from "react";
 import "./FormularioExterno.css";
 import {
-  fetchOrderByName, fetchEstadosPedidos, fetchPedidoExterno, guardarPedidoExterno, guardarPedidoExternoEnvio,
-} from './components/services/shopifyService';
+  fetchOrderByName,
+  fetchEstadosPedidos,
+  fetchPedidoExterno,
+  guardarPedidoExterno,
+  guardarPedidoExternoEnvio,
+} from "./components/services/shopifyService";
 
-import { Search, Save, RefreshCcw, Trash2, Plus, Minus, Calendar, Truck, DollarSign, UsbIcon } from "lucide-react";
-import Swal from 'sweetalert2';
+import {
+  Search,
+  Save,
+  RefreshCcw,
+  Trash2,
+  Plus,
+  Minus,
+  Calendar,
+  Truck,
+  DollarSign,
+  UsbIcon,
+} from "lucide-react";
+import Swal from "sweetalert2";
 
 const FormularioExterno = () => {
   // Estado inicial para Form1 (COD - YARA)
@@ -49,8 +64,14 @@ const FormularioExterno = () => {
   // Validar Form1
   const validarFormulario1 = () => {
     const newErrors = {};
-    if (!formData1.shopify_order_id) newErrors.general = "Debe buscar un pedido primero";
-    if (formData1.productos.some(p => !p.nombre.trim() || !p.cantidad || !p.precio)) newErrors.productos = "Productos inválidos";
+    if (!formData1.shopify_order_id)
+      newErrors.general = "Debe buscar un pedido primero";
+    if (
+      formData1.productos.some(
+        (p) => !p.nombre.trim() || !p.cantidad || !p.precio
+      )
+    )
+      newErrors.productos = "Productos inválidos";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -58,7 +79,8 @@ const FormularioExterno = () => {
   // Validar Form2
   const validarFormulario2 = () => {
     const newErrors = {};
-    if (!formData2.shopify_order_id) newErrors.general = "Debe buscar un pedido primero";
+    if (!formData2.shopify_order_id)
+      newErrors.general = "Debe buscar un pedido primero";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -67,7 +89,7 @@ const FormularioExterno = () => {
   const formatToLocalDateTime = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
-    const pad = (num) => String(num).padStart(2, '0');
+    const pad = (num) => String(num).padStart(2, "0");
     const year = date.getFullYear();
     const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
@@ -79,7 +101,10 @@ const FormularioExterno = () => {
   // Función para buscar pedido
   const buscarPedido = async () => {
     if (!formData1.buscar.trim()) {
-      setErrors({ ...errors, buscar: "Ingrese un código o nombre para buscar" });
+      setErrors({
+        ...errors,
+        buscar: "Ingrese un código o nombre para buscar",
+      });
       return;
     }
 
@@ -92,12 +117,15 @@ const FormularioExterno = () => {
 
       const pedidoBD = await fetchPedidoExterno(pedidoShopify.id);
       const estadosInternos = await fetchEstadosPedidos();
-      let arrayEstados = Array.isArray(estadosInternos) ? estadosInternos : (estadosInternos.data || []);
+      const arrayEstados = Array.isArray(estadosInternos)
+        ? estadosInternos
+        : estadosInternos.data || [];
 
       const estadoInterno = arrayEstados.find(
-        (estado) => estado.shopify_order_id === pedidoShopify.id
+        (estado) => Number(estado.shopify_order_id) === Number(pedidoShopify.id)
       );
 
+      // === FUNCIÓN: MAPEAR ESTADO ===
       const mapShopifyStatus = (order, estadoInterno) => {
         if (order.cancelled_at) return "cancelado";
         if (estadoInterno) {
@@ -105,8 +133,9 @@ const FormularioExterno = () => {
             estadoInterno.estado_pago === "pagado" &&
             estadoInterno.estado_preparacion === "preparado"
           ) {
-            if (order.fulfillment_status === "fulfilled") return "entregado";
-            return "en-camino";
+            return order.fulfillment_status === "fulfilled"
+              ? "entregado"
+              : "en-camino";
           }
           if (estadoInterno.estado_pago === "pagado") return "confirmado";
           if (estadoInterno.estado_pago === "pendiente") return "pendiente";
@@ -116,46 +145,145 @@ const FormularioExterno = () => {
         return "pendiente";
       };
 
-      const noteAttributes = pedidoShopify.note_attributes || [];
-      const celularEnAtributos = noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
-      const ubicacionEnAtributos = noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
-      const direccionEnAtributos = noteAttributes.find((attr) => attr.name === "Dirección")?.value || "";
-      const referenciasEnAtributos = noteAttributes.find((attr) => attr.name === "Referencias")?.value || "";
-      const clienteEnAtributos = noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
+      // === EXTRAER DIRECCIÓN (shipping > billing > note_attributes) ===
+      const getAddressData = (order) => {
+        const shipping = order.shipping_address;
+        const billing = order.billing_address;
 
+        // 1. Prioridad: shipping_address
+        if (shipping) {
+          return {
+            source: "shipping",
+            name: shipping.name || "",
+            phone: shipping.phone || "",
+            address1: shipping.address1 || "",
+            address2: shipping.address2 || "",
+            city: shipping.city || "",
+            province: shipping.province || "",
+            zip: shipping.zip || "",
+            company: shipping.company || "",
+            latitude: shipping.latitude || null,
+            longitude: shipping.longitude || null,
+          };
+        }
+
+        // 2. Fallback: billing_address
+        if (billing) {
+          return {
+            source: "billing",
+            name: billing.name || "",
+            phone: billing.phone || "",
+            address1: billing.address1 || "",
+            address2: billing.address2 || "",
+            city: billing.city || "",
+            province: billing.province || "",
+            zip: billing.zip || "",
+            company: billing.company || "",
+            latitude: billing.latitude || null,
+            longitude: billing.longitude || null,
+          };
+        }
+
+        // 3. Fallback: note_attributes
+        const noteAttrs = order.note_attributes || [];
+        const getNote = (name) =>
+          noteAttrs.find((a) => a.name === name)?.value || "";
+
+        const provinciaNota = getNote("Provincia y Distrito:");
+        const direccionNota = getNote("Dirección");
+
+        if (provinciaNota || direccionNota) {
+          return {
+            source: "note_attributes",
+            name: getNote("Nombre y Apellidos"),
+            phone: getNote("Celular"),
+            address1: direccionNota,
+            address2: "",
+            city: "",
+            province: provinciaNota,
+            zip: "",
+            company: "",
+            latitude: null,
+            longitude: null,
+          };
+        }
+
+        return null;
+      };
+
+      const address = getAddressData(pedidoShopify);
+
+      // === FORMATEAR UBICACIÓN (para el campo "ubicacion") ===
+      const formatearUbicacion = (addr) => {
+        if (!addr) return "";
+        const partes = [addr.city, addr.province].filter(Boolean);
+        return partes.length > 0 ? partes.join(" - ") : "";
+      };
+
+      // === FORMATEAR DIRECCIÓN COMPLETA ===
+      const formatearDireccion = (addr) => {
+        if (!addr) return "";
+        const partes = [addr.address1, addr.address2].filter(Boolean);
+        return partes.join(", ") || "";
+      };
+
+      // === REFERENCIAS (puedes extraer de note si existe) ===
+      const referenciasNota =
+        (pedidoShopify.note_attributes || []).find(
+          (a) => a.name === "Referencias"
+        )?.value || "";
+
+      // === PRODUCTOS ===
+      const productosShopify = (pedidoShopify.line_items || []).map((item) => ({
+        nombre: item.title || item.name || "Producto sin nombre",
+        cantidad: String(item.quantity || 1),
+        precio: String(item.price || "0.00"),
+      }));
+
+      // === CONSTRUIR FORMULARIO 1 ===
       const pedidoFormateado1 = {
         buscar: valorBuscar,
         shopify_order_id: pedidoShopify.id,
-        asesor: pedidoShopify.asesor || "Asesor 1",
-        codigo: pedidoShopify.name || "",
+        asesor: "Asesor 1", // puedes mapear si existe
+        codigo: pedidoShopify.name || `#${pedidoShopify.order_number}`,
         estado: mapShopifyStatus(pedidoShopify, estadoInterno),
-        cliente: clienteEnAtributos || "",
-        celular: celularEnAtributos,
-        ubicacion: ubicacionEnAtributos ? ubicacionEnAtributos.split(',')[0].trim() || "" : "", 
-        direccion: direccionEnAtributos || "",
-        referencias: referenciasEnAtributos || "",
-        productos: pedidoShopify.line_items && Array.isArray(pedidoShopify.line_items)
-          ? pedidoShopify.line_items.map((producto) => ({
-            nombre: producto.title || producto.name || "",
-            cantidad: producto.quantity?.toString() || "1",
-            precio: producto.price?.toString() || "0.00",
-          }))
-          : initialFormData1.productos,
-        notasAsesor: pedidoShopify.notasAsesor || pedidoShopify.note || "",
-        notasSupervision: pedidoShopify.notasSupervision || "",
+        cliente:
+          address?.name ||
+          pedidoShopify.customer?.first_name +
+            " " +
+            pedidoShopify.customer?.last_name ||
+          "Cliente",
+        celular: address?.phone || "",
+        ubicacion: formatearUbicacion(address),
+        direccion: formatearDireccion(address),
+        referencias: referenciasNota,
+        productos:
+          productosShopify.length > 0
+            ? productosShopify
+            : initialFormData1.productos,
+        notasAsesor: pedidoShopify.note || "",
+        notasSupervision: "",
       };
 
+      // === SOBREESCRIBIR CON DATOS DE BD (si existe) ===
       if (pedidoBD) {
-        console.log("Pedido externo encontrado en BD:", pedidoBD);
+        console.log("Pedido externo en BD:", pedidoBD);
         pedidoFormateado1.asesor = pedidoBD.asesor || pedidoFormateado1.asesor;
         pedidoFormateado1.estado = pedidoBD.estado || pedidoFormateado1.estado;
-        pedidoFormateado1.cliente = pedidoBD.cliente || pedidoFormateado1.cliente;
-        pedidoFormateado1.celular = pedidoBD.celular || pedidoFormateado1.celular;
-        pedidoFormateado1.ubicacion = pedidoBD.provincia_distrito || pedidoFormateado1.ubicacion; 
-        pedidoFormateado1.direccion = pedidoBD.direccion || pedidoFormateado1.direccion;
-        pedidoFormateado1.referencias = pedidoBD.referencias || pedidoFormateado1.referencias;
-        pedidoFormateado1.notasAsesor = pedidoBD.notas_asesor || pedidoFormateado1.notasAsesor;
-        pedidoFormateado1.notasSupervision = pedidoBD.notas_supervisor || pedidoFormateado1.notasSupervision;
+        pedidoFormateado1.cliente =
+          pedidoBD.cliente || pedidoFormateado1.cliente;
+        pedidoFormateado1.celular =
+          pedidoBD.celular || pedidoFormateado1.celular;
+        pedidoFormateado1.ubicacion =
+          pedidoBD.provincia_distrito || pedidoFormateado1.ubicacion;
+        pedidoFormateado1.direccion =
+          pedidoBD.direccion || pedidoFormateado1.direccion;
+        pedidoFormateado1.referencias =
+          pedidoBD.referencias || pedidoFormateado1.referencias;
+        pedidoFormateado1.notasAsesor =
+          pedidoBD.notas_asesor || pedidoFormateado1.notasAsesor;
+        pedidoFormateado1.notasSupervision =
+          pedidoBD.notas_supervisor || pedidoFormateado1.notasSupervision;
 
         if (pedidoBD.productos && pedidoBD.productos.length > 0) {
           pedidoFormateado1.productos = pedidoBD.productos.map((p) => ({
@@ -169,23 +297,29 @@ const FormularioExterno = () => {
       setFormData1(pedidoFormateado1);
       setIsModified(false);
 
-      if (pedidoBD && pedidoBD.envio) {
-        const envioBD = pedidoBD.envio;
+      // === FORMULARIO 2 (ENVÍO) ===
+      if (pedidoBD?.envio) {
+        const e = pedidoBD.envio;
         setFormData2({
           shopify_order_id: pedidoShopify.id,
-          estadoAgencial: envioBD.estado_agencial || "",
-          fechaEnvio: formatToLocalDateTime(envioBD.fecha_envio),
-          fechaLlegada: formatToLocalDateTime(envioBD.fecha_llegada),
-          costoEnvio: String(envioBD.costo_envio || ""),
-          codigoInicial: envioBD.codigo_inicial || "",
-          montoPendiente: String(envioBD.monto_pendiente || ""),
-          fechaDepositada: envioBD.fecha_depositada ? new Date(envioBD.fecha_depositada).toISOString().slice(0, 10) : "",
-          medioPago: envioBD.medio_pago || "",
-          numeroOperacion: envioBD.numero_operacion || "",
-          notasAdministrativas: envioBD.notas_administrativas || "",
+          estadoAgencial: e.estado_agencial || "",
+          fechaEnvio: formatToLocalDateTime(e.fecha_envio),
+          fechaLlegada: formatToLocalDateTime(e.fecha_llegada),
+          costoEnvio: String(e.costo_envio || ""),
+          codigoInicial: e.codigo_inicial || "",
+          montoPendiente: String(e.monto_pendiente || ""),
+          fechaDepositada: e.fecha_depositada
+            ? new Date(e.fecha_depositada).toISOString().slice(0, 10)
+            : "",
+          medioPago: e.medio_pago || "",
+          numeroOperacion: e.numero_operacion || "",
+          notasAdministrativas: e.notas_administrativas || "",
         });
       } else {
-        setFormData2({ ...initialFormData2, shopify_order_id: pedidoShopify.id });
+        setFormData2({
+          ...initialFormData2,
+          shopify_order_id: pedidoShopify.id,
+        });
       }
     } else {
       console.log("Pedido no encontrado");
@@ -194,7 +328,6 @@ const FormularioExterno = () => {
       setErrors({ buscar: "Pedido no encontrado en Shopify" });
     }
   };
-
   // Manejar cambios en el primer formulario
   const handleChange1 = (e) => {
     const { name, value } = e.target;
@@ -227,7 +360,10 @@ const FormularioExterno = () => {
   const addProductField = () => {
     setFormData1({
       ...formData1,
-      productos: [...formData1.productos, { nombre: "", cantidad: "", precio: "" }]
+      productos: [
+        ...formData1.productos,
+        { nombre: "", cantidad: "", precio: "" },
+      ],
     });
     setIsModified(true);
   };
@@ -271,15 +407,20 @@ const FormularioExterno = () => {
             notas_asesor: formData1.notasAsesor,
             notas_supervisor: formData1.notasSupervision,
             productos: formData1.productos
-              ? formData1.productos.map((p) => ({
-                nombre: p.nombre,
-                cantidad: parseInt(p.cantidad) || 0,
-                precio: parseFloat(p.precio) || 0,
-              })).filter(p => p.nombre.trim()) // Filtrar vacíos
+              ? formData1.productos
+                  .map((p) => ({
+                    nombre: p.nombre,
+                    cantidad: parseInt(p.cantidad) || 0,
+                    precio: parseFloat(p.precio) || 0,
+                  }))
+                  .filter((p) => p.nombre.trim()) // Filtrar vacíos
               : [],
           };
 
-          console.log("Datos que se enviarán (Form1):", JSON.stringify(payload, null, 2));
+          console.log(
+            "Datos que se enviarán (Form1):",
+            JSON.stringify(payload, null, 2)
+          );
 
           const data = await guardarPedidoExterno(payload);
           console.log("✅ Guardado en backend:", data);
@@ -329,13 +470,18 @@ const FormularioExterno = () => {
             costo_envio: parseFloat(formData2.costoEnvio) || null,
             codigo_inicial: formData2.codigoInicial,
             monto_pendiente: parseFloat(formData2.montoPendiente) || null,
-            fecha_depositada: formData2.fechaDepositada ? new Date(formData2.fechaDepositada).toISOString().slice(0, 10) : null,
+            fecha_depositada: formData2.fechaDepositada
+              ? new Date(formData2.fechaDepositada).toISOString().slice(0, 10)
+              : null,
             medio_pago: formData2.medioPago,
             numero_operacion: formData2.numeroOperacion,
             notas_administrativas: formData2.notasAdministrativas,
           };
 
-          console.log("Datos que se enviarán (Form2):", JSON.stringify(payload, null, 2));
+          console.log(
+            "Datos que se enviarán (Form2):",
+            JSON.stringify(payload, null, 2)
+          );
 
           const data = await guardarPedidoExternoEnvio(payload);
           console.log("✅ Envío guardado en backend:", data);
@@ -390,7 +536,9 @@ const FormularioExterno = () => {
 
   // Calcular monto total
   const montoCobrar = formData1.productos.reduce(
-    (acc, producto) => acc + (parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)),
+    (acc, producto) =>
+      acc +
+      parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0),
     0
   );
 
@@ -414,7 +562,9 @@ const FormularioExterno = () => {
 
       <div className="forms-wrapper">
         {/* Primer formulario (COD - YARA) */}
-        <div className={`form-container ${activeTab === "form1" ? "active" : ""}`}>
+        <div
+          className={`form-container ${activeTab === "form1" ? "active" : ""}`}
+        >
           <h2 className="form-title">COD - YARA</h2>
 
           {/* BUSCAR */}
@@ -428,7 +578,9 @@ const FormularioExterno = () => {
                 onChange={handleChange1}
                 className={errors.buscar ? "error" : ""}
               />
-              {errors.buscar && <span className="error-message">{errors.buscar}</span>}
+              {errors.buscar && (
+                <span className="error-message">{errors.buscar}</span>
+              )}
             </div>
             <button className="btn blue" onClick={buscarPedido}>
               <Search size={18} /> BUSCAR
@@ -449,7 +601,11 @@ const FormularioExterno = () => {
 
             <div className="input-group">
               <label>Estado:</label>
-              <select name="estado" value={formData1.estado} onChange={handleChange1}>
+              <select
+                name="estado"
+                value={formData1.estado}
+                onChange={handleChange1}
+              >
                 <option value="">Seleccione...</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="confirmado">Confirmado</option>
@@ -478,7 +634,9 @@ const FormularioExterno = () => {
                 onChange={handleChange1}
                 className={errors.celular ? "error" : ""}
               />
-              {errors.celular && <span className="error-message">{errors.celular}</span>}
+              {errors.celular && (
+                <span className="error-message">{errors.celular}</span>
+              )}
             </div>
 
             <div className="input-group">
@@ -490,7 +648,9 @@ const FormularioExterno = () => {
                 onChange={handleChange1}
                 className={errors.cliente ? "error" : ""}
               />
-              {errors.cliente && <span className="error-message">{errors.cliente}</span>}
+              {errors.cliente && (
+                <span className="error-message">{errors.cliente}</span>
+              )}
             </div>
 
             <div className="input-group">
@@ -512,7 +672,9 @@ const FormularioExterno = () => {
                 onChange={handleChange1}
                 className={errors.direccion ? "error" : ""}
               />
-              {errors.direccion && <span className="error-message">{errors.direccion}</span>}
+              {errors.direccion && (
+                <span className="error-message">{errors.direccion}</span>
+              )}
             </div>
 
             <div className="input-group full-width">
@@ -550,14 +712,18 @@ const FormularioExterno = () => {
                     type="text"
                     placeholder={`Nombre del producto ${index + 1}`}
                     value={producto.nombre}
-                    onChange={(e) => handleProductChange(index, "nombre", e.target.value)}
+                    onChange={(e) =>
+                      handleProductChange(index, "nombre", e.target.value)
+                    }
                   />
                   <input
                     type="number"
                     placeholder="0"
                     min="1"
                     value={producto.cantidad}
-                    onChange={(e) => handleProductChange(index, "cantidad", e.target.value)}
+                    onChange={(e) =>
+                      handleProductChange(index, "cantidad", e.target.value)
+                    }
                   />
                   <input
                     type="number"
@@ -565,10 +731,16 @@ const FormularioExterno = () => {
                     min="0"
                     step="0.01"
                     value={producto.precio}
-                    onChange={(e) => handleProductChange(index, "precio", e.target.value)}
+                    onChange={(e) =>
+                      handleProductChange(index, "precio", e.target.value)
+                    }
                   />
                   <div className="subtotal">
-                    S/. {(parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)).toFixed(2)}
+                    S/.{" "}
+                    {(
+                      parseFloat(producto.cantidad || 0) *
+                      parseFloat(producto.precio || 0)
+                    ).toFixed(2)}
                   </div>
                   <button
                     className="btn-remove"
@@ -583,7 +755,8 @@ const FormularioExterno = () => {
 
             {/* MONTO TOTAL */}
             <div className="total-box">
-              MONTO TOTAL A COBRAR: <strong>S/. {montoCobrar.toFixed(2)}</strong>
+              MONTO TOTAL A COBRAR:{" "}
+              <strong>S/. {montoCobrar.toFixed(2)}</strong>
             </div>
           </div>
 
@@ -612,7 +785,11 @@ const FormularioExterno = () => {
 
           {/* BOTONES */}
           <div className="btn-group">
-            <button className="btn blue" onClick={handleGuardarFormulario1} disabled={!isModified}>
+            <button
+              className="btn blue"
+              onClick={handleGuardarFormulario1}
+              disabled={!isModified}
+            >
               <Save size={18} /> GUARDAR
             </button>
             <button className="btn green" onClick={resetForm1}>
@@ -622,7 +799,11 @@ const FormularioExterno = () => {
         </div>
 
         {/* Segundo formulario (ADMINISTRATIVO) */}
-        <div className={`form-container administrative ${activeTab === "form2" ? "active" : ""}`}>
+        <div
+          className={`form-container administrative ${
+            activeTab === "form2" ? "active" : ""
+          }`}
+        >
           <h2 className="form-title administrative-title">ADMINISTRATIVO</h2>
 
           {/* ESTADO AGENCIAL */}
@@ -634,7 +815,11 @@ const FormularioExterno = () => {
             <div className="form-grid">
               <div className="input-group">
                 <label>Estado Agencial:</label>
-                <select name="estadoAgencial" value={formData2.estadoAgencial} onChange={handleChange2}>
+                <select
+                  name="estadoAgencial"
+                  value={formData2.estadoAgencial}
+                  onChange={handleChange2}
+                >
                   <option value="">Seleccione...</option>
                   <option value="pendiente">Pendiente</option>
                   <option value="en-transito">En tránsito</option>
@@ -702,7 +887,9 @@ const FormularioExterno = () => {
 
           {/* PENDIENTE DE PAGO */}
           <div className="administrative-section">
-            <h3 className="section-title administrative-subtitle">PENDIENTE DE PAGO</h3>
+            <h3 className="section-title administrative-subtitle">
+              PENDIENTE DE PAGO
+            </h3>
 
             <div className="form-grid">
               <div className="input-group">
@@ -731,7 +918,11 @@ const FormularioExterno = () => {
 
               <div className="input-group">
                 <label>Medio de Pago:</label>
-                <select name="medioPago" value={formData2.medioPago} onChange={handleChange2}>
+                <select
+                  name="medioPago"
+                  value={formData2.medioPago}
+                  onChange={handleChange2}
+                >
                   <option value="">Seleccione...</option>
                   <option value="efectivo">Efectivo</option>
                   <option value="transferencia">Transferencia</option>
@@ -753,7 +944,6 @@ const FormularioExterno = () => {
             </div>
           </div>
 
-
           {/* NOTAS ADMINISTRATIVAS */}
           <div className="administrative-section">
             <div className="input-group full-width">
@@ -770,7 +960,11 @@ const FormularioExterno = () => {
 
           {/* BOTONES */}
           <div className="btn-group">
-            <button className="btn blue" onClick={handleGuardarFormulario2} disabled={!isModified}>
+            <button
+              className="btn blue"
+              onClick={handleGuardarFormulario2}
+              disabled={!isModified}
+            >
               <Save size={18} /> GUARDAR
             </button>
             <button className="btn green" onClick={resetForm2}>

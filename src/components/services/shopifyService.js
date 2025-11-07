@@ -46,18 +46,20 @@ export const fetchAuthUser = async () => {
 // NUEVA FUNCIÓN: LOGIN (agregar aquí)
 export const loginUser = async (credentials) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, {
+    // Convertir la contraseña a UTF-8 antes de enviar
+    const payload = {
       correo: credentials.correo,
-      contraseña: credentials.contraseña
-    }, {
+      contraseña: unescape(encodeURIComponent(credentials.contraseña))
+    };
+
+    const response = await axios.post(`${API_BASE_URL}/login`, payload, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json; charset=UTF-8",
       },
     });
 
     const userData = response.data.data;
 
-    // NORMALIZAR PARA FRONTEND
     const user = {
       id: userData.id,
       name: userData.nombre_completo,
@@ -70,10 +72,11 @@ export const loginUser = async (credentials) => {
       token: userData.token
     };
   } catch (error) {
-    console.error("Error en login:", error);
+    console.error("Error en login:", error.response?.data || error.message);
     throw error;
   }
 };
+
 
 // NUEVA FUNCIÓN: LOGOUT (agregar aquí)
 export const logoutUser = async () => {
@@ -750,6 +753,189 @@ export const fetchSeguimientoDelivery = async () => {
     console.error('❌ Error en fetchSeguimientoDelivery:', error.message);
     throw error;
   }
+};
+
+
+// Función para obtener usuarios
+export const cargarUsuarios = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.message && Array.isArray(result.data)) {
+      return result.data.map(user => ({
+        id: user.id,
+        nombre: user.nombre_completo,
+        correo: user.correo,
+        rol: user.rol.nombre,
+        estado: user.estado === 1
+      }));
+    } else {
+      throw new Error('Formato de respuesta inesperado');
+    }
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error);
+    throw error;
+  }
+};
+
+// === CREAR USUARIO ===
+export const crearUsuario = async (data) => {
+  const response = await fetch(`${API_BASE_URL}/usuarios`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      nombre_completo: data.nombre,
+      correo: data.correo,
+      contraseña: data.contraseña,
+      rol_id: rolToId(data.rol),
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Error al crear usuario');
+  }
+  return response.json();
+};
+
+// === ACTUALIZAR USUARIO ===
+export const actualizarUsuario = async (id, data) => {
+  const payload = {};
+  if (data.nombre) payload.nombre_completo = data.nombre;
+  if (data.correo) payload.correo = data.correo;
+  if (data.rol) payload.rol_id = rolToId(data.rol);
+  if (data.contraseña) payload.contraseña = data.contraseña;
+
+  const response = await fetch(`${API_BASE_URL}/usuarios/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Error al actualizar');
+  }
+  return response.json();
+};
+
+// === ELIMINAR USUARIO ===
+export const eliminarUsuario = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/usuarios/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) throw new Error('Error al eliminar');
+  return response.json();
+};
+
+// === RESTABLECER CONTRASEÑA ===
+export const restablecerContraseña = async (correo, nuevaContraseña) => {
+  const response = await fetch(`${API_BASE_URL}/usuarios/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      correo,
+      nueva_contraseña: nuevaContraseña,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Error al cambiar contraseña');
+  }
+  return response.json();
+};
+
+// === MAPEO DE ROL A ID ===
+const rolToId = (rolNombre) => {
+  const roles = {
+    'Administrador': 1,
+    'Vendedor': 2,
+    'Almacen': 3,
+    'Delivery': 4,
+  };
+  return roles[rolNombre] || 2;
+};
+
+// AÑADE ESTO AL FINAL DE TU shopifyService.js
+
+export const fetchComisiones = async () => {
+  const res = await fetch(`${API_BASE_URL}/comision-ventas`);
+  if (!res.ok) throw new Error('Error al cargar comisiones');
+  return res.json();
+};
+
+export const getComisionByUser = async (userId) => {
+  const res = await fetch(`${API_BASE_URL}/comision-ventas/user/${userId}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Error al verificar comisión');
+  return res.json();
+};
+
+export const crearComision = async (data) => {
+  const res = await fetch(`${API_BASE_URL}/comision-ventas`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Error al crear');
+  }
+  return res.json();
+};
+
+export const actualizarComision = async (id, data) => {
+  const res = await fetch(`${API_BASE_URL}/comision-ventas/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Error al actualizar');
+  }
+  return res.json();
+};
+
+// === NUEVAS FUNCIONES ===
+export const listarSeguimientosVendedores = async () => {
+  const res = await axios.get(`${API_BASE_URL}/seguimiento-pedido/vendedores`);
+  return res.data.data || [];
+};
+
+export const listarComisionesVentas = async () => {
+  const res = await axios.get(`${API_BASE_URL}/comision-ventas`);
+  return res.data || [];
+};
+
+export const listarPedidosDelivery = async (page = 1, limit = 25) => {
+  const res = await axios.get(`${API_BASE_URL}/shopify/orders?page=${page}&limit=${limit}`);
+  return {
+    orders: res.data.orders || [],
+    total: res.data.total || 0,
+  };
 };
 
 export default {
