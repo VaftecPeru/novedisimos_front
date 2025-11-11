@@ -97,9 +97,7 @@ const MenuPorRol = ({
         )}
         {seccionesPermitidas.includes("mantenimiento") && (
           <li
-            className={`main-menu-item ${
-              expanded.mantenimiento ? "expanded" : ""
-            }`}
+            className={`main-menu-item ${expanded.mantenimiento ? "expanded" : ""}`}
           >
             <div
               className="menu-item-header"
@@ -116,7 +114,7 @@ const MenuPorRol = ({
                   fontWeight: 400,
                   fontSize: 18,
                   color:
-                    activeSection === "mantenimiento"
+                    activeSection === "mantenimiento" || activeSection === "productos"
                       ? "white"
                       : spanColors.mantenimiento,
                 }}
@@ -124,9 +122,7 @@ const MenuPorRol = ({
                 Mantenimiento
               </span>
               <i
-                className={`fas fa-chevron-${
-                  expanded.mantenimiento ? "down" : "right"
-                }`}
+                className={`fas fa-chevron-${expanded.mantenimiento ? "down" : "right"}`}
               ></i>
               <img
                 src={arrowImages.mantenimiento}
@@ -136,31 +132,34 @@ const MenuPorRol = ({
             </div>
             {expanded.mantenimiento && (
               <ul className="submenu">
-                {/* <li
+                {/* NUEVA OPCIÓN: PRODUCTOS */}
+                <li
                   onClick={() => onMenuItemClick("productos")}
                   className={activeSection === "productos" ? "active" : ""}
                 >
                   Productos
-                </li> */}
+                </li>
+
+                {/* Movimiento (si lo deseas descomentar más adelante) */}
                 {/* <li
                   onClick={() => onMenuItemClick("movimiento")}
                   className={activeSection === "movimiento" ? "active" : ""}
                 >
                   Movimiento
                 </li> */}
+
                 <li
                   onClick={() => onMenuItemClick("almacenes")}
                   className={activeSection === "almacenes" ? "active" : ""}
                 >
-                  Almacen
+                  Almacén
                 </li>
-                {/* Agregar Control de Usuarios solo para administradores */}
+
+                {/* Control de Usuarios solo para Administrador */}
                 {rol === "Administrador" && (
                   <li
                     onClick={() => onMenuItemClick("controlUsuarios")}
-                    className={
-                      activeSection === "controlUsuarios" ? "active" : ""
-                    }
+                    className={activeSection === "controlUsuarios" ? "active" : ""}
                   >
                     Control de Usuarios
                   </li>

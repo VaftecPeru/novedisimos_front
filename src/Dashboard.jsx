@@ -863,8 +863,8 @@ function Dashboard() {
         return <FormularioExterno />;
       // case "seguimientoContraentrega":
       //   return <SeguimientoContraentrega />;
-      // case "productos":
-      //   return <ProductosDashboard />;
+      case "productos":
+        return <ProductosDashboard />;
       // case "movimiento":
       //   return <MovimientoDashboard />;
       // case "clientes":

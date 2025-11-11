@@ -937,6 +937,79 @@ export const listarPedidosDelivery = async (page = 1, limit = 25) => {
     total: res.data.total || 0,
   };
 };
+export const fetchProductos = async (params = {}) => {
+    // Tu Laravel ignora page, search, vendor... pero SÍ acepta limit
+    const queryString = new URLSearchParams({
+        limit: 250, // Siempre pedimos el máximo
+        ...params     // por si en el futuro agregas filtros
+    }).toString();
+
+    const url = `${API_BASE_URL}/shopify/products?${queryString}`;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || errorData.details || 'Error desconocido');
+        }
+
+        const result = await response.json();
+
+        // Tu Laravel devuelve: { data: [productos] }
+        return {
+            productos: result.data || [],
+        };
+
+    } catch (error) {
+        console.error("Error en fetchProductos:", error.message);
+        throw error;
+    }
+};
+
+export const createProducto = async (data, isFormData = false) => {
+  const url = `${API_BASE_URL}/productos`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+      body: isFormData ? data : JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.errors || 'Error desconocido al crear producto');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error en createProducto:", error.message);
+    throw error;
+  }
+};
+
+export const updateProducto = async (id, data, isFormData = false) => {
+  const url = `${API_BASE_URL}/productos/${id}`;
+  try {
+    const response = await fetch(url, {
+      method: 'PUT', // 👈 Si tu backend usa PUT, cambia a 'PUT'
+      headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+      body: isFormData ? data : JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.errors || 'Error desconocido al actualizar producto');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error en updateProducto:", error.message);
+    throw error;
+  }
+};
 
 export default {
   getShopInfo,
