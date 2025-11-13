@@ -1,34 +1,24 @@
-﻿
-.MuiChip-root {
-    height: 24px;
-    font-size: 12px;
-  }
-  
-  .MuiTableCell-root {
-    padding: 8px 16px;
-  }
-  
-  .chip-confirmado {
-    background-color: #4763e4;
-    color: white;
-  }
-  
-  .chip-in-wow {
-    background-color: #3884f7;
-    color: white;
-  }
-  
-  .chip-admitido {
-    background-color: #10b981;
-    color: white;
-  }
-  
-  .chip-por-derivar {
-    background-color: #f59e0b;
-    color: white;
-  }
-  
-  .chip-final-entrega {
-    background-color: #8b5cf6;
-    color: white;
-  }
+﻿.chip-confirmado {
+  background-color: #4763e4;
+  color: white;
+}
+
+.chip-in-wow {
+  background-color: #3884f7;
+  color: white;
+}
+
+.chip-admitido {
+  background-color: #10b981;
+  color: white;
+}
+
+.chip-por-derivar {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.chip-final-entrega {
+  background-color: #8b5cf6;
+  color: white;
+}

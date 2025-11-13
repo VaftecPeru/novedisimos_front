@@ -94,14 +94,6 @@
   z-index: 10;
 }
 
-.MuiTableCell-root {
-  text-align: center !important;
-  vertical-align: middle !important;
-  padding: 12px 8px !important;
-  font-size: 0.97rem !important;
-  white-space: nowrap;
-}
-
 .motorizados-vacio {
   text-align: center;
   padding: 48px 0;
@@ -171,8 +163,4 @@
     font-size: 0.9rem !important;
   }
   
-  .MuiTableCell-root {
-    padding: 8px 4px !important;
-    font-size: 0.9rem !important;
-  }
 }
