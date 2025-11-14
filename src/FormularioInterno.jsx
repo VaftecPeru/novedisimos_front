@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import "./FormularioInterno.css";
-import { fetchEstadosPedidos, fetchOrderByName, fetchPedidoInterno, guardarPedidoInterno } from './components/services/shopifyService';
+import {
+  fetchEstadosPedidos,
+  fetchOrderByName,
+  fetchPedidoInterno,
+  guardarPedidoInterno,
+} from "./components/services/shopifyService";
 
 import { Search, Save, RefreshCcw, Trash2, Plus, Minus } from "lucide-react";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 const FormularioInterno = () => {
-
   const initialFormData = {
-
     buscar: "",
     shopify_order_id: "",
     asesor: "",
@@ -30,28 +33,30 @@ const FormularioInterno = () => {
 
   const buscarPedido = async () => {
     if (!formData.buscar.trim()) {
-      setErrors({ ...errors, buscar: "Ingrese un código o nombre para buscar" });
+      setErrors({
+        ...errors,
+        buscar: "Ingrese un código o nombre para buscar",
+      });
       return;
     }
 
+    setErrors({});
     const valorBuscar = formData.buscar.trim();
     const pedidoShopify = await fetchOrderByName(valorBuscar);
 
     if (pedidoShopify) {
       console.log(`Pedido encontrado (${pedidoShopify.name})`);
 
-      // Buscar si existe en BD 
       const pedidoBD = await fetchPedidoInterno(pedidoShopify.id);
-
       const estadosInternos = await fetchEstadosPedidos();
-      let arrayEstados = Array.isArray(estadosInternos)
+      const arrayEstados = Array.isArray(estadosInternos)
         ? estadosInternos
-        : (estadosInternos.data || []);
-
+        : estadosInternos.data || [];
       const estadoInterno = arrayEstados.find(
-        (estado) => estado.shopify_order_id === pedidoShopify.id
+        (e) => Number(e.shopify_order_id) === Number(pedidoShopify.id)
       );
 
+      // === MAPEAR ESTADO ===
       const mapShopifyStatus = (order, estadoInterno) => {
         if (order.cancelled_at) return "cancelado";
         if (estadoInterno) {
@@ -59,78 +64,153 @@ const FormularioInterno = () => {
             estadoInterno.estado_pago === "pagado" &&
             estadoInterno.estado_preparacion === "preparado"
           ) {
-            if (order.fulfillment_status === "fulfilled") {
-              return "entregado";
-            }
-            return "en-camino";
+            return order.fulfillment_status === "fulfilled"
+              ? "entregado"
+              : "en-camino";
           }
-          if (estadoInterno.estado_pago === "pagado") {
-            return "confirmado";
-          }
-          if (estadoInterno.estado_pago === "pendiente") {
-            return "pendiente";
-          }
+          if (estadoInterno.estado_pago === "pagado") return "confirmado";
+          if (estadoInterno.estado_pago === "pendiente") return "pendiente";
         }
         if (order.financial_status === "paid") return "confirmado";
         if (order.financial_status === "pending") return "pendiente";
         return "pendiente";
       };
 
-      const noteAttributes = pedidoShopify.note_attributes || [];
-      const celularEnAtributos =
-        noteAttributes.find((attr) => attr.name === "Celular")?.value || "";
-      const provUbicacionEnAtributos =
-        noteAttributes.find((attr) => attr.name === "Provincia y Distrito:")?.value || "";
-      const direccionEnAtributos =
-        noteAttributes.find((attr) => attr.name === "Dirección")?.value || "";
-      const referenciasEnAtributos =
-        noteAttributes.find((attr) => attr.name === "Referencias")?.value || "";
-      const clienteEnAtributos =
-        noteAttributes.find((attr) => attr.name === "Nombre y Apellidos")?.value || "";
+      // === EXTRAER DIRECCIÓN (shipping > billing > note_attributes) ===
+      const getAddressData = (order) => {
+        const shipping = order.shipping_address;
+        const billing = order.billing_address;
 
+        if (shipping) {
+          return {
+            source: "shipping",
+            name: shipping.name || "",
+            phone: shipping.phone || "",
+            address1: shipping.address1 || "",
+            address2: shipping.address2 || "",
+            city: shipping.city || "",
+            province: shipping.province || "",
+            zip: shipping.zip || "",
+            company: shipping.company || "",
+            latitude: shipping.latitude || null,
+            longitude: shipping.longitude || null,
+          };
+        }
+
+        if (billing) {
+          return {
+            source: "billing",
+            name: billing.name || "",
+            phone: billing.phone || "",
+            address1: billing.address1 || "",
+            address2: billing.address2 || "",
+            city: billing.city || "",
+            province: billing.province || "",
+            zip: billing.zip || "",
+            company: billing.company || "",
+            latitude: billing.latitude || null,
+            longitude: billing.longitude || null,
+          };
+        }
+
+        // Fallback: note_attributes
+        const noteAttrs = order.note_attributes || [];
+        const getNote = (name) =>
+          noteAttrs.find((a) => a.name === name)?.value || "";
+
+        const provincia = getNote("Provincia y Distrito:");
+        const direccion = getNote("Dirección");
+
+        if (provincia || direccion) {
+          return {
+            source: "note_attributes",
+            name: getNote("Nombre y Apellidos"),
+            phone: getNote("Celular"),
+            address1: direccion,
+            address2: "",
+            city: "",
+            province: provincia,
+            zip: "",
+            company: "",
+            latitude: null,
+            longitude: null,
+          };
+        }
+
+        return null;
+      };
+
+      const address = getAddressData(pedidoShopify);
+
+      // === FORMATEAR CAMPOS ===
+      const formatearUbicacion = (addr) => {
+        if (!addr) return "";
+        const partes = [addr.city, addr.province].filter(Boolean);
+        return partes.join(" - ") || "";
+      };
+
+      const formatearDireccion = (addr) => {
+        if (!addr) return "";
+        const partes = [addr.address1, addr.address2].filter(Boolean);
+        return partes.join(", ") || "";
+      };
+
+      const referenciasNota =
+        (pedidoShopify.note_attributes || []).find(
+          (a) => a.name === "Referencias"
+        )?.value || "";
+
+      const productosShopify = (pedidoShopify.line_items || []).map((item) => ({
+        nombre: item.title || item.name || "Producto sin nombre",
+        cantidad: String(item.quantity || 1),
+        precio: String(item.price || "0.00"),
+      }));
+
+      // === FORMULARIO BASE ===
       const pedidoFormateado = {
-
         buscar: valorBuscar,
         shopify_order_id: pedidoShopify.id,
-        asesor: pedidoShopify.asesor || "Asesor 1",
-        codigo: pedidoShopify.name || "",
+        asesor: "Asesor 1",
+        codigo: pedidoShopify.name || `#${pedidoShopify.order_number}`,
         estado: mapShopifyStatus(pedidoShopify, estadoInterno),
-        cliente: clienteEnAtributos || "",
-        celular: celularEnAtributos,
-        ubicacion: provUbicacionEnAtributos || "",
-        direccion: direccionEnAtributos || "",
-        referencias: referenciasEnAtributos || "",
+        cliente:
+          address?.name ||
+          (pedidoShopify.customer
+            ? `${pedidoShopify.customer.first_name || ""} ${
+                pedidoShopify.customer.last_name || ""
+              }`.trim()
+            : "Cliente"),
+        celular: address?.phone || "",
+        ubicacion: formatearUbicacion(address),
+        direccion: formatearDireccion(address),
+        referencias: referenciasNota,
         productos:
-          pedidoShopify.line_items && Array.isArray(pedidoShopify.line_items)
-            ? pedidoShopify.line_items.map((producto) => ({
-              nombre: producto.title || producto.name || "",
-              cantidad:
-                producto.quantity?.toString() || producto.cantidad?.toString() || "",
-              precio:
-                producto.price?.toString() || producto.precio?.toString() || "0.00",
-            }))
+          productosShopify.length > 0
+            ? productosShopify
             : initialFormData.productos,
-
-        notasAsesor: pedidoShopify.notasAsesor || pedidoShopify.note || "",
-        notasSupervision: pedidoShopify.notasSupervision || "",
+        notasAsesor: pedidoShopify.note || "",
+        notasSupervision: "",
         originalOrder: pedidoShopify,
       };
 
-      // Si en BD hay registro
+      // === SOBREESCRIBIR CON BD ===
       if (pedidoBD) {
-        console.log("Pedido interno encontrado en BD:", pedidoBD);
-
+        console.log("Pedido interno en BD:", pedidoBD);
         pedidoFormateado.asesor = pedidoBD.asesor || pedidoFormateado.asesor;
         pedidoFormateado.estado = pedidoBD.estado || pedidoFormateado.estado;
         pedidoFormateado.cliente = pedidoBD.cliente || pedidoFormateado.cliente;
         pedidoFormateado.celular = pedidoBD.celular || pedidoFormateado.celular;
-        pedidoFormateado.ubicacion = pedidoBD.provincia_distrito || pedidoFormateado.ubicacion;
-        pedidoFormateado.direccion = pedidoBD.direccion || pedidoFormateado.direccion;
-        pedidoFormateado.referencias = pedidoBD.referencias || pedidoFormateado.referencias;
-        pedidoFormateado.notasAsesor = pedidoBD.notas_asesor || pedidoFormateado.notasAsesor;
-        pedidoFormateado.notasSupervision = pedidoBD.notas_supervisor || pedidoFormateado.notasSupervision;
+        pedidoFormateado.ubicacion =
+          pedidoBD.provincia_distrito || pedidoFormateado.ubicacion;
+        pedidoFormateado.direccion =
+          pedidoBD.direccion || pedidoFormateado.direccion;
+        pedidoFormateado.referencias =
+          pedidoBD.referencias || pedidoFormateado.referencias;
+        pedidoFormateado.notasAsesor =
+          pedidoBD.notas_asesor || pedidoFormateado.notasAsesor;
+        pedidoFormateado.notasSupervision =
+          pedidoBD.notas_supervisor || pedidoFormateado.notasSupervision;
 
-        // Productos de BD reemplazan si existen
         if (pedidoBD.productos && pedidoBD.productos.length > 0) {
           pedidoFormateado.productos = pedidoBD.productos.map((p) => ({
             nombre: p.nombre_producto,
@@ -141,31 +221,32 @@ const FormularioInterno = () => {
       }
 
       setFormData(pedidoFormateado);
+      setIsModified(false);
     } else {
       console.log("Pedido no encontrado");
       setFormData(initialFormData);
+      setErrors({ buscar: "Pedido no encontrado en Shopify" });
     }
   };
-
 
   // Mostrar alerta de confirmación con SweetAlert2
   const showConfirmationAlert = (title, message, onConfirm) => {
     Swal.fire({
       title: title,
       text: message,
-      icon: 'question',
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: '#6b0f1a',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'SI, cambiar',
-      cancelButtonText: 'Cancelar',
-      background: '#fff',
+      confirmButtonColor: "#6b0f1a",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "SI, cambiar",
+      cancelButtonText: "Cancelar",
+      background: "#fff",
       customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        confirmButton: 'custom-swal-confirm-btn',
-        cancelButton: 'custom-swal-cancel-btn'
-      }
+        popup: "custom-swal-popup",
+        title: "custom-swal-title",
+        confirmButton: "custom-swal-confirm-btn",
+        cancelButton: "custom-swal-cancel-btn",
+      },
     }).then((result) => {
       if (result.isConfirmed) {
         onConfirm();
@@ -184,7 +265,6 @@ const FormularioInterno = () => {
     setIsModified(true);
   };
 
-
   // Manejar cambios en productos
   const handleProductChange = (index, field, value) => {
     const updatedProductos = [...formData.productos];
@@ -197,7 +277,10 @@ const FormularioInterno = () => {
   const addProductField = () => {
     setFormData({
       ...formData,
-      productos: [...formData.productos, { nombre: "", cantidad: "", precio: "" }]
+      productos: [
+        ...formData.productos,
+        { nombre: "", cantidad: "", precio: "" },
+      ],
     });
     setIsModified(true);
   };
@@ -223,11 +306,11 @@ const FormularioInterno = () => {
 
         // Mostrar alerta de éxito
         Swal.fire({
-          title: '¡Formulario limpiado!',
-          text: 'El formulario se ha restablecido correctamente.',
-          icon: 'success',
-          confirmButtonColor: '#6b0f1a',
-          confirmButtonText: 'OK'
+          title: "¡Formulario limpiado!",
+          text: "El formulario se ha restablecido correctamente.",
+          icon: "success",
+          confirmButtonColor: "#6b0f1a",
+          confirmButtonText: "OK",
         });
       }
     );
@@ -244,15 +327,14 @@ const FormularioInterno = () => {
     // Validar productos
     formData.productos.forEach((producto, index) => {
       if (producto.nombre && (!producto.cantidad || !producto.precio)) {
-        newErrors[`producto-${index}`] = "Complete cantidad y precio si añade un producto";
+        newErrors[`producto-${index}`] =
+          "Complete cantidad y precio si añade un producto";
       }
     });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-
 
   // Guardar formulario
   const handleGuardarFormulario = async () => {
@@ -277,17 +359,22 @@ const FormularioInterno = () => {
             notas_supervisor: formData.notasSupervision,
             productos: formData.productos
               ? formData.productos.map((p) => ({
-
-                nombre: p.nombre,
-                cantidad: p.cantidad,
-                precio: p.precio,
-              }))
+                  nombre: p.nombre,
+                  cantidad: p.cantidad,
+                  precio: p.precio,
+                }))
               : [],
           };
 
-          console.log("Datos que se enviarán:", JSON.stringify(payload, null, 2));
+          console.log(
+            "Datos que se enviarán:",
+            JSON.stringify(payload, null, 2)
+          );
 
-          const data = await guardarPedidoInterno(payload, formData.shopify_order_id);
+          const data = await guardarPedidoInterno(
+            payload,
+            formData.shopify_order_id
+          );
 
           console.log("✅ Guardado en backend:", data);
           setIsModified(false);
@@ -308,17 +395,15 @@ const FormularioInterno = () => {
             confirmButtonColor: "#6b0f1a",
           });
         }
-
       }
-    )
+    );
   };
-
-
-
 
   // Calcular monto total
   const montoCobrar = formData.productos.reduce(
-    (acc, producto) => acc + (parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)),
+    (acc, producto) =>
+      acc +
+      parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0),
     0
   );
 
@@ -337,7 +422,9 @@ const FormularioInterno = () => {
             onChange={handleChange}
             className={errors.buscar ? "error" : ""}
           />
-          {errors.buscar && <span className="error-message">{errors.buscar}</span>}
+          {errors.buscar && (
+            <span className="error-message">{errors.buscar}</span>
+          )}
         </div>
         <button className="btn blue" onClick={buscarPedido}>
           <Search size={18} /> BUSCAR
@@ -387,7 +474,9 @@ const FormularioInterno = () => {
             onChange={handleChange}
             className={errors.celular ? "error" : ""}
           />
-          {errors.celular && <span className="error-message">{errors.celular}</span>}
+          {errors.celular && (
+            <span className="error-message">{errors.celular}</span>
+          )}
         </div>
 
         <div className="input-group">
@@ -399,7 +488,9 @@ const FormularioInterno = () => {
             onChange={handleChange}
             className={errors.cliente ? "error" : ""}
           />
-          {errors.cliente && <span className="error-message">{errors.cliente}</span>}
+          {errors.cliente && (
+            <span className="error-message">{errors.cliente}</span>
+          )}
         </div>
 
         <div className="input-group">
@@ -412,7 +503,6 @@ const FormularioInterno = () => {
           />
         </div>
 
-
         <div className="input-group full-width">
           <label>Dirección: *</label>
           <input
@@ -422,7 +512,9 @@ const FormularioInterno = () => {
             onChange={handleChange}
             className={errors.direccion ? "error" : ""}
           />
-          {errors.direccion && <span className="error-message">{errors.direccion}</span>}
+          {errors.direccion && (
+            <span className="error-message">{errors.direccion}</span>
+          )}
         </div>
 
         <div className="input-group full-width">
@@ -460,14 +552,18 @@ const FormularioInterno = () => {
                 type="text"
                 placeholder={`Nombre del producto ${index + 1}`}
                 value={producto.nombre}
-                onChange={(e) => handleProductChange(index, "nombre", e.target.value)}
+                onChange={(e) =>
+                  handleProductChange(index, "nombre", e.target.value)
+                }
               />
               <input
                 type="number"
                 placeholder="0"
                 min="1"
                 value={producto.cantidad}
-                onChange={(e) => handleProductChange(index, "cantidad", e.target.value)}
+                onChange={(e) =>
+                  handleProductChange(index, "cantidad", e.target.value)
+                }
               />
               <input
                 type="number"
@@ -475,10 +571,16 @@ const FormularioInterno = () => {
                 min="0"
                 step="0.01"
                 value={producto.precio}
-                onChange={(e) => handleProductChange(index, "precio", e.target.value)}
+                onChange={(e) =>
+                  handleProductChange(index, "precio", e.target.value)
+                }
               />
               <div className="subtotal">
-                S/. {(parseFloat(producto.cantidad || 0) * parseFloat(producto.precio || 0)).toFixed(2)}
+                S/.{" "}
+                {(
+                  parseFloat(producto.cantidad || 0) *
+                  parseFloat(producto.precio || 0)
+                ).toFixed(2)}
               </div>
               <button
                 className="btn-remove"
@@ -490,12 +592,12 @@ const FormularioInterno = () => {
             </div>
           ))}
 
-          {Object.keys(errors).some(key => key.startsWith('producto-')) && (
+          {Object.keys(errors).some((key) => key.startsWith("producto-")) && (
             <div className="error-message">
               {Object.entries(errors)
-                .filter(([key]) => key.startsWith('producto-'))
+                .filter(([key]) => key.startsWith("producto-"))
                 .map(([_, value]) => value)
-                .join(', ')}
+                .join(", ")}
             </div>
           )}
         </div>
@@ -544,6 +646,5 @@ const FormularioInterno = () => {
       </div>
     </div>
   );
-
 };
-export default FormularioInterno; 
+export default FormularioInterno;

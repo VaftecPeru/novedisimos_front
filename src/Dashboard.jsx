@@ -19,6 +19,7 @@ import MenuPorRol from "./MenuPorRol";
 import Motorizados from "./Motorizados";
 import DetalleMotorizados from "./DetalleMotorizados";
 import Asesores from "./Asesores";
+import ComisionesDashboard from "./ComisionesDashboard";
 import DashboardPage from "./DashboardPage";
 
 Modal.setAppElement("#root");
@@ -61,7 +62,10 @@ function Dashboard() {
     useState("vista");
 
   const [motorizadosSeleccion, setMotorizadosSeleccion] =
-    useState("asignacion");
+    useState("motorizados");
+
+  const [asesoresSeleccion, setAsesoresSeleccion] =
+    useState("asesores");
 
   const [arrowImages, setArrowImages] = useState({
     mantenimiento: "/images/shadow arrow.png",
@@ -206,7 +210,7 @@ function Dashboard() {
         configuracion: "#555d8b",
       });
 
-      if (lastSegment === "productos" || lastSegment === "usuarios" || lastSegment === "movimiento" || lastSegment === "almacenes") {
+      if (lastSegment === "productos" || lastSegment === "usuarios" || lastSegment === "movimiento" || lastSegment === "almacenes" || lastSegment === "controlUsuarios") {
         initialExpandedState.mantenimiento = true;
         setMantenimientoSeleccion(lastSegment);
 
@@ -312,9 +316,14 @@ function Dashboard() {
         }));
       }
 
-      if (lastSegment === "motorizados") {
-        initialExpandedState.configuracion = true;
-        setConfiguracionSeleccion(lastSegment);
+      if (lastSegment === "motorizados" || lastSegment === "detallemotorizados") {
+        initialExpandedState.motorizados = true;
+        setMotorizadosSeleccion(lastSegment);
+
+        setArrowImages((prev) => ({
+          ...prev,
+          motorizados: "/images/down arrow.png",
+        }));
 
         setGearImages((prev) => ({
           ...prev,
@@ -324,6 +333,26 @@ function Dashboard() {
         setSpanColors((prev) => ({
           ...prev,
           motorizados: "white",
+        }));
+      }
+
+      if (lastSegment === "asesores" || lastSegment === "comisiones") {
+        initialExpandedState.asesores = true;
+        setAsesoresSeleccion(lastSegment);
+
+        setArrowImages((prev) => ({
+          ...prev,
+          asesores: "/images/down arrow.png",
+        }));
+
+        setGearImages((prev) => ({
+          ...prev,
+          asesores: "/images/tv.png",
+        }));
+
+        setSpanColors((prev) => ({
+          ...prev,
+          asesores: "white",
         }));
       }
 
@@ -345,7 +374,7 @@ function Dashboard() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [usuario, navigate, location.pathname, activeSection]);
+  }, [usuario, navigate, location.pathname]);
 
   const toggleSidebar = () => {
     const newCollapsedState = !sidebarCollapsed;
@@ -548,6 +577,8 @@ function Dashboard() {
     setIntegracionesSeleccion("shopify");
     setConfiguracionSeleccion("cobertura");
     setInformesSeleccion("vista");
+    setMotorizadosSeleccion("motorizados");
+    setAsesoresSeleccion("asesores");
 
     // Lógica específica para la sección clickeada:
     // Si la sección clickeada es una de las "padre" (con submenú)
@@ -578,7 +609,7 @@ function Dashboard() {
       // Adicionalmente, si esta sección final pertenece a una sección padre, expande al padre.
       // Esto es crucial para que los submenús se vean correctamente.
       if (
-        ["productos", "usuarios", "movimiento", "almacenes"].includes(
+        ["productos", "usuarios", "movimiento", "almacenes", "controlUsuarios"].includes(
           sectionName
         )
       ) {
@@ -615,9 +646,19 @@ function Dashboard() {
         newGearImages.configuracion = "/images/file.png";
         newSpanColors.configuracion = "white";
         setConfiguracionSeleccion(sectionName); // Actualiza la selección del submenú
+      } else if (["motorizados", "detallemotorizados"].includes(sectionName)) {
+        newExpandedState.motorizados = true;
+        newArrowImages.motorizados = "/images/down arrow.png";
+        newGearImages.motorizados = "/images/file.png";
+        newSpanColors.motorizados = "white";
+        setMotorizadosSeleccion(sectionName);
+      } else if (["asesores", "comisiones"].includes(sectionName)) {
+        newExpandedState.asesores = true;
+        newArrowImages.asesores = "/images/down arrow.png";
+        newGearImages.asesores = "/images/tv.png";
+        newSpanColors.asesores = "white";
+        setAsesoresSeleccion(sectionName);
       }
-      // No hay un `else if` específico para 'motorizados' aquí porque 'motorizados' es un ítem de nivel superior.
-      // Sus estilos se activan con las líneas `newGearImages[sectionName] = ...` y `newSpanColors[sectionName] = ...`
     }
 
     // Finalmente, actualiza los estados en React con las nuevas copias.
@@ -756,10 +797,8 @@ function Dashboard() {
     ) {
       parentSection = "Pedidos";
     } else if (
-      ["productos", "usuarios", "movimiento"].includes(activeSection)
+      ["productos", "usuarios", "movimiento", "almacenes", "controlUsuarios"].includes(activeSection)
     ) {
-      parentSection = "Mantenimiento";
-    } else if (["productos", "usuarios", "almacenes"].includes(activeSection)) {
       parentSection = "Mantenimiento";
     } else if (["shopify"].includes(activeSection)) {
       parentSection = "Integraciones";
@@ -769,6 +808,10 @@ function Dashboard() {
       parentSection = "Configuracion";
     } else if (["curier"].includes(activeSection)) {
       parentSection = "Configuracion";
+    } else if (["motorizados", "detallemotorizados"].includes(activeSection)) {
+      parentSection = "Motorizados";
+    } else if (["asesores", "comisiones"].includes(activeSection)) {
+      parentSection = "Asesores";
     }
 
     const sectionDisplayNames = {
@@ -784,6 +827,10 @@ function Dashboard() {
       vista: "Vista Informes",
       cobertura: "Registrar Cobertura",
       curier: "Registrar Currier Nuevos",
+      motorizados: "Motorizados",
+      asesores: "Gestión de Ventas",
+      comisiones: "Comisiones",
+      controlUsuarios: "Control de Usuarios",
     };
 
     const activeSectionName =
@@ -816,8 +863,8 @@ function Dashboard() {
         return <FormularioExterno />;
       // case "seguimientoContraentrega":
       //   return <SeguimientoContraentrega />;
-      // case "productos":
-      //   return <ProductosDashboard />;
+      case "productos":
+        return <ProductosDashboard />;
       // case "movimiento":
       //   return <MovimientoDashboard />;
       // case "clientes":
@@ -846,6 +893,8 @@ function Dashboard() {
         return <DetalleMotorizados />;
       case "asesores":
         return <Asesores />;
+      case "comisiones":
+        return <ComisionesDashboard />;
       case "controlUsuarios":
         return <ControlUsuarios />;
       default:

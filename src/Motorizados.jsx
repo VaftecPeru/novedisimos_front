@@ -22,7 +22,7 @@ import logo from "../public/images/img.png";
 const isDevelopment = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const API_BASE_URL = isDevelopment
   ? "http://localhost:8000/api/shopify"
-  : "https://api.novedadeswow.com/api/shopify";
+  : "https://psicologosenlima.com/shopify/public/api/shopify";
 
 const ESTADOS_DELIVERY = [
   { value: "pendiente", label: "Pendiente", color: "#f59e0b" },
@@ -293,8 +293,6 @@ const MotorizadosDashboard = () => {
     }
   };
 
-  // Updated handleGenerarComprobante with improved header
-  // Updated handleGenerarComprobante
   const handleGenerarComprobante = (pedido, action = 'download') => {
     if (!pedido) {
       Swal.fire({
@@ -306,7 +304,6 @@ const MotorizadosDashboard = () => {
       return;
     }
 
-    // Evitar duplicados
     if (comprobantes.some(c => c.id === pedido.factura)) {
       Swal.fire({
         title: 'Advertencia',
