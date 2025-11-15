@@ -1006,6 +1006,19 @@ export async function createProduct(formData) {
   return data;
 }
 
+/**
+ * Elimina un producto en Shopify por ID.
+ * @param {number|string} productId
+ */
+export async function deleteProduct(productId) {
+  const res = await fetch(`${API_BASE_URL}/shopify/products/${productId}`, {
+    method: "DELETE",
+  });
+
+  const data = await res.json();
+  return data;
+}
+
 export default {
   getShopInfo,
   fetchOrders,

@@ -7,6 +7,23 @@ import {
   createProduct,
 } from "./components/services/shopifyService";
 
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, 3, 4, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ align: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ color: [] }, { background: [] }],
+    ["blockquote", "code-block"],
+    ["link", "clean"],
+  ],
+  clipboard: {
+    matchVisual: false,
+  },
+};
 const revokeUrls = (variants) => {
   variants.forEach((v) => {
     if (v.media_url) {
@@ -319,13 +336,14 @@ function AddProduct({ onClose, onProductCreated }) {
                             {/* Descripción */}
                             <div className="form-group">
                               <label htmlFor="descripcion">Descripción:</label>
-                              <textarea
-                                id="descripcion"
-                                className="input-field"
-                                value={descripcion}
-                                onChange={(e) => setDescripcion(e.target.value)}
-                                required
-                              />
+                              <div className="editor-container">
+                                <ReactQuill
+                                  theme="snow"
+                                  value={descripcion}
+                                  onChange={setDescripcion}
+                                  modules={modules}
+                                />
+                              </div>
                             </div>
                             {/* Imagen principal y Visualizador */}
                             <div className="form-group image-container">
@@ -519,7 +537,7 @@ function AddProduct({ onClose, onProductCreated }) {
 
                             {selectedOptions.length > 0 && (
                               <>
-                                <p price style={{ marginTop: "0" }}>
+                                <p style={{ marginTop: "0" }}>
                                   Variantes definidas ({variants.length})
                                 </p>
 

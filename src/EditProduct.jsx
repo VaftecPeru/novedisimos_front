@@ -7,6 +7,24 @@ import {
   updateProduct,
 } from "./components/services/shopifyService";
 
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, 3, 4, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ align: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ color: [] }, { background: [] }],
+    ["blockquote", "code-block"],
+    ["link", "clean"],
+  ],
+  clipboard: {
+    matchVisual: false,
+  },
+};
+
 function EditProduct({ product, onClose, onUpdate }) {
   const [titulo, setTitulo] = useState(product?.title || "");
   const [descripcion, setDescripcion] = useState(product?.body_html || "");
@@ -152,6 +170,28 @@ function EditProduct({ product, onClose, onUpdate }) {
       if (mainFile) {
         formData.append("main_image", mainFile);
       }
+
+      // 1) Opciones originales del producto
+      const originalOptions = Array.isArray(product?.options)
+        ? product.options
+        : [];
+
+      // 2) Nuevas opciones globales que agregaste
+      const newOptions = Array.isArray(variants[0]?.newOptions)
+        ? variants[0].newOptions
+        : [];
+
+      // 3) Unimos todas las opciones
+      const allOptions = [...originalOptions, ...newOptions];
+
+      // 4) Shopify exige nombres indexados {1: "Color", 2: "Talla"}
+      const optionNames = {};
+      allOptions.forEach((opt, index) => {
+        optionNames[index + 1] = opt.name || `Opción ${index + 1}`;
+      });
+
+      // 5) Enviar nombres de opciones al backend
+      formData.append("option_names", JSON.stringify(optionNames));
 
       // Enviar variantes (siempre, aunque sea una sola)
       const payloadVariants = variants.map((v) => ({
@@ -309,13 +349,14 @@ function EditProduct({ product, onClose, onUpdate }) {
 
                         <div className="form-group">
                           <label htmlFor="descripcion">Descripción:</label>
-                          <textarea
-                            id="descripcion"
-                            className="input-field"
-                            value={descripcion}
-                            onChange={(e) => setDescripcion(e.target.value)}
-                            required
-                          />
+                          <div className="editor-container">
+                            <ReactQuill
+                              theme="snow"
+                              value={descripcion}
+                              onChange={setDescripcion}
+                              modules={modules}
+                            />
+                          </div>
                         </div>
 
                         <div className="form-group">

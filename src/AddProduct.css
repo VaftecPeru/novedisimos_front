@@ -6,7 +6,6 @@
 
 .form-card {
     max-width: 1000px;
-    /* Aumentamos el ancho para el diseño de 2 columnas */
     margin: 0 auto;
     background: #f0f0f0;
     padding: 25px;
@@ -14,53 +13,20 @@
 
 }
 
-h2 {
-    color: #303030;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-size: 2rem;
-    margin: 0;
-}
-
-h3 {
-    color: #303030;
-    font-size: 1.2rem;
-    text-align: start;
-
-}
-
-/* Two Column Grid */
 .form-content-grid {
     display: grid;
     grid-template-columns: 1fr;
-    /* Default: single column for mobile */
-    gap: 30px;
+    gap: 20px;
     margin-top: 20px;
 }
 
-.column-divider {
-    padding: 20px 0;
-    border-bottom: 1px solid #e0e0e0;
-    /* Separator on mobile */
-}
 
 @media (min-width: 900px) {
     .form-content-grid {
         grid-template-columns: 2fr 1.5fr;
-        /* 2 parts for product, 1.5 parts for variants/settings */
-    }
-
-    .column-divider {
-        border-bottom: none;
-        border-right: 1px solid #e0e0e0;
-        /* Vertical separator on desktop */
-        padding-right: 30px;
-        padding-bottom: 0;
     }
 }
 
-/* --- Form Elements --- */
 .form-group {
     margin-bottom: 10px;
     display: flex;
@@ -104,16 +70,9 @@ select:focus {
     outline: none;
 }
 
-textarea {
-    resize: vertical;
-    min-height: 120px;
-}
-
-/* --- Image Previews (Square Mandate) --- */
 .image-preview-container {
     width: 200px;
     padding-top: 200px;
-    /* 1:1 Aspect Ratio (Square) */
     position: relative;
     overflow: hidden;
     border-radius: 10px;
@@ -128,14 +87,6 @@ textarea {
     text-align: center;
 }
 
-.image-preview-container.main-product-image {
-    max-width: 400px;
-    /* Limit size for desktop aesthetics */
-  
-}
-
-
-
 .image-preview-container img {
     position: absolute;
     top: 0;
@@ -143,11 +94,15 @@ textarea {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Ensures the image covers the square area */
     border-radius: 8px;
 }
 
-/* Variant Image Preview Container (Small & Square) */
+.image-preview-container.main-product-image {
+    max-width: 400px;
+  
+}
+
+
 .variant-media-group {
     display: flex;
     align-items: center;
@@ -156,7 +111,6 @@ textarea {
 
 .variant-image-preview {
     width: 60px;
-    /* Fixed smaller size */
     height: 60px;
     position: relative;
     overflow: hidden;
@@ -235,7 +189,6 @@ textarea {
     background-color: #111111;
 }
 
-/* --- Options Chips --- */
 .options-container {
     display: flex;
     flex-wrap: wrap;
@@ -344,29 +297,6 @@ textarea {
         width: 100%;
         margin-right: 0;
     }
-}
-
-/*-------------------- */
-
-/* Botón flotante */
-.floating-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 25px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  z-index: 1000;
-  transition: all 0.3s ease;
-}
-.floating-btn:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
 }
 
 /* Modal */
@@ -525,4 +455,94 @@ select.input-field {
   -moz-appearance: none;
   appearance: none;
   background: transparent; /* sin ícono nativo */
+}
+
+/* Fuerza que el Quill tenga espacio correcto */
+.editor-container {
+  margin-bottom: 6px;
+}
+
+/* Ajusta SOLO el área de edición, no el toolbar */
+.editor-container .ql-container {
+  height: 200px !important;
+}
+
+.editor-container .ql-editor {
+  height: 150px; /* Ajusta según tu gusto */
+  overflow-y: auto;
+}
+
+/* ============================
+   ESTILO CUSTOM PARA QUILL
+   ============================ */
+
+/* Fondo del editor + borde igual a inputs */
+.ql-container {
+  background-color: #fafafa !important;
+  border-bottom: 1px solid #808080 !important;
+  border-left: 1px solid #808080 !important;
+  border-right: 1px solid #808080 !important;
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  font-family: inherit !important;
+}
+
+/* Área donde escribes */
+.ql-editor {
+  font-size: 0.95rem !important;
+  color: #000 !important;
+  line-height: 1.6 !important;
+  padding: 12px 16px !important;
+}
+
+/* Placeholder */
+.ql-editor::before {
+  color: #777 !important;
+  font-style: italic !important;
+}
+
+/* Borde al enfocar (igual que input-field:focus) */
+.ql-container.ql-snow:focus-within {
+  border-color: rgb(69, 69, 69) !important;
+  box-shadow: 0 0 0 3px rgba(32, 32, 32, 0.25) !important;
+}
+
+/* ============================
+   TOOLBAR
+   ============================ */
+
+.ql-toolbar {
+  background-color: #fff !important;
+  border: 1px solid #808080 !important;
+  
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  padding: 8px !important;
+}
+
+/* Botones del toolbar */
+.ql-toolbar button {
+  border-radius: 6px !important;
+  transition: background 0.2s ease !important;
+}
+
+/* Hover bonito estilo dark */
+.ql-toolbar button:hover {
+  background-color: #e9e9e9 !important;
+}
+
+/* Botones activos */
+.ql-toolbar .ql-active {
+  background-color: #d0d0d0 !important;
+}
+
+/* Color picker y selects */
+.ql-toolbar .ql-picker {
+  color: #000 !important;
+}
+
+.ql-toolbar .ql-picker-label:hover,
+.ql-toolbar .ql-picker-item:hover {
+  background-color: #e9e9e9 !important;
+  border-radius: 6px !important;
 }

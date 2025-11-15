@@ -16,7 +16,8 @@ import {
   TablePagination,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
-
+import Swal from "sweetalert2";
+import { deleteProduct } from "./components/services/shopifyService";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
 import { fetchProductos } from "./components/services/shopifyService";
@@ -31,7 +32,10 @@ const Productos = () => {
 
   // 🔹 Estados de paginación
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [busqueda, setBusqueda] = useState("");
 
   // 🔹 Cargar productos al iniciar
   useEffect(() => {
@@ -83,8 +87,19 @@ const Productos = () => {
     setPage(0);
   };
 
+  const productosFiltrados = productos.filter((p) => {
+    const coincideEstado =
+      filtroEstado === "todos" ? true : p.status === filtroEstado;
+
+    const coincideBusqueda = p.title
+      .toLowerCase()
+      .includes(busqueda.toLowerCase());
+
+    return coincideEstado && coincideBusqueda;
+  });
+
   // 🔹 Productos que se mostrarán según la página actual
-  const productosPaginados = productos.slice(
+  const productosPaginados = productosFiltrados.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
@@ -92,6 +107,42 @@ const Productos = () => {
   // 🔹 Alternar visibilidad de variantes por producto
   const toggleRow = (id) => {
     setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "¿Eliminar producto?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d82c0d",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const result = await deleteProduct(id);
+
+      if (result.success) {
+        await Swal.fire({
+          title: "Eliminado",
+          text: "El producto fue eliminado correctamente.",
+          icon: "success",
+        });
+
+        recargarProductos(); // 🔄 refrescar tabla
+      } else {
+        throw new Error("No se eliminó");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar el producto.",
+        icon: "error",
+      });
+    }
   };
 
   return (
@@ -104,24 +155,69 @@ const Productos = () => {
           justifyContent: "space-between",
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#000000" }}>
-          Lista de Productos
-        </Typography>
+        {/* Filtros tipo Shifu */}
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {["todos", "active", "draft", "archived"].map((estado) => (
+            <Button
+              key={estado}
+              variant={filtroEstado === estado ? "contained" : "outlined"}
+              onClick={() => setFiltroEstado(estado)}
+              sx={{
+                textTransform: "capitalize",
+                borderRadius: 2,
+                px: 2,
+                color: filtroEstado === estado ? "#fff" : "#353535",
+                backgroundColor:
+                  filtroEstado === estado ? "#353535" : "transparent",
+                borderColor: "#353535",
+                "&:hover": {
+                  backgroundColor:
+                    filtroEstado === estado ? "#1a1a1a" : "rgba(0,0,0,0.04)",
+                },
+              }}
+            >
+              {estado === "todos"
+                ? "Todos"
+                : estado === "active"
+                ? "Activos"
+                : estado === "draft"
+                ? "Borrador"
+                : "Archivados"}
+            </Button>
+          ))}
+        </Box>
 
-        <Button
-          variant="contained"
-          onClick={() => setOpenModal(true)}
-          sx={{
-            color: "#ffffffff",
-            backgroundColor: "#353535ff",
-            borderRadius: 2,
-            "&:hover": {
-              backgroundColor: "#1a1a1a",
-            },
-          }}
-        >
-          + Nuevo Producto
-        </Button>
+        {/* Buscador */}
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <input
+            type="text"
+            placeholder="Buscar producto..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              outline: "none",
+              width: "200px",
+            }}
+          />
+
+          <Button
+            variant="contained"
+            onClick={() => setOpenModal(true)}
+            sx={{
+              color: "#ffffffff",
+              backgroundColor: "#353535ff",
+              borderRadius: 2,
+              "&:hover": {
+                backgroundColor: "#1a1a1a",
+              },
+            }}
+          >
+            + Nuevo Producto
+          </Button>
+        </Box>
       </Box>
 
       {openModal && (
@@ -198,7 +294,12 @@ const Productos = () => {
                 return (
                   <React.Fragment key={p.id}>
                     <TableRow>
-                      <TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
+                          verticalAlign: "middle",
+                        }}
+                      >
                         {tieneVariantes && (
                           <IconButton
                             size="small"
@@ -212,21 +313,32 @@ const Productos = () => {
                           </IconButton>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {imagen ? (
+                      <TableCell
+                        align="center"
+                        sx={{
+                          verticalAlign: "middle",
+                          p: "0"
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "100%", // hace que se centre vertical
+                          }}
+                        >
                           <img
-                            src={imagen}
+                            src={imagen || "/images/default-image.png"}
                             alt={p.title}
                             style={{
-                              width: 40,
-                              height: 40,
+                              width: 35,
+                              height: 35,
                               objectFit: "cover",
                               borderRadius: "8px",
                             }}
                           />
-                        ) : (
-                          "Sin imagen"
-                        )}
+                        </Box>
                       </TableCell>
                       <TableCell>{p.title}</TableCell>
                       <TableCell>
@@ -281,7 +393,7 @@ const Productos = () => {
                         <Button
                           variant="outlined"
                           size="small"
-                          onClick={() => alert(`Eliminar producto: ${p.title}`)}
+                          onClick={() => handleDelete(p.id)}
                           sx={{
                             color: "#d82c0d",
                             borderColor: "#d82c0d",
@@ -361,7 +473,7 @@ const Productos = () => {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[8, 16, 32]}
+        rowsPerPageOptions={[10, 20, 50]}
         labelRowsPerPage="Productos por página:"
       />
       {!loading && !error && productos.length === 0 && (
