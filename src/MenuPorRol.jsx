@@ -274,14 +274,14 @@ const MenuPorRol = ({
                 </li>
 
                 {/* 🆕 ÍTEM 2: DETALLE MOTORIZADOS */}
-                <li
+                {/* <li
                   onClick={() => onMenuItemClick("detallemotorizados")}
                   className={
                     activeSection === "detallemotorizados" ? "active" : ""
                   }
                 >
                   Detalle Motorizados
-                </li>
+                </li> */}
               </ul>
             )}
           </li>

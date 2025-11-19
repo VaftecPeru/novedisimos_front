@@ -546,3 +546,183 @@ select.input-field {
   background-color: #e9e9e9 !important;
   border-radius: 6px !important;
 }
+
+/* Contenedor principal de medios */
+.media-card {
+  border: 1px solid #808080;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Elemento individual */
+.media-item {
+  position: relative;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.media-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* El primer medio (principal) ocupa 2x2 */
+.media-item:first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+/* Si quieres que SOLO el que tiene clase .first-media sea grande (más control) */
+.first-media {
+  grid-column: span 2 !important;
+  grid-row: span 2 !important;
+  border: 3px solid gold !important;
+  background: linear-gradient(135deg, #fffbe6, #fff);
+}
+
+/* Imagen y video */
+.media-item img,
+.media-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Contenedor para el contenido visual */
+.media-item::before {
+  content: "";
+  display: block;
+  padding-bottom: 100%; /* Hace que sea cuadrado */
+}
+
+/* El media real se posiciona absolutamente */
+.media-item > img,
+.media-item > video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tipo de medio */
+.media-type {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background-color: rgba(0,0,0,0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Acciones (Borrar y estrella) */
+.media-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.media-actions button {
+  background-color: rgba(255,255,255,0.9);
+  border: none;
+  width: auto;
+  height: auto;
+  font-size: 0.60rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+
+.media-actions button:hover {
+  background-color: white;
+  transform: scale(1.1);
+}
+
+/* Botón de eliminar (rojo) */
+.media-actions button:first-child:hover {
+  background-color: #ff4444;
+  color: rgb(0, 0, 0);
+}
+
+/* Botón de estrella (amarillo) */
+.media-actions button:last-child:hover {
+  background-color: #daff44;
+  color: rgb(0, 0, 0);
+}
+
+/* Mensaje cuando no hay medios */
+.no-media {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #999;
+  font-size: 1rem;
+  padding: 20px;
+}
+
+/* Botón añadir */
+.add-button {
+  margin-top: 15px;
+  padding: 12px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+}
+
+/* Selector del modal */
+.media-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.media-selector button {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.media-selector button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}

@@ -65,14 +65,22 @@ function AddProduct({ onClose, onProductCreated }) {
     const [errorMessage, setErrorMessage] = useState("");
     const [variantLimitError, setVariantLimitError] = useState("");
 
+    const [productMedia, setProductMedia] = useState([]);
+    const [showMediaModal, setShowMediaModal] = useState(false);
+    const [mediaType, setMediaType] = useState("video"); // Por defecto video
+
     useEffect(() => {
       return () => {
-        if (mainMediaPreviewUrl) {
-          URL.revokeObjectURL(mainMediaPreviewUrl);
+        if (productMedia.length > 0) {
+          productMedia.forEach((media) => {
+            if (media.previewUrl) {
+              URL.revokeObjectURL(media.previewUrl);
+            }
+          });
         }
         revokeUrls(variants);
       };
-    }, [mainMediaPreviewUrl, variants]);
+    }, [productMedia, variants]);
 
     useEffect(() => {
       const fetchLocations = async () => {
@@ -185,9 +193,9 @@ function AddProduct({ onClose, onProductCreated }) {
         formData.append("estado", estado);
         formData.append("location_id", selectedLocation);
 
-        if (multimedia) {
-          formData.append("multimedia", multimedia);
-        }
+        productMedia.forEach((media, index) => {
+          formData.append(`product_medias[${index}]`, media.file);
+        });
 
         if (!hasVariants) {
           formData.append("precio", price);
@@ -253,6 +261,12 @@ function AddProduct({ onClose, onProductCreated }) {
           if (mainMediaPreviewUrl) {
             URL.revokeObjectURL(mainMediaPreviewUrl);
           }
+          productMedia.forEach((media) => {
+            if (media.previewUrl) {
+              URL.revokeObjectURL(media.previewUrl);
+            }
+          });
+          setProductMedia([]);
           setVariants([]);
           setSelectedOptions([]);
           setMultimedia(null);
@@ -283,6 +297,36 @@ function AddProduct({ onClose, onProductCreated }) {
       } finally {
         setLoading(false);
       }
+    };
+
+    // Funciones para gestión de medios
+    const handleAddMedia = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const previewUrl = URL.createObjectURL(file);
+      setProductMedia([...productMedia, { file, previewUrl, type: mediaType }]);
+      setShowMediaModal(false);
+    };
+
+    const deleteMedia = (index) => {
+      setProductMedia((prev) => {
+        const newMedia = [...prev];
+        if (newMedia[index].previewUrl) {
+          URL.revokeObjectURL(newMedia[index].previewUrl);
+        }
+        newMedia.splice(index, 1);
+        return newMedia;
+      });
+    };
+
+    const setAsFirst = (index) => {
+      setProductMedia((prev) => {
+        const newMedia = [...prev];
+        const [first] = newMedia.splice(index, 1);
+        newMedia.unshift(first);
+        return newMedia;
+      });
     };
 
     return (
@@ -347,25 +391,64 @@ function AddProduct({ onClose, onProductCreated }) {
                             </div>
                             {/* Imagen principal y Visualizador */}
                             <div className="form-group image-container">
-                              <label htmlFor="multimedia">
-                                Imagen principal:
-                              </label>
-                              <div className="image-preview-container main-product-image">
-                                {mainMediaPreviewUrl ? (
-                                  <img
-                                    src={mainMediaPreviewUrl}
-                                    alt="Vista previa de la imagen principal"
-                                  />
-                                ) : (
-                                  <span>Sin imagen</span>
-                                )}
+                              <label htmlFor="multimedia">Multimedia:</label>
+                              <div className="media-card">
+                                <div className="media-grid">
+                                  {productMedia.length === 0 ? (
+                                    <div className="no-media">
+                                      No hay medios agregados aún.
+                                    </div>
+                                  ) : (
+                                    productMedia.map((media, index) => (
+                                      <div
+                                        key={index}
+                                        className={`media-item ${
+                                          index === 0 ? "first-media" : ""
+                                        }`}
+                                      >
+                                        {media.type === "image" ? (
+                                          <img
+                                            src={media.previewUrl}
+                                            alt="Vista previa"
+                                          />
+                                        ) : (
+                                          <video
+                                            src={media.previewUrl}
+                                            controls
+                                            muted
+                                            playsInline
+                                          />
+                                        )}
+                                        <div className="media-type">
+                                          {media.type.toUpperCase()}
+                                        </div>
+                                        <div className="media-actions">
+                                          <button
+                                            type="button"
+                                            onClick={() => deleteMedia(index)}
+                                          >
+                                            Borrar
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setAsFirst(index)}
+                                          >
+                                            Principal
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  className="add-button"
+                                  onClick={() => setShowMediaModal(true)}
+                                >
+                                  + Añadir
+                                </button>
                               </div>
-                              <input
-                                id="multimedia"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleMainMediaChange}
-                              />
                             </div>
                           </div>
                         </div>
@@ -703,6 +786,191 @@ function AddProduct({ onClose, onProductCreated }) {
                 )}
                 {errorMessage && (
                   <div className="message-error">{errorMessage}</div>
+                )}
+
+                {showMediaModal && (
+                  <div
+                    className="upload-modal"
+                    style={{
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 1000,
+                    }}
+                    onClick={() => setShowMediaModal(false)}
+                  >
+                    <div
+                      className="modal-content"
+                      style={{
+                        backgroundColor: "white",
+                        padding: "24px",
+                        borderRadius: "12px",
+                        width: "420px",
+                        maxWidth: "90%",
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Header: Título + Cerrar en la misma línea */}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                          paddingBottom: "12px",
+                          borderBottom: "1px solid #eee",
+                        }}
+                      >
+                        <h2
+                          style={{
+                            margin: 0,
+                            fontSize: "1.4rem",
+                            color: "#333",
+                          }}
+                        >
+                          Subir Nuevo Medio
+                        </h2>
+                        <button
+                          onClick={() => setShowMediaModal(false)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            fontSize: "1.8rem",
+                            cursor: "pointer",
+                            color: "#999",
+                            padding: "0",
+                            width: "36px",
+                            height: "36px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "50%",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#f0f0f0")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "transparent")
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+
+                      {/* Selector de tipo: Video / Imagen */}
+                      <div
+                        className="media-selector"
+                        style={{ marginBottom: "8px" }}
+                      >
+                        <button
+                          onClick={() => setMediaType("video")}
+                          className={mediaType === "video" ? "active" : ""}
+                          style={{
+                            padding: "10px 16px",
+                            border:
+                              mediaType === "video"
+                                ? "2px solid #007bff"
+                                : "2px solid #ddd",
+                            backgroundColor:
+                              mediaType === "video" ? "#007bff" : "white",
+                            color: mediaType === "video" ? "white" : "#333",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          Subir Video
+                        </button>
+                        <button
+                          onClick={() => setMediaType("image")}
+                          className={mediaType === "image" ? "active" : ""}
+                          style={{
+                            padding: "10px 16px",
+                            border:
+                              mediaType === "image"
+                                ? "2px solid #007bff"
+                                : "2px solid #ddd",
+                            backgroundColor:
+                              mediaType === "image" ? "#007bff" : "white",
+                            color: mediaType === "image" ? "white" : "#333",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            transition: "all 0.2s",
+                            marginLeft: "10px",
+                          }}
+                        >
+                          Subir Imagen
+                        </button>
+                      </div>
+
+                      {/* Formulario de subida */}
+                      <div>
+                        {mediaType === "video" ? (
+                          <div>
+                            <label
+                              style={{
+                                display: "block",
+                                marginBottom: "4px",
+                                fontWeight: "600",
+                                color: "#555",
+                              }}
+                            >
+                              Selecciona un video (MP4 o MOV)
+                            </label>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/quicktime"
+                              onChange={handleAddMedia}
+                              style={{
+                                width: "100%",
+                                padding: "12px",
+                                border: "2px dashed #007bff",
+                                borderRadius: "8px",
+                                backgroundColor: "#f8fbff",
+                                cursor: "pointer",
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <label
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#555",
+                              }}
+                            >
+                              Selecciona una imagen (JPG, PNG, etc.)
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAddMedia}
+                              style={{
+                                width: "100%",
+                                padding: "12px",
+                                border: "2px dashed #007bff",
+                                borderRadius: "8px",
+                                backgroundColor: "#f8fbff",
+                                cursor: "pointer",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
