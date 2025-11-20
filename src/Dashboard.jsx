@@ -21,6 +21,7 @@ import DetalleMotorizados from "./DetalleMotorizados";
 import Asesores from "./Asesores";
 import ComisionesDashboard from "./ComisionesDashboard";
 import DashboardPage from "./DashboardPage";
+import CollectionDashboard from "./CollectionDashboard";
 
 Modal.setAppElement("#root");
 
@@ -28,7 +29,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario, setUsuario } = useUser();
-
 
   console.log("Objeto usuario en Dashboard:", usuario);
   const [editIndex, setEditIndex] = useState(-1); // <-- Este va aquí
@@ -49,8 +49,7 @@ function Dashboard() {
   const [mantenimientoSeleccion, setMantenimientoSeleccion] =
     useState("productos");
 
-  const [pedidosSeleccion, setPedidosSeleccion] =
-    useState("ordenDePedido");
+  const [pedidosSeleccion, setPedidosSeleccion] = useState("ordenDePedido");
 
   const [integracionesSeleccion, setIntegracionesSeleccion] =
     useState("shopify");
@@ -58,14 +57,12 @@ function Dashboard() {
   const [configuracionSeleccion, setConfiguracionSeleccion] =
     useState("cobertura");
 
-  const [informesSeleccion, setInformesSeleccion] =
-    useState("vista");
+  const [informesSeleccion, setInformesSeleccion] = useState("vista");
 
   const [motorizadosSeleccion, setMotorizadosSeleccion] =
     useState("motorizados");
 
-  const [asesoresSeleccion, setAsesoresSeleccion] =
-    useState("asesores");
+  const [asesoresSeleccion, setAsesoresSeleccion] = useState("asesores");
 
   const [arrowImages, setArrowImages] = useState({
     mantenimiento: "/images/shadow arrow.png",
@@ -140,7 +137,6 @@ function Dashboard() {
   });
 
   useEffect(() => {
-
     if (!usuario) {
       navigate("/");
       return;
@@ -149,12 +145,13 @@ function Dashboard() {
     // REDIRECCIÓN AUTOMÁTICA POR ROL
     if (location.pathname === "/dashboard") {
       const defaultRoutes = {
-        'Administrador': '/dashboard/ordenDePedido',
-        'Vendedor': '/dashboard/ordenDePedido',
-        'Almacen': '/dashboard/almacenes',
-        'Delivery': '/dashboard/motorizados'
+        Administrador: "/dashboard/ordenDePedido",
+        Vendedor: "/dashboard/ordenDePedido",
+        Almacen: "/dashboard/almacenes",
+        Delivery: "/dashboard/motorizados",
       };
-      const defaultRoute = defaultRoutes[usuario.rol] || '/dashboard/ordenDePedido';
+      const defaultRoute =
+        defaultRoutes[usuario.rol] || "/dashboard/ordenDePedido";
       navigate(defaultRoute);
       return;
     }
@@ -210,7 +207,14 @@ function Dashboard() {
         configuracion: "#555d8b",
       });
 
-      if (lastSegment === "productos" || lastSegment === "usuarios" || lastSegment === "movimiento" || lastSegment === "almacenes" || lastSegment === "controlUsuarios") {
+      if (
+        lastSegment === "productos" ||
+        lastSegment === "usuarios" ||
+        lastSegment === "movimiento" ||
+        lastSegment === "almacenes" ||
+        lastSegment === "controlUsuarios" ||
+        lastSegment === "colecciones"
+      ) {
         initialExpandedState.mantenimiento = true;
         setMantenimientoSeleccion(lastSegment);
 
@@ -316,7 +320,10 @@ function Dashboard() {
         }));
       }
 
-      if (lastSegment === "motorizados" || lastSegment === "detallemotorizados") {
+      if (
+        lastSegment === "motorizados" ||
+        lastSegment === "detallemotorizados"
+      ) {
         initialExpandedState.motorizados = true;
         setMotorizadosSeleccion(lastSegment);
 
@@ -609,9 +616,14 @@ function Dashboard() {
       // Adicionalmente, si esta sección final pertenece a una sección padre, expande al padre.
       // Esto es crucial para que los submenús se vean correctamente.
       if (
-        ["productos", "usuarios", "movimiento", "almacenes", "controlUsuarios"].includes(
-          sectionName
-        )
+        [
+          "productos",
+          "usuarios",
+          "movimiento",
+          "almacenes",
+          "controlUsuarios",
+          "colecciones",
+        ].includes(sectionName)
       ) {
         newExpandedState.mantenimiento = true;
         newArrowImages.mantenimiento = "/images/down arrow.png";
@@ -619,9 +631,13 @@ function Dashboard() {
         newSpanColors.mantenimiento = "white";
         setMantenimientoSeleccion(sectionName); // Actualiza la selección del submenú
       } else if (
-        ["ordenDePedido", "busquedaInterna", "busquedaExterna", "seguimientoContraentrega", "enviosAgencia"].includes(
-          sectionName
-        )
+        [
+          "ordenDePedido",
+          "busquedaInterna",
+          "busquedaExterna",
+          "seguimientoContraentrega",
+          "enviosAgencia",
+        ].includes(sectionName)
       ) {
         newExpandedState.pedidos = true;
         newArrowImages.pedidos = "/images/down arrow.png";
@@ -791,13 +807,23 @@ function Dashboard() {
     let parentSection = "";
 
     if (
-      ["ordenDePedido", "busquedaInterna", "busquedaExterna", "seguimientoContraentrega", "enviosAgencia"].includes(
-        activeSection
-      )
+      [
+        "ordenDePedido",
+        "busquedaInterna",
+        "busquedaExterna",
+        "seguimientoContraentrega",
+        "enviosAgencia",
+      ].includes(activeSection)
     ) {
       parentSection = "Pedidos";
     } else if (
-      ["productos", "usuarios", "movimiento", "almacenes", "controlUsuarios"].includes(activeSection)
+      [
+        "productos",
+        "usuarios",
+        "movimiento",
+        "almacenes",
+        "controlUsuarios",
+      ].includes(activeSection)
     ) {
       parentSection = "Mantenimiento";
     } else if (["shopify"].includes(activeSection)) {
@@ -831,6 +857,7 @@ function Dashboard() {
       asesores: "Gestión de Ventas",
       comisiones: "Comisiones",
       controlUsuarios: "Control de Usuarios",
+      colecciones: "Colecciones",
     };
 
     const activeSectionName =
@@ -865,6 +892,8 @@ function Dashboard() {
       //   return <SeguimientoContraentrega />;
       case "productos":
         return <ProductosDashboard />;
+      case "colecciones": // ← este es el nombre que aparecerá en la URL
+        return <CollectionDashboard />;
       // case "movimiento":
       //   return <MovimientoDashboard />;
       // case "clientes":
@@ -905,18 +934,21 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <div
-        className={`sidebar-overlay ${!sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
-          }`}
+        className={`sidebar-overlay ${
+          !sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
+        }`}
         onClick={handleOverlayClick}
       />
 
       <header
-        className={`dashboard-header ${sidebarCollapsed ? "sidebar-collapsed" : ""
-          }`}
+        className={`dashboard-header ${
+          sidebarCollapsed ? "sidebar-collapsed" : ""
+        }`}
       >
         <div
-          className={`panel-control-header ${sidebarCollapsed ? "sidebar-collapsed" : ""
-            }`}
+          className={`panel-control-header ${
+            sidebarCollapsed ? "sidebar-collapsed" : ""
+          }`}
         >
           <button onClick={toggleSidebar} className="sidebar-toggle-button">
             {sidebarCollapsed ? openIcon : openCloseIcon}
@@ -941,8 +973,9 @@ function Dashboard() {
       </header>
 
       <div
-        className={`dashboard-content ${sidebarCollapsed ? "sidebar-collapsed" : ""
-          }`}
+        className={`dashboard-content ${
+          sidebarCollapsed ? "sidebar-collapsed" : ""
+        }`}
       >
         {renderContent()}
       </div>

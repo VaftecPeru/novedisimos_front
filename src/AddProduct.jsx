@@ -193,8 +193,8 @@ function AddProduct({ onClose, onProductCreated }) {
         formData.append("estado", estado);
         formData.append("location_id", selectedLocation);
 
-        productMedia.forEach((media, index) => {
-          formData.append(`product_medias[${index}]`, media.file);
+        productMedia.forEach((media) => {
+          formData.append("product_medias[]", media.file); // ¡Sin índice! Solo []
         });
 
         if (!hasVariants) {
@@ -305,7 +305,14 @@ function AddProduct({ onClose, onProductCreated }) {
       if (!file) return;
 
       const previewUrl = URL.createObjectURL(file);
-      setProductMedia([...productMedia, { file, previewUrl, type: mediaType }]);
+
+      // 🟢 SOLUCIÓN: Añadir un ID único (ej: timestamp o un contador)
+      const uniqueId = Date.now() + Math.random();
+
+      setProductMedia([
+        ...productMedia,
+        { file, previewUrl, type: mediaType, id: uniqueId }, // <-- Añadir id
+      ]);
       setShowMediaModal(false);
     };
 
@@ -401,7 +408,7 @@ function AddProduct({ onClose, onProductCreated }) {
                                   ) : (
                                     productMedia.map((media, index) => (
                                       <div
-                                        key={index}
+                                        key={media.id || index} // 🟢 USAR media.id como clave estable (usa index como fallback si aún no tienes IDs)
                                         className={`media-item ${
                                           index === 0 ? "first-media" : ""
                                         }`}

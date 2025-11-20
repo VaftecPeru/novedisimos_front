@@ -20,7 +20,10 @@ import Swal from "sweetalert2";
 import { deleteProduct } from "./components/services/shopifyService";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
-import { fetchProductos } from "./components/services/shopifyService";
+import {
+  fetchProductos,
+  fetchProductosConMedia,
+} from "./components/services/shopifyService";
 
 const Productos = () => {
   const [productos, setProductos] = useState([]);
@@ -48,8 +51,20 @@ const Productos = () => {
         const ordenados = [...lista].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
-        console.log("Productos cargados:", ordenados);
-        setProductos(ordenados);
+        // 🔥 obtenemos TODA la media en UNA SOLA LLAMADA
+        const medias = await fetchProductosConMedia();
+
+        // 🔥 unimos producto + media
+        const productosConMedia = ordenados.map((prod) => {
+          const mediaProd = medias.find((m) => m.id === prod.id);
+          return {
+            ...prod,
+            media: mediaProd?.media || [],
+          };
+        });
+
+        console.log("Productos completos:", productosConMedia);
+        setProductos(productosConMedia);
       } catch (err) {
         setError("Error al cargar los productos");
         console.error(err);
@@ -67,7 +82,20 @@ const Productos = () => {
       const ordenados = [...lista].sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
-      setProductos(ordenados);
+
+      // 🔥 Volvemos a traer TODA la media
+      const medias = await fetchProductosConMedia();
+
+      // 🔥 Unimos producto + media como al inicio
+      const productosConMedia = ordenados.map((prod) => {
+        const mediaProd = medias.find((m) => m.id === prod.id);
+        return {
+          ...prod,
+          media: mediaProd?.media || [],
+        };
+      });
+
+      setProductos(productosConMedia);
     } catch (err) {
       console.error("Error recargando productos:", err);
       setError("Error al recargar los productos");
@@ -317,7 +345,7 @@ const Productos = () => {
                         align="center"
                         sx={{
                           verticalAlign: "middle",
-                          p: "0"
+                          p: "0",
                         }}
                       >
                         <Box
@@ -325,19 +353,41 @@ const Productos = () => {
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
-                            height: "100%", // hace que se centre vertical
+                            height: "100%",
                           }}
                         >
-                          <img
-                            src={imagen || "/images/default-image.png"}
-                            alt={p.title}
-                            style={{
-                              width: 35,
-                              height: 35,
-                              objectFit: "cover",
-                              borderRadius: "8px",
-                            }}
-                          />
+                          {/* 🔹 LÓGICA PARA MOSTRAR PRIMER MEDIA (IMAGEN O VÍDEO) */}
+                          {(() => {
+                            const primerMedia = p.media?.[0]; // tomamos el primer media
+                            let urlMedia = "/images/default-image.png"; // fallback si no hay media
+
+                            if (primerMedia) {
+                              if (
+                                primerMedia.__typename === "MediaImage" &&
+                                primerMedia.image?.url
+                              ) {
+                                urlMedia = primerMedia.image.url;
+                              } else if (
+                                primerMedia.__typename === "Video" &&
+                                primerMedia.preview?.image?.url
+                              ) {
+                                urlMedia = primerMedia.preview.image.url;
+                              }
+                            }
+
+                            return (
+                              <img
+                                src={urlMedia}
+                                alt={p.title}
+                                style={{
+                                  width: 35,
+                                  height: 35,
+                                  objectFit: "cover",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                            );
+                          })()}
                         </Box>
                       </TableCell>
                       <TableCell>{p.title}</TableCell>

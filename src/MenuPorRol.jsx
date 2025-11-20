@@ -97,7 +97,9 @@ const MenuPorRol = ({
         )}
         {seccionesPermitidas.includes("mantenimiento") && (
           <li
-            className={`main-menu-item ${expanded.mantenimiento ? "expanded" : ""}`}
+            className={`main-menu-item ${
+              expanded.mantenimiento ? "expanded" : ""
+            }`}
           >
             <div
               className="menu-item-header"
@@ -114,7 +116,13 @@ const MenuPorRol = ({
                   fontWeight: 400,
                   fontSize: 18,
                   color:
-                    activeSection === "mantenimiento" || activeSection === "productos"
+                    // Resalta el título si cualquiera de sus hijos está activo
+                    [
+                      "productos",
+                      "colecciones",
+                      "almacenes",
+                      "controlUsuarios",
+                    ].includes(activeSection)
                       ? "white"
                       : spanColors.mantenimiento,
                 }}
@@ -122,7 +130,9 @@ const MenuPorRol = ({
                 Mantenimiento
               </span>
               <i
-                className={`fas fa-chevron-${expanded.mantenimiento ? "down" : "right"}`}
+                className={`fas fa-chevron-${
+                  expanded.mantenimiento ? "down" : "right"
+                }`}
               ></i>
               <img
                 src={arrowImages.mantenimiento}
@@ -130,9 +140,9 @@ const MenuPorRol = ({
                 className="menu-icon"
               />
             </div>
+
             {expanded.mantenimiento && (
               <ul className="submenu">
-                {/* NUEVA OPCIÓN: PRODUCTOS */}
                 <li
                   onClick={() => onMenuItemClick("productos")}
                   className={activeSection === "productos" ? "active" : ""}
@@ -140,13 +150,13 @@ const MenuPorRol = ({
                   Productos
                 </li>
 
-                {/* Movimiento (si lo deseas descomentar más adelante) */}
-                {/* <li
-                  onClick={() => onMenuItemClick("movimiento")}
-                  className={activeSection === "movimiento" ? "active" : ""}
+                {/* NUEVA VISTA FUNCIONANDO 100% */}
+                <li
+                  onClick={() => onMenuItemClick("colecciones")}
+                  className={activeSection === "colecciones" ? "active" : ""}
                 >
-                  Movimiento
-                </li> */}
+                  Colecciones
+                </li>
 
                 <li
                   onClick={() => onMenuItemClick("almacenes")}
@@ -155,11 +165,12 @@ const MenuPorRol = ({
                   Almacén
                 </li>
 
-                {/* Control de Usuarios solo para Administrador */}
                 {rol === "Administrador" && (
                   <li
                     onClick={() => onMenuItemClick("controlUsuarios")}
-                    className={activeSection === "controlUsuarios" ? "active" : ""}
+                    className={
+                      activeSection === "controlUsuarios" ? "active" : ""
+                    }
                   >
                     Control de Usuarios
                   </li>
@@ -306,7 +317,8 @@ const MenuPorRol = ({
                   fontWeight: 400,
                   fontSize: 18,
                   color:
-                    activeSection === "asesores" || activeSection === "comisiones"
+                    activeSection === "asesores" ||
+                    activeSection === "comisiones"
                       ? "white"
                       : spanColors.asesores,
                 }}

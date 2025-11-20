@@ -5,6 +5,8 @@ import {
   getLocations,
   getInventoryLocation,
   updateProduct,
+  setMediaAsFirstService,
+  deleteProductMediaService,
 } from "./components/services/shopifyService";
 
 import ReactQuill from "react-quill";
@@ -49,6 +51,44 @@ function EditProduct({ product, onClose, onUpdate }) {
 
   const [location, setLocation] = useState(null);
   const [locations, setLocations] = useState([]);
+
+  const [productMedia, setProductMedia] = useState([]); // <-- NUEVO: todos los medios
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [mediaType, setMediaType] = useState("video"); // video o image
+
+  useEffect(() => {
+    if (!product?.media || product.media.length === 0) {
+      setProductMedia([]);
+      return;
+    }
+
+    const loadedMedia = product.media.map((m, index) => {
+      let previewUrl = "";
+      let type = "image";
+
+      if (m.__typename === "MediaImage" && m.image?.url) {
+        previewUrl = m.image.url;
+        type = "image";
+      } else if (m.__typename === "Video" && m.sources?.[0]?.url) {
+        previewUrl = m.sources[0].url;
+        type = "video";
+      } else {
+        previewUrl = "/images/default-image.png";
+        type = "image";
+      }
+
+      return {
+        id: Date.now() + Math.random(),
+        shopifyId: m.id, // ID real de Shopify
+        previewUrl,
+        type,
+        file: null,
+        originalData: m,
+      };
+    });
+
+    setProductMedia(loadedMedia);
+  }, [product?.media]);
 
   useEffect(() => {
     const variantsWithImages = rawVariants.map((variant, index) => {
@@ -152,48 +192,65 @@ function EditProduct({ product, onClose, onUpdate }) {
     setSuccessMessage("");
     setErrorMessage("");
 
+    // 1️⃣ Preguntar si está seguro
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Actualizar producto?",
+      text: "¿Está seguro de que desea guardar los cambios?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, actualizar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    });
+
+    if (!isConfirmed) {
+      setLoading(false);
+      return;
+    }
+
+    // 2️⃣ Mostrar modal de espera bloqueante
+    Swal.fire({
+      title: "Actualizando producto...",
+      text: "Por favor, espere mientras se guardan los cambios.",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
     try {
       const formData = new FormData();
-      formData.append("_method", "PUT"); // Simula PUT sobre POST
+      formData.append("_method", "PUT");
       formData.append("titulo", titulo);
       formData.append("descripcion", descripcion);
       formData.append("productType", productType);
       formData.append("tags", tags);
       formData.append("estado", estado);
 
-      // Ubicación (location_id)
       if (location?.location_id) {
         formData.append("location_id", location.location_id);
       }
 
-      // Imagen principal
-      if (mainFile) {
-        formData.append("main_image", mainFile);
-      }
+      productMedia.forEach((media, i) => {
+        if (media.file) formData.append(`product_medias[${i}]`, media.file);
+        formData.append(`media_order[${i}]`, media.shopifyId || "new");
+      });
 
-      // 1) Opciones originales del producto
       const originalOptions = Array.isArray(product?.options)
         ? product.options
         : [];
 
-      // 2) Nuevas opciones globales que agregaste
       const newOptions = Array.isArray(variants[0]?.newOptions)
         ? variants[0].newOptions
         : [];
 
-      // 3) Unimos todas las opciones
       const allOptions = [...originalOptions, ...newOptions];
 
-      // 4) Shopify exige nombres indexados {1: "Color", 2: "Talla"}
       const optionNames = {};
       allOptions.forEach((opt, index) => {
         optionNames[index + 1] = opt.name || `Opción ${index + 1}`;
       });
 
-      // 5) Enviar nombres de opciones al backend
       formData.append("option_names", JSON.stringify(optionNames));
-
-      // Enviar variantes (siempre, aunque sea una sola)
       const payloadVariants = variants.map((v) => ({
         id: v.id || null,
         price: v.price ?? "",
@@ -203,29 +260,26 @@ function EditProduct({ product, onClose, onUpdate }) {
         option2: v.option2 ?? null,
         option3: v.option3 ?? null,
       }));
-
       formData.append("variants", JSON.stringify(payloadVariants));
 
-      // Imágenes de variantes (solo si hay archivo nuevo)
       variants.forEach((v) => {
-        if (v.image_changed && v.file) {
+        if (v.image_changed && v.file)
           formData.append("variant_images[]", v.file);
-        }
       });
 
-      // Enviar al backend
       const result = await updateProduct(product.id, formData);
 
+      Swal.close(); // Cerrar modal de carga
+
       if (result.success) {
-        Swal.fire({
+        await Swal.fire({
           icon: "success",
           title: "Producto actualizado",
           text: "✅ Los cambios se guardaron correctamente.",
           confirmButtonColor: "#3085d6",
           confirmButtonText: "Aceptar",
-        }).then(() => {
-          onUpdate(); // 👈 Llama al padre para recargar los productos
         });
+        onUpdate(); // Recargar productos
       } else {
         Swal.fire({
           icon: "error",
@@ -240,6 +294,7 @@ function EditProduct({ product, onClose, onUpdate }) {
         console.error("Errores del backend:", result.errors || result.error);
       }
     } catch (err) {
+      Swal.close();
       Swal.fire({
         icon: "error",
         title: "Error de conexión",
@@ -280,6 +335,150 @@ function EditProduct({ product, onClose, onUpdate }) {
       updated[variantIndex][`option${optionIndex + 1}`] = value;
       return updated;
     });
+  };
+
+  const handleAddMedia = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    const uniqueId = Date.now() + Math.random();
+
+    setProductMedia((prev) => [
+      ...prev,
+      { file, previewUrl, type: mediaType, id: uniqueId, shopifyId: null },
+    ]);
+    setShowMediaModal(false);
+  };
+
+  const deleteMedia = async (index) => {
+    const mediaToDelete = productMedia[index];
+    if (!mediaToDelete) return;
+
+    // Si el medio no tiene shopifyId (archivo local, aún no subido)
+    if (!mediaToDelete.shopifyId) {
+      setProductMedia((prev) => {
+        const updated = [...prev];
+        if (updated[index].previewUrl?.startsWith("blob:")) {
+          URL.revokeObjectURL(updated[index].previewUrl);
+        }
+        updated.splice(index, 1);
+        return updated;
+      });
+      return; // Salimos sin alertas ni llamadas al backend
+    }
+
+    // Para medios ya subidos a Shopify
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Eliminar medio?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!isConfirmed) return;
+
+    Swal.fire({
+      title: "Eliminando...",
+      text: "Por favor, espere...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const result = await deleteProductMediaService(
+        product.id,
+        mediaToDelete.shopifyId
+      );
+      if (!result.success)
+        throw new Error(result.error || "No se pudo eliminar el medio.");
+
+      setProductMedia((prev) => {
+        const updated = [...prev];
+        if (updated[index].previewUrl?.startsWith("blob:"))
+          URL.revokeObjectURL(updated[index].previewUrl);
+        updated.splice(index, 1);
+        return updated;
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Medio eliminado",
+        text: "Se eliminó correctamente.",
+      });
+
+      onUpdate?.();
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Error", text: error.message });
+    }
+  };
+
+  const setAsFirst = async (index) => {
+    const mediaToSet = productMedia[index];
+    if (!mediaToSet) return;
+
+    if (!mediaToSet.shopifyId) {
+      Swal.fire({
+        icon: "info",
+        title: "Medio no guardado",
+        text: "Primero debes guardar los cambios para establecer como principal.",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "Aceptar",
+      });
+      return;
+    }
+
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Establecer como principal?",
+      text: "El medio seleccionado se mostrará primero en el producto.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, establecer",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!isConfirmed) return;
+
+    Swal.fire({
+      title: "Actualizando...",
+      text: "Por favor, espere...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const result = await setMediaAsFirstService(
+        product.id,
+        mediaToSet.shopifyId
+      );
+      if (!result.success)
+        throw new Error(
+          result.error || "No se pudo establecer como principal."
+        );
+
+      setProductMedia((prev) => {
+        const updated = [...prev];
+        const [item] = updated.splice(index, 1);
+        updated.unshift(item);
+        return updated;
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Medio principal actualizado",
+        text: "El medio seleccionado ahora es el principal.",
+      });
+
+      onUpdate?.();
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Error", text: error.message });
+    }
   };
 
   // Añadir una nueva opción global con nombre
@@ -359,20 +558,66 @@ function EditProduct({ product, onClose, onUpdate }) {
                           </div>
                         </div>
 
-                        <div className="form-group">
-                          <label>Imagen principal:</label>
-                          <div className="image-preview-container main-product-image">
-                            {mainMediaPreviewUrl ? (
-                              <img src={mainMediaPreviewUrl} alt="Preview" />
-                            ) : (
-                              <span>Selecciona una imagen</span>
-                            )}
+                        {/* ===== NUEVA SECCIÓN MULTIMEDIA (reemplaza TODO lo de imágenes) ===== */}
+                        <div className="form-group image-container">
+                          <label>Multimedia del producto:</label>
+                          <div className="media-card">
+                            <div className="media-grid">
+                              {productMedia.length === 0 ? (
+                                <div className="no-media">
+                                  No hay medios agregados aún.
+                                </div>
+                              ) : (
+                                productMedia.map((media, index) => (
+                                  <div
+                                    key={media.id || index}
+                                    className={`media-item ${
+                                      index === 0 ? "first-media" : ""
+                                    }`}
+                                  >
+                                    {media.type === "image" ? (
+                                      <img
+                                        src={media.previewUrl}
+                                        alt="Preview"
+                                      />
+                                    ) : (
+                                      <video
+                                        src={media.previewUrl}
+                                        controls
+                                        muted
+                                        playsInline
+                                      />
+                                    )}
+                                    <div className="media-type">
+                                      {media.type.toUpperCase()}
+                                    </div>
+                                    <div className="media-actions">
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteMedia(index)}
+                                      >
+                                        Borrar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setAsFirst(index)}
+                                      >
+                                        Principal
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              className="add-button"
+                              onClick={() => setShowMediaModal(true)}
+                            >
+                              + Añadir
+                            </button>
                           </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMainMediaChange}
-                          />
                         </div>
                       </div>
                     </div>
@@ -692,6 +937,104 @@ function EditProduct({ product, onClose, onUpdate }) {
             )}
             {errorMessage && (
               <div className="message-error">{errorMessage}</div>
+            )}
+
+            {showMediaModal && (
+              <div
+                className="upload-modal"
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1000,
+                }}
+                onClick={() => setShowMediaModal(false)}
+              >
+                <div
+                  className="modal-content"
+                  style={{
+                    background: "white",
+                    padding: "24px",
+                    borderRadius: "12px",
+                    width: "420px",
+                    maxWidth: "90%",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <h2 style={{ margin: 0 }}>Subir Nuevo Medio</h2>
+                    <button
+                      onClick={() => setShowMediaModal(false)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        fontSize: "2rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div style={{ marginBottom: "16px" }}>
+                    <button
+                      onClick={() => setMediaType("video")}
+                      style={{
+                        padding: "10px 20px",
+                        marginRight: "10px",
+                        background: mediaType === "video" ? "#007bff" : "white",
+                        color: mediaType === "video" ? "white" : "#333",
+                        border: "2px solid #007bff",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      Video
+                    </button>
+                    <button
+                      onClick={() => setMediaType("image")}
+                      style={{
+                        padding: "10px 20px",
+                        background: mediaType === "image" ? "#007bff" : "white",
+                        color: mediaType === "image" ? "white" : "#333",
+                        border: "2px solid #007bff",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      Imagen
+                    </button>
+                  </div>
+
+                  <input
+                    type="file"
+                    accept={
+                      mediaType === "video"
+                        ? "video/mp4,video/quicktime"
+                        : "image/*"
+                    }
+                    onChange={handleAddMedia}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      border: "2px dashed #007bff",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

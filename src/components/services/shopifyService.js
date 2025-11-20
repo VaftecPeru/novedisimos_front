@@ -1019,6 +1019,167 @@ export async function deleteProduct(productId) {
   return data;
 }
 
+export async function fetchProductosConMedia() {
+
+  const url = `${API_BASE_URL}/shopify/productos/media`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return data.productos || [];
+}
+export const deleteProductMediaService = async (productId, mediaId) => {
+  if (!productId || !mediaId) {
+    console.error("deleteProductMediaService: Faltan productId o mediaId");
+    return { success: false, error: "Faltan productId o mediaId" };
+  }
+
+  // Conversión a GID dentro de la función
+  const productGid = `gid://shopify/Product/${productId}`;
+
+  console.log("deleteProductMediaService", { productGid, mediaId, API_BASE_URL });
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/delete-product-media`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: productGid, media_id: mediaId }),
+    });
+
+    if (!res.ok) {
+      console.error("deleteProductMediaService HTTP error:", res.status, res.statusText);
+      return { success: false, error: `HTTP ${res.status}: ${res.statusText}` };
+    }
+
+    const data = await res.json();
+    console.log("deleteProductMediaService response:", data);
+    return data;
+  } catch (err) {
+    console.error("Error en deleteProductMediaService (network?):", err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const setMediaAsFirstService = async (productId, mediaId) => {
+  if (!productId || !mediaId) {
+    console.error("setMediaAsFirstService: Faltan productId o mediaId");
+    return { success: false, error: "Faltan productId o mediaId" };
+  }
+
+  // Conversión a GID dentro de la función
+  const productGid = `gid://shopify/Product/${productId}`;
+
+  console.log("setMediaAsFirstService", { productGid, mediaId, API_BASE_URL });
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/set-media-as-first`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: productGid, media_id: mediaId }),
+    });
+
+    if (!res.ok) {
+      console.error("setMediaAsFirstService HTTP error:", res.status, res.statusText);
+      return { success: false, error: `HTTP ${res.status}: ${res.statusText}` };
+    }
+
+    const data = await res.json();
+    console.log("setMediaAsFirstService response:", data);
+    return data;
+  } catch (err) {
+    console.error("Error en setMediaAsFirstService (network?):", err);
+    return { success: false, error: err.message };
+  }
+};
+
+export async function obtenerColecciones() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/collections`);
+    if (!response.ok) throw new Error("Error al cargar colecciones");
+
+    const data = await response.json();
+    return data.collections || {};
+  } catch (error) {
+    console.error("❌ Error obteniendo colecciones:", error);
+    throw error;
+  }
+}
+
+export async function createCollection(formData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/collections`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Error creando colección");
+    }
+
+    const data = await response.json();
+    // Verificar si hay imagen subida
+    if (data.collection?.image?.src) {
+      console.log("Imagen subida correctamente:", data.collection.image.src);
+    }
+
+    return data;
+  } catch (err) {
+    console.error(err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function fetchProductsMedia() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/shopify/productos/media`);
+    if (!response.ok) throw new Error("Error al obtener los productos");
+
+    const data = await response.json();
+
+    // Si tu backend devuelve: { success: true, total: N, productos: [...] }
+    const productsArray = Array.isArray(data.productos) ? data.productos : [];
+
+    return productsArray.map((product) => {
+      // product.media es un array de medias con distintos __typename
+      let imageUrl = "/images/default-image.png";
+
+      if (Array.isArray(product.media) && product.media.length > 0) {
+        // Buscar la primera media con URL válida según tipología
+        for (const m of product.media) {
+          if (!m) continue;
+          if (m.__typename === "MediaImage" && m.image && m.image.url) {
+            imageUrl = m.image.url;
+            break;
+          }
+          if (m.__typename === "Video" && m.preview && m.preview.image && m.preview.image.url) {
+            imageUrl = m.preview.image.url;
+            break;
+          }
+          if (m.__typename === "ExternalVideo" && m.preview && m.preview.image && m.preview.image.url) {
+            imageUrl = m.preview.image.url;
+            break;
+          }
+          // Model3d también puede tener preview.image.url si lo agregas en backend
+          if (m.preview && m.preview.image && m.preview.image.url) {
+            imageUrl = m.preview.image.url;
+            break;
+          }
+        }
+      }
+
+      return {
+        id: product.id, // ya viene como number desde backend
+        title: product.title,
+        image: imageUrl,
+        productType: product.productType || "Sin categoría", // Añadido productType, con fallback si falta
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+}
+
 export default {
   getShopInfo,
   fetchOrders,
