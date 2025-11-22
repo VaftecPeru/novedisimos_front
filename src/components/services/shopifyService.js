@@ -1104,6 +1104,12 @@ export async function obtenerColecciones() {
   }
 }
 
+export async function obtenerCountColeccion(id) {
+  const response = await fetch(`${API_BASE_URL}/collections/${id}/count`);
+  const data = await response.json();
+  return data.count || 0;
+}
+
 export async function createCollection(formData) {
   try {
     const response = await fetch(`${API_BASE_URL}/collections`, {
@@ -1131,7 +1137,7 @@ export async function createCollection(formData) {
 
 export async function fetchProductsMedia() {
   try {
-    const response = await fetch(`${API_BASE_URL}/shopify/productos/media`);
+    const response = await fetch(`${API_BASE_URL}/shopify/productos/media/first`);
     if (!response.ok) throw new Error("Error al obtener los productos");
 
     const data = await response.json();
@@ -1180,6 +1186,122 @@ export async function fetchProductsMedia() {
   }
 }
 
+export const obtenerColeccionDetalles = async (id) => {
+  if (!id) throw new Error("Se requiere el ID de la colección.");
+
+  const url = `${API_BASE_URL}/collections/${id}`; // Esto apunta a tu endpoint PHP GraphQL
+
+  console.log(`Buscando detalles de colección: ${url}`);
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    let errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+    throw new Error(errorData.error || errorData.message || `Error ${response.status}: Falló al obtener detalles de la colección.`);
+  }
+
+  const data = await response.json();
+
+  // Normalizar: asegurarse de que cada producto tenga "image" con url
+  if (data.success && data.products) {
+    data.products = data.products.map((p) => ({
+      ...p,
+      image: p.media?.[0]?.__typename === 'MediaImage'
+        ? p.media[0].image.url
+        : p.media?.[0]?.preview?.image?.url || '/images/default-image.png', // fallback
+    }));
+  }
+
+  return data;
+};
+
+export const actualizarColeccion = async (id, formData) => {
+  if (!id) throw new Error("Se requiere el ID de la colección.");
+
+  const url = `${API_BASE_URL}/collections/${id}`;
+
+  // Se añade el campo '_method' para que Laravel sepa que es un PUT.
+  if (!formData.has('_method')) {
+    formData.append('_method', 'PUT');
+  }
+
+  console.log(`Actualizando colección: ${url}`);
+
+  const response = await fetch(url, {
+    method: 'POST', // Usar POST para enviar FormData con archivos y el campo _method=PUT
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+    throw new Error(errorData.error || errorData.message || `Error ${response.status}: Falló al actualizar la colección.`);
+  }
+
+  return response.json();
+};
+
+export const agregarProductoAcoleccion = async (collectionId, productId) => {
+  if (!collectionId || !productId) {
+    console.error("Se requiere collectionId y productId");
+    return { success: false, error: "Faltan parámetros" };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/collections/${collectionId}/products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: productId }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || "Error desconocido al agregar producto");
+    }
+
+    const data = await res.json();
+    console.log("Producto agregado a colección:", data);
+    return data;
+  } catch (error) {
+    console.error("Error en addProductToCollection:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const eliminarProductoDeColeccion = async (collectionId, productId) => {
+  if (!collectionId || !productId) throw new Error("Se requieren el ID de la colección y el ID del producto.");
+
+  const url = `${API_BASE_URL}/collections/${collectionId}/products/${productId}`;
+
+  console.log(`Eliminando producto ${productId} de colección ${collectionId}: ${url}`);
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    let errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+    throw new Error(errorData.error || errorData.message || `Error ${response.status}: Falló al eliminar producto.`);
+  }
+
+  return { success: true };
+};
+
+export const eliminarColeccion = async (collectionId) => {
+  if (!collectionId) throw new Error("Se requiere el ID de la colección");
+
+  const url = `${API_BASE_URL}/collections/${collectionId}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+    throw new Error(errorData.error?.message || errorData.message || `Error ${response.status}: Falló al eliminar la colección.`);
+  }
+
+  return await response.json(); // { success: true, message: "Colección eliminada correctamente" }
+};
 export default {
   getShopInfo,
   fetchOrders,

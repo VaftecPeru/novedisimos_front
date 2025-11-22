@@ -726,3 +726,8 @@ select.input-field {
   color: white;
   border-color: #007bff;
 }
+
+.swal2-container--high-zindex {
+  /* Usar un valor alto, por ejemplo, 2000, para superar los modales de MUI (generalmente 1300-1500) */
+  z-index: 2000 !important; 
+}

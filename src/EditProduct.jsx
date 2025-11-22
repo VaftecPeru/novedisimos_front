@@ -27,7 +27,7 @@ const modules = {
   },
 };
 
-function EditProduct({ product, onClose, onUpdate }) {
+function EditProduct({ product, onClose, onUpdate, tiposProducto }) {
   const [titulo, setTitulo] = useState(product?.title || "");
   const [descripcion, setDescripcion] = useState(product?.body_html || "");
   const [productType, setProductType] = useState(product?.product_type || "");
@@ -51,6 +51,7 @@ function EditProduct({ product, onClose, onUpdate }) {
 
   const [location, setLocation] = useState(null);
   const [locations, setLocations] = useState([]);
+  const [isCustomType, setIsCustomType] = useState(false);
 
   const [productMedia, setProductMedia] = useState([]); // <-- NUEVO: todos los medios
   const [showMediaModal, setShowMediaModal] = useState(false);
@@ -222,7 +223,7 @@ function EditProduct({ product, onClose, onUpdate }) {
       formData.append("_method", "PUT");
       formData.append("titulo", titulo);
       formData.append("descripcion", descripcion);
-      formData.append("productType", productType);
+      formData.append("product_type", productType);
       formData.append("tags", tags);
       formData.append("estado", estado);
 
@@ -337,20 +338,85 @@ function EditProduct({ product, onClose, onUpdate }) {
     });
   };
 
+  const IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "image/gif",
+  ];
+
+  const VIDEO_TYPES = [
+    "video/mp4",
+    "video/webm",
+    "video/quicktime", // mov
+    "video/x-m4v",
+  ];
+
   const handleAddMedia = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const isImage = IMAGE_TYPES.includes(file.type);
+    const isVideo = VIDEO_TYPES.includes(file.type);
+
+    // ❌ Tipo NO permitido
+    if (!isImage && !isVideo) {
+      Swal.fire({
+        icon: "error",
+        title: "Tipo no permitido",
+        text: "Solo puedes subir imágenes (jpg, png, webp, heic, heif, gif) o videos (mp4, webm, mov).",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    // ❌ Si es VIDEO → permitir máximo 2
+    if (isVideo) {
+      const videoCount = productMedia.filter((m) => m.type === "video").length;
+
+      if (videoCount >= 2) {
+        Swal.fire({
+          icon: "warning",
+          title: "Máximo 2 videos",
+          text: "Ya tienes 2 videos agregados. Elimina uno para añadir otro.",
+        });
+        e.target.value = "";
+        return;
+      }
+    }
+
+    if (isImage) {
+      const imageCount = productMedia.filter((m) => m.type === "image").length;
+
+      if (imageCount >= 5) {
+        Swal.fire({
+          icon: "warning",
+          title: "Máximo 5 imágenes",
+          text: "Ya tienes 5 imágenes agregadas. Elimina una para añadir otra.",
+        });
+        e.target.value = "";
+        return;
+      }
+    }
+    // Si todo OK → añadir normalmente
     const previewUrl = URL.createObjectURL(file);
-    const uniqueId = Date.now() + Math.random();
 
     setProductMedia((prev) => [
       ...prev,
-      { file, previewUrl, type: mediaType, id: uniqueId, shopifyId: null },
+      {
+        file,
+        previewUrl,
+        type: isImage ? "image" : "video",
+        id: Date.now() + Math.random(),
+        shopifyId: null,
+      },
     ]);
-    setShowMediaModal(false);
-  };
 
+    setShowMediaModal(false);
+    e.target.value = "";
+  };
   const deleteMedia = async (index) => {
     const mediaToDelete = productMedia[index];
     if (!mediaToDelete) return;
@@ -678,15 +744,46 @@ function EditProduct({ product, onClose, onUpdate }) {
                     </div>
                   </div>
                   <div className="form-group-border">
+                    {/* Tipo de producto */}
                     <div className="form-group">
                       <label htmlFor="productType">Tipo de Producto:</label>
-                      <input
+
+                      <select
                         id="productType"
-                        type="text"
                         className="input-field"
-                        value={productType}
-                        onChange={(e) => setProductType(e.target.value)}
-                      />
+                        value={isCustomType ? "other" : productType}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "other") {
+                            setIsCustomType(true);
+                            setProductType(""); // permitir escribir
+                          } else {
+                            setIsCustomType(false);
+                            setProductType(value);
+                          }
+                        }}
+                      >
+                        <option value="">Selecciona un tipo…</option>
+
+                        {tiposProducto.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+
+                        <option value="other">Otro…</option>
+                      </select>
+
+                      {isCustomType && (
+                        <input
+                          type="text"
+                          className="input-field"
+                          placeholder="Escribe el tipo de producto"
+                          value={productType}
+                          onChange={(e) => setProductType(e.target.value)}
+                          style={{ marginTop: "8px" }}
+                        />
+                      )}
                     </div>
 
                     <div className="form-group">

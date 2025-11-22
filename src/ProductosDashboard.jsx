@@ -24,12 +24,14 @@ import {
   fetchProductos,
   fetchProductosConMedia,
 } from "./components/services/shopifyService";
+import ImportExportModal from "./ImportExportModal";
 
 const Productos = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [openImportExportModal, setOpenImportExportModal] = useState(false);
   const [openRows, setOpenRows] = useState({}); // 👈 control de filas desplegadas
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -136,8 +138,8 @@ const Productos = () => {
   const toggleRow = (id) => {
     setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
   };
-
   const handleDelete = async (id) => {
+    // 1️⃣ Confirmación
     const confirm = await Swal.fire({
       title: "¿Eliminar producto?",
       text: "Esta acción no se puede deshacer.",
@@ -150,19 +152,31 @@ const Productos = () => {
 
     if (!confirm.isConfirmed) return;
 
+    // 2️⃣ Mostrar alerta de procesando
+    Swal.fire({
+      title: "Eliminando...",
+      text: "Por favor espera",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
       const result = await deleteProduct(id);
 
       if (result.success) {
+        // 3️⃣ Exito
         await Swal.fire({
           title: "Eliminado",
           text: "El producto fue eliminado correctamente.",
           icon: "success",
         });
 
-        recargarProductos(); // 🔄 refrescar tabla
+        recargarProductos(); // 🔄 Refrescar la tabla
       } else {
-        throw new Error("No se eliminó");
+        throw new Error("Error al eliminar");
       }
     } catch (error) {
       Swal.fire({
@@ -172,6 +186,10 @@ const Productos = () => {
       });
     }
   };
+  
+  const tiposUnicos = Array.from(
+    new Set(productos.map((p) => p.product_type).filter(Boolean))
+  );
 
   return (
     <Box sx={{ width: "100%", maxWidth: "100%" }}>
@@ -245,6 +263,20 @@ const Productos = () => {
           >
             + Nuevo Producto
           </Button>
+          <Button
+            variant="contained"
+            onClick={() => setOpenImportExportModal(true)}
+            sx={{
+              color: "#ffffffff",
+              backgroundColor: "#353535ff",
+              borderRadius: 2,
+              "&:hover": {
+                backgroundColor: "#1a1a1a",
+              },
+            }}
+          >
+            Exportar/Importar
+          </Button>
         </Box>
       </Box>
 
@@ -252,6 +284,7 @@ const Productos = () => {
         <AddProduct
           onClose={() => setOpenModal(false)}
           onProductCreated={recargarProductos} // 🔥 nueva prop
+          tiposProducto={tiposUnicos}
         />
       )}
 
@@ -263,7 +296,12 @@ const Productos = () => {
             setSelectedProduct(null);
             recargarProductos(); // 🔄 vuelve a cargar productos sin refrescar la página
           }}
+          tiposProducto={tiposUnicos}
         />
+      )}
+
+      {openImportExportModal && (
+        <ImportExportModal onClose={() => setOpenImportExportModal(false)} />
       )}
       {loading && <Typography>Cargando productos...</Typography>}
       {error && <Typography color="error">{error}</Typography>}

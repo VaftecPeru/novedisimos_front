@@ -13,8 +13,15 @@ import {
   Chip,
   TablePagination,
 } from "@mui/material";
-import { obtenerColecciones } from "./components/services/shopifyService";
+import {
+  obtenerColecciones,
+  obtenerCountColeccion,
+  eliminarColeccion,
+} from "./components/services/shopifyService";
+import Swal from "sweetalert2";
 import AddCollection from "./AddCollection";
+import EditCollection from "./EditCollection";
+
 const Colecciones = () => {
   const [colecciones, setColecciones] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,6 +35,9 @@ const Colecciones = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // 🆕 1. NUEVOS ESTADOS PARA EDITAR
+  const [editCollectionId, setEditCollectionId] = useState(null);
+
   // 🔹 Cargar colecciones “dummy”
   useEffect(() => {
     cargarColecciones();
@@ -40,22 +50,34 @@ const Colecciones = () => {
     try {
       const data = await obtenerColecciones();
 
-      // Shopify envía dos grupos: custom & smart
       const custom = data.custom_collections || [];
       const smart = data.smart_collections || [];
-
       const unificados = [...custom, ...smart];
 
-      const procesados = unificados.map((c) => ({
-        id: c.id,
-        title: c.title,
-        image: c.image?.src || "/images/default-image.png",
-        productsCount: c.products_count ?? 0,
-        conditions:
-          c.rules
-            ?.map((r) => `${r.column} ${r.relation} ${r.condition}`)
-            .join(", ") || "Manual",
-      }));
+      // 🔥 Obtener count real para cada colección
+      const procesados = await Promise.all(
+        unificados.map(async (c) => {
+          let productosCount = 0;
+
+          try {
+            const countData = await obtenerCountColeccion(c.id);
+            productosCount = countData; // Número real
+          } catch (err) {
+            productosCount = 0;
+          }
+
+          return {
+            id: c.id,
+            title: c.title,
+            image: c.image?.src || "/images/default-image.png",
+            productsCount: productosCount,
+            conditions:
+              c.rules
+                ?.map((r) => `${r.column} ${r.relation} ${r.condition}`)
+                .join(", ") || "Manual",
+          };
+        })
+      );
 
       setColecciones(procesados);
     } catch (e) {
@@ -84,14 +106,70 @@ const Colecciones = () => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
-
-
+  // 🆕 2. FUNCIÓN PARA ABRIR EL MODAL DE EDICIÓN
   const handleEditar = (id) => {
     console.log("👉 Editar colección:", id);
+    setEditCollectionId(id); // Guarda el ID y abre el modal
   };
 
-  const handleEliminar = (id) => {
-    console.log("❌ Eliminar colección:", id);
+  // 🆕 FUNCIÓN PARA CERRAR EL MODAL DE EDICIÓN
+  const handleCloseEditModal = () => {
+    setEditCollectionId(null); // Borra el ID, lo que cierra el modal
+  };
+
+  // 🆕 FUNCIÓN PARA RECETAR EL COMPONENTE (Se llama después de guardar en EditCollection)
+  const handleCollectionUpdated = () => {
+    // 1. Cierra el modal de edición
+    setEditCollectionId(null);
+    // 2. Recarga la lista de colecciones
+    cargarColecciones();
+  };
+
+  const handleEliminar = async (id) => {
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción eliminará la colección y no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      // Mostrar Swal de carga
+      Swal.fire({
+        title: "Eliminando colección...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const data = await eliminarColeccion(id);
+
+      // Cerrar Swal de carga
+      Swal.close();
+
+      // Mostrar éxito
+      Swal.fire({
+        title: "¡Colección eliminada!",
+        text: data.message,
+        icon: "success",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      // Recargar lista de colecciones
+      cargarColecciones();
+    } catch (err) {
+      Swal.close();
+      Swal.fire(
+        "Error",
+        err.message || "No se pudo eliminar la colección",
+        "error"
+      );
+    }
   };
 
   return (
@@ -167,6 +245,13 @@ const Colecciones = () => {
         />
       )}
 
+      {editCollectionId !== null && (
+        <EditCollection
+          collectionId={editCollectionId} // Le pasamos el ID guardado en el estado
+          onClose={handleCloseEditModal} // Función para cerrar el modal
+          onCollectionUpdated={handleCollectionUpdated} // Función que cierra y recarga la lista
+        />
+      )}
       {/* Tabla */}
       {loading && <Typography>Cargando colecciones...</Typography>}
       {error && <Typography color="error">{error}</Typography>}
@@ -219,6 +304,7 @@ const Colecciones = () => {
                     <Button
                       variant="outlined"
                       size="small"
+                      // 🔥 MODIFICADO: Llama a handleEditar con el ID
                       onClick={() => handleEditar(c.id)}
                       sx={{
                         mr: 1,

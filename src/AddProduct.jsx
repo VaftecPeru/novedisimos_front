@@ -32,7 +32,7 @@ const revokeUrls = (variants) => {
   });
 };
 
-function AddProduct({ onClose, onProductCreated }) {
+function AddProduct({ onClose, onProductCreated, tiposProducto }) {
   {
     const [titulo, setTitulo] = useState("");
     const [descripcion, setDescripcion] = useState("");
@@ -51,6 +51,8 @@ function AddProduct({ onClose, onProductCreated }) {
     const [price, setPrice] = useState("");
     const [quantity, setQuantity] = useState("");
 
+    const [isCustomType, setIsCustomType] = useState(false);
+
     const [availableOptions] = useState([
       "Color",
       "Talla",
@@ -68,6 +70,24 @@ function AddProduct({ onClose, onProductCreated }) {
     const [productMedia, setProductMedia] = useState([]);
     const [showMediaModal, setShowMediaModal] = useState(false);
     const [mediaType, setMediaType] = useState("video"); // Por defecto video
+
+    const IMAGE_TYPES = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/gif",
+    ];
+
+    const VIDEO_TYPES = [
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+      "video/x-m4v",
+    ];
+
+    const ALLOWED_TYPES = [...IMAGE_TYPES, ...VIDEO_TYPES];
 
     useEffect(() => {
       return () => {
@@ -102,18 +122,23 @@ function AddProduct({ onClose, onProductCreated }) {
 
     const handleMainMediaChange = (e) => {
       const file = e.target.files[0];
-      setMultimedia(file);
-      if (file) {
-        if (mainMediaPreviewUrl) {
-          URL.revokeObjectURL(mainMediaPreviewUrl);
-        }
-        setMainMediaPreviewUrl(URL.createObjectURL(file));
-      } else {
-        if (mainMediaPreviewUrl) {
-          URL.revokeObjectURL(mainMediaPreviewUrl);
-        }
-        setMainMediaPreviewUrl(null);
+
+      if (file && !ALLOWED_TYPES.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Archivo no permitido",
+          text: "Sube solo imágenes o videos válidos.",
+        });
+        return;
       }
+
+      setMultimedia(file);
+
+      if (mainMediaPreviewUrl) {
+        URL.revokeObjectURL(mainMediaPreviewUrl);
+      }
+
+      setMainMediaPreviewUrl(file ? URL.createObjectURL(file) : null);
     };
 
     const toggleOption = (option) => {
@@ -160,6 +185,16 @@ function AddProduct({ onClose, onProductCreated }) {
 
         if (field === "multimedia") {
           const file = value;
+
+          if (file && !IMAGE_TYPES.includes(file.type)) {
+            Swal.fire({
+              icon: "error",
+              title: "Tipo no permitido",
+              text: "Las variantes solo aceptan imágenes.",
+            });
+            return prevVariants;
+          }
+
           if (variant.media_url) {
             URL.revokeObjectURL(variant.media_url);
           }
@@ -167,7 +202,8 @@ function AddProduct({ onClose, onProductCreated }) {
           variant.multimedia = file;
           variant.media_url = file ? URL.createObjectURL(file) : null;
 
-          console.log("✅ Imagen cargada:", variant.media_url);
+          updated[index] = variant;
+          return updated;
         } else {
           variant[field] = value;
         }
@@ -179,6 +215,18 @@ function AddProduct({ onClose, onProductCreated }) {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
+
+      // 🔵 ALERTA DE PROCESO
+      Swal.fire({
+        title: "Procesando...",
+        text: "Estamos creando el producto. Por favor espera...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       setLoading(true);
       setSuccessMessage("");
       setErrorMessage("");
@@ -194,7 +242,7 @@ function AddProduct({ onClose, onProductCreated }) {
         formData.append("location_id", selectedLocation);
 
         productMedia.forEach((media) => {
-          formData.append("product_medias[]", media.file); // ¡Sin índice! Solo []
+          formData.append("product_medias[]", media.file);
         });
 
         if (!hasVariants) {
@@ -203,15 +251,15 @@ function AddProduct({ onClose, onProductCreated }) {
           formData.append("sku", sku);
         } else {
           variants.forEach((variant, index) => {
-            // Asegura que siempre se envíen option1, option2, option3 (aunque estén vacíos)
             selectedOptions.forEach((opt, optIndex) => {
               formData.append(
                 `variantes[${index}][option${optIndex + 1}]`,
                 variant[opt]
               );
             });
+
             for (let i = selectedOptions.length; i < 3; i++) {
-              formData.append(`variantes[${index}][option${i + 1}]`, ""); // Evita errores en el backend
+              formData.append(`variantes[${index}][option${i + 1}]`, "");
             }
 
             formData.append(`variantes[${index}][price]`, variant.price);
@@ -226,12 +274,12 @@ function AddProduct({ onClose, onProductCreated }) {
             }
           });
 
-          // 🟢 Enviar los nombres de las opciones seleccionadas
           selectedOptions.forEach((opt, i) => {
             formData.append(`option_names[${i + 1}]`, opt);
           });
         }
 
+        // 🔥 LLAMADA A LA API
         const response = await createProduct(formData);
 
         if (response.success) {
@@ -243,12 +291,9 @@ function AddProduct({ onClose, onProductCreated }) {
             confirmButtonText: "Aceptar",
           });
 
-          // 🔄 Llama a la función del padre para actualizar la tabla
-          if (onProductCreated) {
-            onProductCreated();
-          }
+          if (onProductCreated) onProductCreated();
 
-          // Limpieza de estados
+          // 🧹 Limpiar estados
           setTitulo("");
           setDescripcion("");
           setProductType("");
@@ -258,21 +303,18 @@ function AddProduct({ onClose, onProductCreated }) {
           setQuantity("");
           setSku("");
           revokeUrls(variants);
-          if (mainMediaPreviewUrl) {
-            URL.revokeObjectURL(mainMediaPreviewUrl);
-          }
-          productMedia.forEach((media) => {
-            if (media.previewUrl) {
-              URL.revokeObjectURL(media.previewUrl);
-            }
-          });
+
+          if (mainMediaPreviewUrl) URL.revokeObjectURL(mainMediaPreviewUrl);
+          productMedia.forEach(
+            (m) => m.previewUrl && URL.revokeObjectURL(m.previewUrl)
+          );
+
           setProductMedia([]);
           setVariants([]);
           setSelectedOptions([]);
           setMultimedia(null);
           setMainMediaPreviewUrl(null);
 
-          // 🔚 Cierra el modal
           onClose();
         } else {
           Swal.fire({
@@ -281,8 +323,6 @@ function AddProduct({ onClose, onProductCreated }) {
             text: response.error
               ? JSON.stringify(response.error)
               : "Ocurrió un error inesperado.",
-            confirmButtonColor: "#d33",
-            confirmButtonText: "Cerrar",
           });
         }
       } catch (err) {
@@ -290,29 +330,71 @@ function AddProduct({ onClose, onProductCreated }) {
         Swal.fire({
           icon: "error",
           title: "Error de conexión",
-          text: "No se pudo crear el producto. Ver consola para más detalles.",
-          confirmButtonColor: "#d33",
-          confirmButtonText: "Cerrar",
+          text: "No se pudo crear el producto.",
         });
       } finally {
         setLoading(false);
       }
     };
 
-    // Funciones para gestión de medios
+    const countMediaTypes = (mediaList) => {
+      const images = mediaList.filter((m) => m.type === "image").length;
+      const videos = mediaList.filter((m) => m.type === "video").length;
+      return { images, videos };
+    };
+
     const handleAddMedia = (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const previewUrl = URL.createObjectURL(file);
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Tipo no permitido",
+          text: "Solo puedes subir imágenes o videos válidos.",
+        });
+        return;
+      }
 
-      // 🟢 SOLUCIÓN: Añadir un ID único (ej: timestamp o un contador)
+      const isImage = IMAGE_TYPES.includes(file.type);
+      const isVideo = VIDEO_TYPES.includes(file.type);
+
+      const currentCounts = countMediaTypes(productMedia);
+
+      // 🔥 Validar límite de imágenes
+      if (isImage && currentCounts.images >= 5) {
+        Swal.fire({
+          icon: "warning",
+          title: "Límite alcanzado",
+          text: "Solo puedes subir hasta 5 imágenes.",
+        });
+        return;
+      }
+
+      // 🔥 Validar límite de videos
+      if (isVideo && currentCounts.videos >= 2) {
+        Swal.fire({
+          icon: "warning",
+          title: "Límite alcanzado",
+          text: "Solo puedes subir hasta 2 videos.",
+        });
+        return;
+      }
+
+      // 🔵 Todo OK → agregar el archivo
+      const previewUrl = URL.createObjectURL(file);
       const uniqueId = Date.now() + Math.random();
 
       setProductMedia([
         ...productMedia,
-        { file, previewUrl, type: mediaType, id: uniqueId }, // <-- Añadir id
+        {
+          file,
+          previewUrl,
+          type: isImage ? "image" : "video",
+          id: uniqueId,
+        },
       ]);
+
       setShowMediaModal(false);
     };
 
@@ -508,14 +590,44 @@ function AddProduct({ onClose, onProductCreated }) {
                         {/* Tipo de producto */}
                         <div className="form-group">
                           <label htmlFor="productType">Tipo de Producto:</label>
-                          <input
+
+                          <select
                             id="productType"
-                            type="text"
                             className="input-field"
-                            value={productType}
-                            onChange={(e) => setProductType(e.target.value)}
-                            placeholder="Ej: Camiseta, Zapato"
-                          />
+                            value={isCustomType ? "other" : productType}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "other") {
+                                setIsCustomType(true);
+                                setProductType("");
+                              } else {
+                                setIsCustomType(false);
+                                setProductType(value);
+                              }
+                            }}
+                          >
+                            <option value="">Selecciona un tipo…</option>
+
+                            {tiposProducto.map((t) => (
+                              <option key={t} value={t}>
+                                {t}
+                              </option>
+                            ))}
+
+                            <option value="other">Otro…</option>
+                          </select>
+
+                          {isCustomType && (
+                            <input
+                              type="text"
+                              className="input-field"
+                              placeholder="Escribe un nuevo tipo…"
+                              value={productType}
+                              onChange={(e) => setProductType(e.target.value)}
+                              style={{ marginTop: "8px" }}
+                              required
+                            />
+                          )}
                         </div>
 
                         {/* Tags */}

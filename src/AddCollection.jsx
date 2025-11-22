@@ -59,27 +59,55 @@ function AddCollection({ onClose, onCollectionCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!titulo.trim()) {
       Swal.fire("Error", "El título es obligatorio", "error");
       return;
     }
 
-    setLoading(true);
+    // 1) CONFIRMACIÓN
+    const confirm = await Swal.fire({
+      title: "¿Crear colección?",
+      text: "Se añadirá la nueva colección con los productos seleccionados.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Crear",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    // 2) MENSAJE DE PROCESO
+    Swal.fire({
+      title: "Procesando...",
+      text: "Estamos creando la colección, por favor espera.",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     const formData = new FormData();
     formData.append("titulo", titulo);
     if (descripcion) formData.append("descripcion", descripcion);
     if (imagen) formData.append("image", imagen);
 
     if (selectedProducts.length > 0) {
-      // Extraemos solo los IDs y los convertimos a JSON String
       const productIds = selectedProducts.map((p) => p.id);
       formData.append("products", JSON.stringify(productIds));
     }
 
     try {
       const res = await createCollection(formData);
+
       if (res.success) {
-        Swal.fire("¡Listo!", `Colección "${titulo}" creada`, "success");
+        // 3) ÉXITO
+        Swal.fire({
+          icon: "success",
+          title: "¡Colección creada!",
+          text: `La colección "${titulo}" fue creada correctamente.`,
+        });
+
         onCollectionCreated?.();
         onClose();
       } else {
@@ -91,8 +119,6 @@ function AddCollection({ onClose, onCollectionCreated }) {
         err.message || "No se pudo crear la colección",
         "error"
       );
-    } finally {
-      setLoading(false);
     }
   };
 
