@@ -186,7 +186,7 @@ const Productos = () => {
       });
     }
   };
-  
+
   const tiposUnicos = Array.from(
     new Set(productos.map((p) => p.product_type).filter(Boolean))
   );
@@ -461,38 +461,42 @@ const Productos = () => {
                       <TableCell>{cantidadTexto}</TableCell>
 
                       <TableCell align="center">
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => setSelectedProduct(p)}
-                          sx={{
-                            mr: 1,
-                            color: "#5c6ac4", // azul Shopify
-                            borderColor: "#5c6ac4",
-                            "&:hover": {
-                              backgroundColor: "#f0f1fa",
-                              borderColor: "#4f5bbd",
-                            },
-                          }}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          Editar
-                        </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setSelectedProduct(p)}
+                            sx={{
+                              mr: 1,
+                              color: "#5c6ac4", // azul Shopify
+                              borderColor: "#5c6ac4",
+                              "&:hover": {
+                                backgroundColor: "#f0f1fa",
+                                borderColor: "#4f5bbd",
+                              },
+                            }}
+                          >
+                            Editar
+                          </Button>
 
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleDelete(p.id)}
-                          sx={{
-                            color: "#d82c0d",
-                            borderColor: "#d82c0d",
-                            "&:hover": {
-                              backgroundColor: "#fdecea",
-                              borderColor: "#b0250b",
-                            },
-                          }}
-                        >
-                          Eliminar
-                        </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleDelete(p.id)}
+                            sx={{
+                              color: "#d82c0d",
+                              borderColor: "#d82c0d",
+                              "&:hover": {
+                                backgroundColor: "#fdecea",
+                                borderColor: "#b0250b",
+                              },
+                            }}
+                          >
+                            Eliminar
+                          </Button>
+                        </Box>
                       </TableCell>
                     </TableRow>
 

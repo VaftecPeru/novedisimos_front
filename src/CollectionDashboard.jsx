@@ -301,39 +301,41 @@ const Colecciones = () => {
                   <TableCell>{c.conditions}</TableCell>
 
                   <TableCell align="center">
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      // 🔥 MODIFICADO: Llama a handleEditar con el ID
-                      onClick={() => handleEditar(c.id)}
-                      sx={{
-                        mr: 1,
-                        color: "#5c6ac4",
-                        borderColor: "#5c6ac4",
-                        "&:hover": {
-                          backgroundColor: "#f0f1fa",
-                          borderColor: "#4f5bbd",
-                        },
-                      }}
-                    >
-                      Editar
-                    </Button>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "center" }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        // 🔥 MODIFICADO: Llama a handleEditar con el ID
+                        onClick={() => handleEditar(c.id)}
+                        sx={{
+                          mr: 1,
+                          color: "#5c6ac4",
+                          borderColor: "#5c6ac4",
+                          "&:hover": {
+                            backgroundColor: "#f0f1fa",
+                            borderColor: "#4f5bbd",
+                          },
+                        }}
+                      >
+                        Editar
+                      </Button>
 
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleEliminar(c.id)}
-                      sx={{
-                        color: "#d82c0d",
-                        borderColor: "#d82c0d",
-                        "&:hover": {
-                          backgroundColor: "#fdecea",
-                          borderColor: "#b0250b",
-                        },
-                      }}
-                    >
-                      Eliminar
-                    </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleEliminar(c.id)}
+                        sx={{
+                          color: "#d82c0d",
+                          borderColor: "#d82c0d",
+                          "&:hover": {
+                            backgroundColor: "#fdecea",
+                            borderColor: "#b0250b",
+                          },
+                        }}
+                      >
+                        Eliminar
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}

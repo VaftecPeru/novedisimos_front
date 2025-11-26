@@ -22,6 +22,7 @@ import Asesores from "./Asesores";
 import ComisionesDashboard from "./ComisionesDashboard";
 import DashboardPage from "./DashboardPage";
 import CollectionDashboard from "./CollectionDashboard";
+import OrdenDePedido2 from "./OrdenDashboard";
 
 Modal.setAppElement("#root");
 
@@ -50,6 +51,7 @@ function Dashboard() {
     useState("productos");
 
   const [pedidosSeleccion, setPedidosSeleccion] = useState("ordenDePedido");
+  const [pedidosSeleccion2, setPedidosSeleccion2] = useState("ordenDePedido2");
 
   const [integracionesSeleccion, setIntegracionesSeleccion] =
     useState("shopify");
@@ -236,6 +238,7 @@ function Dashboard() {
 
       if (
         lastSegment === "ordenDePedido" ||
+        lastSegment === "ordenDePedido2" ||
         lastSegment === "busquedaInterna" ||
         lastSegment === "busquedaExterna" ||
         lastSegment === "seguimientoContraentrega" ||
@@ -581,6 +584,7 @@ function Dashboard() {
 
     setMantenimientoSeleccion("productos");
     setPedidosSeleccion("ordenDePedido");
+    setPedidosSeleccion2("ordenDePedido2");
     setIntegracionesSeleccion("shopify");
     setConfiguracionSeleccion("cobertura");
     setInformesSeleccion("vista");
@@ -633,6 +637,7 @@ function Dashboard() {
       } else if (
         [
           "ordenDePedido",
+          "ordenDePedido2",
           "busquedaInterna",
           "busquedaExterna",
           "seguimientoContraentrega",
@@ -809,6 +814,7 @@ function Dashboard() {
     if (
       [
         "ordenDePedido",
+        "ordenDePedido2",
         "busquedaInterna",
         "busquedaExterna",
         "seguimientoContraentrega",
@@ -845,6 +851,7 @@ function Dashboard() {
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
+      ordenDePedido2: "Orden de Pedido",
       busquedaInterna: "Búsqueda Interna",
       busquedaExterna: "Búsqueda Externa",
       seguimientoContraentrega: "Seguimiento Contraentrega",
@@ -884,6 +891,8 @@ function Dashboard() {
     switch (activeSection) {
       case "ordenDePedido":
         return <PedidosDashboard />;
+      case "ordenDePedido2":
+        return <OrdenDePedido2 />;
       case "busquedaInterna":
         return <FormularioInterno />;
       case "busquedaExterna":
