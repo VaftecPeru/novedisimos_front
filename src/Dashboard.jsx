@@ -1143,12 +1143,6 @@ function Dashboard() {
               <img
                 src="../images/avatarejemplo.png"
                 alt="Avatar"
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
               />
             </div>
             <div className="user-details">
@@ -1178,13 +1172,15 @@ function Dashboard() {
               </span>
               <span
                 style={{
-                  fontSize: "12px",
+                  fontSize: "10px",
                   color: "#aaa",
+                  wordBreak: "break-all",
+                  lineHeight: "1.4",
+                  display: "block",
                   textAlign: "left",
                   marginLeft: "5px",
                 }}
               >
-                {/* Mostramos el correo que ahora sí guardamos en el contexto */}
                 {usuario ? usuario.email : ""}
               </span>
             </div>

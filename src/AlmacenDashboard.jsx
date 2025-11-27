@@ -1110,8 +1110,8 @@ function AlmacenDashboard() {
                   <TableRow
                     key={pedido.id || index}
                     sx={{
-                      '&:hover': { bgcolor: '#f8fafc' },
-                      '& .MuiTableCell-root': { borderBottom: '1px solid #e2e8f0' }
+                      '&:hover': { bgcolor: '#f8fafc' }
+                    
                     }}
                   >
                     <TableCell>

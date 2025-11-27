@@ -53,7 +53,6 @@ import {
   fetchAlmacenPedidosAsignados,
   fetchSeguimientoVentas,
 } from "./components/services/shopifyService";
-import "./PedidosDashboard.css";
 import NoteIcon from "@mui/icons-material/Note";
 import SaveIcon from "@mui/icons-material/Save";
 import TablePagination from "@mui/material/TablePagination";
@@ -155,11 +154,10 @@ const FechaItem = ({ label, fecha }) => (
 );
 
 function PedidosDashboard() {
-  /// -------------------------------------- Mostrar componentes por roles -------------------------------------- //
+  /// -------- Mostrar componentes por roles -------- //
   const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
   const isVendedor = currentUser.rol === "Vendedor";
   const userId = Number(currentUser.id);
-  //------------------------------//
 
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -167,29 +165,23 @@ function PedidosDashboard() {
   const [openModal, setOpenModal] = useState(false);
   const [openImportExportModal, setOpenImportExportModal] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState(null);
-
-  // 🔹 Estados de paginación
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
 
-  // 🔹 Cargar pedidos al iniciar
+  // Carga de ordenes
   useEffect(() => {
     const cargarPedidos = async () => {
       setLoading(true);
       try {
         const data = await fetchOrders();
-        const lista = data.orders || data; // Ajustar según si fetchOrders devuelve { orders: [...] } o directamente el array
-        // 🔹 Ordenar por fecha de creación (más recientes primero)
-        console.log("Pedidos cargados:", lista);
+        const lista = data.orders || data;
         const ordenados = [...lista].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
-
-        console.log("Pedidos completos:", ordenados);
-        setPedidos(ordenados);
+        const planos = ordenados.map(mapPedido);
+        setPedidos(planos);
       } catch (err) {
         setError("Error al cargar los pedidos");
         console.error(err);
@@ -208,8 +200,8 @@ function PedidosDashboard() {
       const ordenados = [...lista].sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
-
-      setPedidos(ordenados);
+      const planos = ordenados.map(mapPedido);
+      setPedidos(planos);
     } catch (err) {
       console.error("Error recargando pedidos:", err);
       setError("Error al recargar los pedidos");
@@ -218,92 +210,109 @@ function PedidosDashboard() {
     }
   };
 
-  // 🔹 Cambiar de página
+  function mapPedido(p) {
+    // Función auxiliar para buscar la fecha de entrega en note_attributes
+    const getFechaEntrega = (noteAttributes) => {
+      if (!noteAttributes || noteAttributes.length === 0) {
+        return "N/A";
+      }
+
+      // Busca un atributo con un nombre que sugiera la fecha de entrega
+      const entregaAttribute = noteAttributes.find(
+        (attr) =>
+          /fecha.*entrega/i.test(attr.name) || /delivery.*date/i.test(attr.name)
+      );
+
+      return entregaAttribute ? entregaAttribute.value || "N/A" : "N/A";
+    };
+
+    return {
+      id: p.id,
+      financial_status: p.financial_status,
+      orden: p.order_number ?? "-",
+      fecha: p.created_at ?? "-",
+      cliente: p.customer
+        ? `${p.customer.first_name} ${p.customer.last_name}`
+        : p.billing_address?.name || "-",
+      vendedor_usuario: p.user_id || "N/A",
+      detalle: p.line_items
+        ? p.line_items.map((item) => `${item.title} (${item.quantity})`)
+        : [],
+      empresa_envio: p.shipping_lines?.[0]?.title || "N/A",
+      estado_pedido: p.fulfillment_status || "Pendiente",
+      estado_confirmacion: p.confirmed ? "Confirmado" : "Pendiente",
+      estado_pago:
+        (p.financial_status || "-")
+          .replace("paid", "Pagado")
+          .replace("pending", "Pendiente") || "-",
+      costo_envio: p.total_shipping_price_set?.shop_money?.amount
+        ? Number(p.total_shipping_price_set.shop_money.amount)
+        : 0,
+      primer_abono: p.current_total_price || 0,
+      saldo: p.total_outstanding || 0,
+      total: p.total_price || 0,
+      direccion_resumen: p.shipping_address
+        ? `${p.shipping_address.city}, ${p.shipping_address.province}`
+        : p.billing_address
+        ? `${p.billing_address.city}, ${p.billing_address.province}`
+        : "N/A",
+
+      direccion_completa: p.shipping_address
+        ? `${p.shipping_address.address1 || ""} ${
+            p.shipping_address.address2 || ""
+          }, ${p.shipping_address.city}, ${p.shipping_address.province}, ${
+            p.shipping_address.country
+          }, ${p.shipping_address.zip}`
+        : p.billing_address
+        ? `${p.billing_address.address1 || ""} ${
+            p.billing_address.address2 || ""
+          }, ${p.billing_address.city}, ${p.billing_address.province}, ${
+            p.billing_address.country
+          }, ${p.billing_address.zip}`
+        : "N/A",
+      nota: p.note || "Sin nota",
+      almacen: p.location_id || "N/A",
+      fecha_entrega: getFechaEntrega(p.note_attributes), // Campo añadido
+    };
+  }
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // 🔹 Cambiar cantidad de filas por página
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const pedidosFiltrados = pedidos.filter((p) => {
-    const coincideEstado =
-      filtroEstado === "todos"
-        ? true
-        : (p.financial_status || "").toLowerCase() === filtroEstado;
+  let filtered = pedidos;
+  if (filtroEstado !== "todos") {
+    filtered = filtered.filter((p) => p.financial_status === filtroEstado);
+  }
 
-    const coincideBusqueda = (p.customer ? `${p.customer.first_name} ${p.customer.last_name}` : p.billing_address?.name || "")
-      .toLowerCase()
-      .includes(busqueda.toLowerCase());
-
-    return coincideEstado && coincideBusqueda;
+  const pedidosFiltrados = filtered.filter((p) => {
+    const texto =
+      `${p.orden} ${p.cliente} ${p.estado_pago} ${p.estado_pedido} ${p.direccion}`.toLowerCase();
+    return texto.includes(busqueda.toLowerCase());
   });
 
-  // 🔹 Pedidos que se mostrarán según la página actual
   const pedidosPaginados = pedidosFiltrados.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
+  // Botones
+
   const handleDelete = async (id) => {
-    // 1️⃣ Confirmación
-    const confirm = await Swal.fire({
-      title: "¿Eliminar pedido?",
-      text: "Esta acción no se puede deshacer.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Eliminar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d82c0d",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    // 2️⃣ Mostrar alerta de procesando
-    Swal.fire({
-      title: "Eliminando...",
-      text: "Por favor espera",
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    try {
-      const result = await deletePedido(id); // Asumiendo que hay una función deletePedido similar a deleteProduct
-
-      if (result.success) {
-        // 3️⃣ Exito
-        await Swal.fire({
-          title: "Eliminado",
-          text: "El pedido fue eliminado correctamente.",
-          icon: "success",
-        });
-
-        recargarPedidos(); // 🔄 Refrescar la tabla
-      } else {
-        throw new Error("Error al eliminar");
-      }
-    } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo eliminar el pedido.",
-        icon: "error",
-      });
-    }
+    console.log(id);
   };
 
-  // Los estados, funciones y el <Dialog> del modal permanecen iguales:
-  // En PedidosDashboard, agrega estos estados
+  // Modal notas
+
   const [openNoteModal, setOpenNoteModal] = useState(false);
   const [editingNote, setEditingNote] = useState("");
   const [selectedNotePedidoId, setSelectedNotePedidoId] = useState(null);
 
-  // Funciones para el modal
   const handleOpenNoteModal = (pedidoId, currentNote) => {
     setSelectedNotePedidoId(pedidoId);
     setEditingNote(currentNote || "");
@@ -314,10 +323,9 @@ function PedidosDashboard() {
     if (selectedNotePedidoId) {
       setPedidos((prev) =>
         prev.map((ped) =>
-          ped.id === selectedNotePedidoId ? { ...ped, note: editingNote } : ped
+          ped.id === selectedNotePedidoId ? { ...ped, nota: editingNote } : ped
         )
       );
-      // Opcional: await updateOrderNote(selectedNotePedidoId, editingNote);
     }
     setOpenNoteModal(false);
     setSelectedNotePedidoId(null);
@@ -330,18 +338,32 @@ function PedidosDashboard() {
     setEditingNote("");
   };
 
+  const navigate = useNavigate();
+
+  const [openDireccionModal, setOpenDireccionModal] = useState(false);
+  const [direccionSeleccionada, setDireccionSeleccionada] = useState("");
+
   return (
-    <Box sx={{ width: "100%", maxWidth: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        backgroundColor: "#ffffff",
+        borderRadius: 2,
+      }}
+    >
       <Box
         sx={{
-          mb: 2,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "column", md: "row" },
+          gap: { xs: 2, sm: 2, md: 0 },
+          fontSize: "12px",
+          padding: 1.2,
         }}
       >
-        {/* Filtros tipo Shifu */}
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, marginRight: "20px" , fontSize: "12px"}}>
           {["todos", "paid", "pending", "refunded"].map((estado) => (
             <Button
               key={estado}
@@ -350,14 +372,19 @@ function PedidosDashboard() {
               sx={{
                 textTransform: "capitalize",
                 borderRadius: 2,
+                border: "none",
+                boxShadow: "none",
                 px: 2,
-                color: filtroEstado === estado ? "#fff" : "#353535",
+                color: filtroEstado === estado ? "#353535" : "#353535",
                 backgroundColor:
-                  filtroEstado === estado ? "#353535" : "transparent",
-                borderColor: "#353535",
+                  filtroEstado === estado ? "rgba(0,0,0,0.03)" : "transparent",
+
                 "&:hover": {
                   backgroundColor:
-                    filtroEstado === estado ? "#1a1a1a" : "rgba(0,0,0,0.04)",
+                    filtroEstado === estado
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(0,0,0,0.03)",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -372,8 +399,7 @@ function PedidosDashboard() {
           ))}
         </Box>
 
-        {/* Buscador */}
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <input
             type="text"
             placeholder="Buscar pedido..."
@@ -387,34 +413,41 @@ function PedidosDashboard() {
               width: "200px",
             }}
           />
-
           <Button
             variant="contained"
-            onClick={() => setOpenModal(true)}
+            // onClick={() => setOpenImportExportModal(true)}
             sx={{
-              color: "#ffffffff",
-              backgroundColor: "#353535ff",
+              border: "none",
+              boxShadow: "none",
+              color: "#353535",
+              backgroundColor: "transparent",
               borderRadius: 2,
+              textTransform: "none",
               "&:hover": {
-                backgroundColor: "#1a1a1a",
-              },
-            }}
-          >
-            + Nuevo Pedido
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => setOpenImportExportModal(true)}
-            sx={{
-              color: "#ffffffff",
-              backgroundColor: "#353535ff",
-              borderRadius: 2,
-              "&:hover": {
-                backgroundColor: "#1a1a1a",
+                backgroundColor: "rgba(0,0,0,0.03)",
+                boxShadow: "none",
               },
             }}
           >
             Exportar/Importar
+          </Button>
+          <Button
+            variant="contained"
+            // onClick={() => setOpenModal(true)}
+            sx={{
+              border: "none",
+              boxShadow: "none",
+              color: "#ffffffff",
+              backgroundColor: "#353535ff",
+              borderRadius: 2,
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#1a1a1a",
+                boxShadow: "none",
+              },
+            }}
+          >
+            Nuevo
           </Button>
         </Box>
       </Box>
@@ -453,6 +486,23 @@ function PedidosDashboard() {
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={openDireccionModal}
+        onClose={() => setOpenDireccionModal(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Dirección Completa</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ whiteSpace: "pre-wrap" }}>
+            {direccionSeleccionada}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDireccionModal(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
       {openModal && (
         <AddPedido // Asumiendo un componente AddPedido similar a AddProduct
           onClose={() => setOpenModal(false)}
@@ -474,8 +524,9 @@ function PedidosDashboard() {
       {openImportExportModal && (
         <ImportExportModal onClose={() => setOpenImportExportModal(false)} />
       )}
-      {loading && <Typography>Cargando pedidos...</Typography>}
-      {error && <Typography color="error">{error}</Typography>}
+
+      {loading && <Typography sx={{padding: 2,}}>Cargando pedidos...</Typography>}
+      {error && <Typography sx={{padding: 2,}} color="error">{error}</Typography>}
 
       {!loading && !error && pedidos.length > 0 && (
         <TableContainer
@@ -485,78 +536,84 @@ function PedidosDashboard() {
             overflowX: "auto",
           }}
         >
-          <Table size="small">
-            <TableHead sx={{ backgroundColor: "#f3f4f6" }}>
+          <Table size="small" sx={{"& *": { fontSize: "12px" }}}>
+            <TableHead sx={{ backgroundColor: "#f7f7f7" }}>
               <TableRow>
-                <TableCell>Orden</TableCell>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Cliente</TableCell>
-                <TableCell>Vendedor</TableCell>
-                <TableCell>Detalle</TableCell>
-                <TableCell>Envío</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Confirmación</TableCell>
-                <TableCell>Pago</TableCell>
-                <TableCell>Costo Env.</TableCell>
-                <TableCell>1er Abono</TableCell>
-                <TableCell>Saldo</TableCell>
-                <TableCell>Total</TableCell>
-                <TableCell>Dirección</TableCell>
-                <TableCell>Nota</TableCell>
-                <TableCell>Almacén</TableCell>
-                <TableCell align="center">Acciones</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Orden</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Fecha</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Cliente</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Vendedor</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Detalle</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Empresa Envío
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Estado Pedido
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Confirmación
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Estado Pago</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Costo Envío</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Primer Abono
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Saldo</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Total</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Dirección</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Nota</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Almacén</TableCell>
+                {/* <TableCell sx={{ whiteSpace: "nowrap" }}>Acciones</TableCell> */}
               </TableRow>
             </TableHead>
+
             <TableBody>
               {pedidosPaginados.map((p) => {
-                const estado = p.financial_status ?? "—";
-                const cliente = p.customer ? `${p.customer.first_name} ${p.customer.last_name}` : p.billing_address?.name || "-";
-                const direccion = p.shipping_address ? `${p.shipping_address.address1}, ${p.shipping_address.city}, ${p.shipping_address.province}` : p.billing_address ? `${p.billing_address.address1}, ${p.billing_address.city}, ${p.billing_address.province}` : "-";
-                // const vendedor = p.user_id ? `Usuario ID: ${p.user_id}` : "-"; // Ajustar si se puede fetch nombre
-                const vendedor = "-";
-                const total = p.total_price || "-";
-                const saldo = p.total_outstanding || "-";
-                const costoEnvio = p.total_shipping_price_set.shop_money.amount || "-";
-                const nota = p.note || "-";
-                const almacen = p.location_id ? `Locación ID: ${p.location_id}` : "-"; // Ajustar si se puede fetch
+                // **Simplificamos la visualización del Vendedor y Almacén**
+                const vendedorDisplay =
+                  p.vendedor_usuario !== "N/A"
+                    ? `${p.vendedor_usuario}`
+                    : "-";
+
+                const almacenDisplay =
+                  p.almacen !== "N/A" ? `Locación ID: ${p.almacen}` : "-";
+
+                const estado = p.financial_status ?? "—"; // Se usa para la lógica de color del Chip
+
                 return (
                   <TableRow key={p.id}>
-                    <TableCell>{p.order_number}</TableCell>
+                    <TableCell>{p.orden}</TableCell>
                     <TableCell>
-                      <Box sx={{ fontSize: "0.75rem" }}>
+                      <Box sx={{ "& *": { fontSize: "10px" } }}>
                         <FechaItem
                           label="Registro"
-                          fecha={formatDate(p.created_at) || "-"}
+                          fecha={formatDate(p.fecha) || "-"}
                         />
+                        {/* Campo: Fecha de Entrega extraída del atributo de nota */}
                         <FechaItem
-                          label="Entrega"
-                          fecha={formatDate(p.fulfillments[0]?.created_at) || "-"}
+                          label="Entrega (Nota)"
+                          fecha={
+                            p.fecha_entrega !== "N/A"
+                              ? formatDate(p.fecha_entrega)
+                              : "-"
+                          }
                         />
                       </Box>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 150 }}>
-                      <Typography noWrap>{cliente}</Typography>
+                      <Typography noWrap>{p.cliente}</Typography>
                     </TableCell>
+
                     <TableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        {vendedor !== "-" ? (
-                          <Typography variant="body2">
-                            {vendedor}
-                          </Typography>
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleAbrirAsignarVendedor(p)}
-                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                          >
-                            Asignar
-                          </Button>
-                        )}
+                        <Typography variant="body2">
+                          {vendedorDisplay}
+                        </Typography>
                       </Box>
                     </TableCell>
+
                     <TableCell>
                       <Button
                         variant="outlined"
@@ -567,18 +624,12 @@ function PedidosDashboard() {
                         Ver
                       </Button>
                     </TableCell>
-                    <TableCell>{"-"}</TableCell>
-                    <TableCell>{p.fulfillment_status || "-"}</TableCell>
-                    <TableCell>{p.confirmed ? "Confirmado" : "Pendiente"}</TableCell>
+                    <TableCell>{p.empresa_envio}</TableCell>
+                    <TableCell>{p.estado_pedido}</TableCell>
+                    <TableCell>{p.estado_confirmacion}</TableCell>
                     <TableCell>
                       <Chip
-                        label={
-                          estado.toLowerCase() === "paid"
-                            ? "Pagado"
-                            : estado.toLowerCase() === "pending"
-                            ? "Pendiente"
-                            : "Otro"
-                        }
+                        label={p.estado_pago}
                         sx={{
                           fontWeight: "bold",
                           textTransform: "capitalize",
@@ -597,15 +648,27 @@ function PedidosDashboard() {
                         }}
                       />
                     </TableCell>
-                    <TableCell>{costoEnvio}</TableCell>
-                    <TableCell>{p.current_total_price || "-"}</TableCell>
-                    <TableCell>{saldo}</TableCell>
-                    <TableCell>{total}</TableCell>
-                    <TableCell>{direccion}</TableCell>
+                    <TableCell>{p.costo_envio}</TableCell>
+                    <TableCell>{p.primer_abono}</TableCell>
+                    <TableCell>{p.saldo}</TableCell>
+                    <TableCell>{p.total}</TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      {p.direccion_resumen}
+
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setDireccionSeleccionada(p.direccion_completa);
+                          setOpenDireccionModal(true);
+                        }}
+                      >
+                        <NoteIcon />
+                      </IconButton>
+                    </TableCell>
                     <TableCell>
                       <IconButton
                         size="small"
-                        onClick={() => handleOpenNoteModal(p.id, nota)}
+                        onClick={() => handleOpenNoteModal(p.id, p.nota)}
                       >
                         <NotaIcono />
                       </IconButton>
@@ -614,23 +677,13 @@ function PedidosDashboard() {
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        {almacen !== "-" ? (
-                          <Typography variant="body2">
-                            {almacen}
-                          </Typography>
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleAbrirAsignarUsuarioAlmacen(p)}
-                            sx={{ borderColor: "#4763e4", color: "#4763e4" }}
-                          >
-                            Asignar
-                          </Button>
-                        )}
+                        <Typography variant="body2">
+                          {almacenDisplay}
+                        </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell align="center">
+
+                    {/* <TableCell align="center">
                       <Box
                         sx={{
                           display: "flex",
@@ -641,7 +694,7 @@ function PedidosDashboard() {
                         <Button
                           variant="outlined"
                           size="small"
-                          onClick={() => setSelectedPedido(p)}
+                          // onClick={() => setSelectedPedido(p)}
                           sx={{
                             mr: 1,
                             color: "#5c6ac4",
@@ -671,7 +724,7 @@ function PedidosDashboard() {
                           Eliminar
                         </Button>
                       </Box>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 );
               })}
@@ -679,9 +732,12 @@ function PedidosDashboard() {
           </Table>
         </TableContainer>
       )}
+          {!loading && !error && pedidos.length === 0 && (
+        <Typography sx={{padding: 2,}}>No hay pedidos registrados.</Typography>
+      )}
       <TablePagination
         component="div"
-        count={pedidos.length}
+        count={pedidosFiltrados.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
@@ -689,9 +745,7 @@ function PedidosDashboard() {
         rowsPerPageOptions={[10, 20, 50]}
         labelRowsPerPage="Pedidos por página:"
       />
-      {!loading && !error && pedidos.length === 0 && (
-        <Typography>No hay pedidos registrados.</Typography>
-      )}
+  
     </Box>
   );
 }

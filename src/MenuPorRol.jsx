@@ -34,18 +34,10 @@ const MenuPorRol = ({
               <img
                 src={gearImages.pedidos}
                 alt="Pedidos"
-                style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-clipboard-list"></i>
               {/* Resaltado del TÍTULO de Pedidos */}
-              <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "pedidos" ? "white" : spanColors.pedidos,
-                }}
-              >
+              <span>
                 Pedidos
               </span>
               <i
@@ -114,24 +106,11 @@ const MenuPorRol = ({
               <img
                 src={gearImages.mantenimiento}
                 alt="Mantenimiento"
-                style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-cogs"></i>
               <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    // Resalta el título si cualquiera de sus hijos está activo
-                    [
-                      "productos",
-                      "colecciones",
-                      "almacenes",
-                      "controlUsuarios",
-                    ].includes(activeSection)
-                      ? "white"
-                      : spanColors.mantenimiento,
-                }}
+               
+               
               >
                 Mantenimiento
               </span>
@@ -199,19 +178,11 @@ const MenuPorRol = ({
               <img
                 src={gearImages.integraciones}
                 alt="Integraciones"
-                style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-plug"></i>
               {/* Resaltado del TÍTULO de Integraciones */}
               <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "integraciones"
-                      ? "white"
-                      : spanColors.integraciones,
-                }}
+              
               >
                 Integraciones
               </span>
@@ -252,18 +223,10 @@ const MenuPorRol = ({
               <img
                 src={gearImages.motorizados}
                 alt="Motorizados"
-                style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-motorcycle"></i>
               <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "motorizados"
-                      ? "white"
-                      : spanColors.motorizados,
-                }}
+                
               >
                 Motorizados
               </span>
@@ -315,20 +278,9 @@ const MenuPorRol = ({
               <img
                 src={gearImages.asesores}
                 alt="Asesores"
-                style={{ width: "22px", height: "22px" }}
               />
               <i className="fas fa-user-tie"></i>
-              <span
-                style={{
-                  fontWeight: 400,
-                  fontSize: 18,
-                  color:
-                    activeSection === "asesores" ||
-                    activeSection === "comisiones"
-                      ? "white"
-                      : spanColors.asesores,
-                }}
-              >
+              <span>
                 Asesores
               </span>
               <i

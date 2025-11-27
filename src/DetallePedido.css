@@ -1,7 +1,6 @@
 .detalle-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px;
+ width: 100%;
+  padding: 16px 32px;
   background-color: #f5f5f5;
   min-height: 100vh;
 }
@@ -47,20 +46,6 @@
   color: #666;
   border-color: #ddd;
   text-transform: none;
-}
-
-.user-avatar {
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
-}
-
-.user-avatar.green {
-  background-color: #4CAF50;
-}
-
-.user-avatar.cyan {
-  background-color: #00BCD4;
 }
 
 .main-layout {
@@ -331,4 +316,47 @@
     font-size: 12px;
     padding: 4px 8px;
   }
+}
+
+.shop-header {
+  width: 100%;
+  height: 60px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e5e5;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.shop-header-logo {
+  width: auto;
+  height: 32px;
+  object-fit: contain;
+}
+
+.shop-header-search {
+  flex: 1;
+  max-width: 500px;
+}
+
+.shop-header-search input {
+  color: #fff;
+  width: 100%;
+  height: 35px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #262626;
+  font-size: 14px;
+  background-color: #262626;
+}
+
+.shop-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
