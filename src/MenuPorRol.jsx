@@ -1,3 +1,4 @@
+import { Margin } from "@mui/icons-material";
 import React from "react";
 
 const MenuPorRol = ({
@@ -20,8 +21,8 @@ const MenuPorRol = ({
   const seccionesPermitidas = permisosPorRol[rol] || [];
 
   return (
-    <nav>
-      <ul className="main-menu">
+    <nav > 
+      <ul className="main-menu" >
         {seccionesPermitidas.includes("pedidos") && (
           <li
             className={`main-menu-item ${expanded.pedidos ? "expanded" : ""}`}

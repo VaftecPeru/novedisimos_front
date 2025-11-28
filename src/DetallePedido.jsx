@@ -186,9 +186,6 @@ const DetallePedido = () => {
         </div>
 
         <div className="shop-header-actions">
-          <IconButton size="small" sx={{ color: "#ffffff" }}>
-            <MoreVertIcon />
-          </IconButton>
           <Avatar className="user-avatar green">{inicialesCliente}</Avatar>
         </div>
       </div>

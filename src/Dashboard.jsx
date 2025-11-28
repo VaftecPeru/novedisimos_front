@@ -23,6 +23,9 @@ import ComisionesDashboard from "./ComisionesDashboard";
 import DashboardPage from "./DashboardPage";
 import CollectionDashboard from "./CollectionDashboard";
 import OrdenDePedido2 from "./OrdenDashboard";
+import IconButton from "@mui/material/IconButton";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Avatar from "@mui/material/Avatar";
 
 Modal.setAppElement("#root");
 
@@ -940,263 +943,308 @@ function Dashboard() {
     }
   };
 
-  return (
-    <div className="dashboard-container">
-      <div
-        className={`sidebar-overlay ${
-          !sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
-        }`}
-        onClick={handleOverlayClick}
-      />
+  const [perfilMenuAbierto, setPerfilMenuAbierto] = useState(false);
 
-      <header
-        className={`dashboard-header ${
-          sidebarCollapsed ? "sidebar-collapsed" : ""
-        }`}
-      >
+  const handleLogout = () => {
+    setUsuario(null); // limpia el contexto
+    localStorage.removeItem("usuario"); // opcional si lo guardas
+    navigate("/"); // redirige al login
+  };
+  return (
+    <>
+      <div className="shop-header">
+        <img
+          className="shop-header-logo"
+          src="../images/img2.png"
+          alt="Imagen de login"
+        />
+
+        <div className="shop-header-search">
+          <input type="text" placeholder="Buscar en la tienda..." />
+        </div>
+
+        <div className="header-perfil">
+          <div
+            className="perfil-info"
+            onClick={() => setPerfilMenuAbierto(!perfilMenuAbierto)}
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <span
+              style={{
+                color: "#ffffff",
+              }}
+            >
+              {" "}
+              {usuario ? usuario.name : "Cargando..."}
+            </span>
+            <Avatar
+              src="../images/avatarejemplo.png"
+              sx={{ width: 30, height: 30 }}
+            />
+          </div>
+
+          {/* MENÚ DESPLEGABLE */}
+          {perfilMenuAbierto && (
+            <div className="perfil-menu">
+              <button onClick={handleLogout} className="logout-btn">
+                Cerrar sesión
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="dashboard-container">
         <div
-          className={`panel-control-header ${
+          className={`sidebar-overlay ${
+            !sidebarCollapsed && window.innerWidth <= 768 ? "active" : ""
+          }`}
+          onClick={handleOverlayClick}
+        />
+
+        <header
+          className={`dashboard-header ${
             sidebarCollapsed ? "sidebar-collapsed" : ""
           }`}
         >
-          <button onClick={toggleSidebar} className="sidebar-toggle-button">
-            {sidebarCollapsed ? openIcon : openCloseIcon}
-          </button>
-          {renderHeaderTitle()}
-        </div>
-        <button className="bell-button">
-          <svg
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            className="header-icon notificaciones-icon"
+          <div
+            className={`panel-control-header ${
+              sidebarCollapsed ? "sidebar-collapsed" : ""
+            }`}
           >
-            <path
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-            ></path>
-          </svg>
-        </button>
-      </header>
-
-      <div
-        className={`dashboard-content ${
-          sidebarCollapsed ? "sidebar-collapsed" : ""
-        }`}
-      >
-        {renderContent()}
-      </div>
-
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Nueva Orden"
-        className="modal"
-        overlayClassName="overlay"
-      >
-        <div className="modal-header">
-          <div className="modal-close" onClick={closeModal}>
-            <img src={closeIcon} alt="Cerrar" />
+            <button onClick={toggleSidebar} className="sidebar-toggle-button">
+              {sidebarCollapsed ? openIcon : openCloseIcon}
+            </button>
+            {renderHeaderTitle()}
           </div>
-          <div className="modal-title">Agregar orden</div>
+          <button className="bell-button">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              className="header-icon notificaciones-icon"
+            >
+              <path
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              ></path>
+            </svg>
+          </button>
+        </header>
+
+        <div
+          className={`dashboard-content ${
+            sidebarCollapsed ? "sidebar-collapsed" : ""
+          }`}
+        >
+          {renderContent()}
         </div>
-        <h2>Nueva orden</h2>
-        <form onSubmit={handleRegister}>
-          <div className="modal-content">
-            <label>Nota:</label>
-            <input
-              type="text"
-              name="notas"
-              value={newClient.notas || ""}
-              onChange={handleInputChange}
-            />
 
-            <label>Canal:</label>
-            <select
-              name="canal"
-              value={newClient.canal || ""}
-              onChange={handleInputChange}
-            >
-              <option value="Shopify">Shopify</option>
-            </select>
-
-            <h2>Cliente</h2>
-            <label>Nombres y Apellidos:</label>
-            <input
-              type="text"
-              name="nombre"
-              value={newClient.nombre || ""}
-              onChange={handleInputChange}
-            />
-
-            <label>Móvil:</label>
-            <input
-              type="text"
-              name="celular"
-              value={newClient.celular || ""}
-              onChange={handleInputChange}
-            />
-
-            <h2>Entrega</h2>
-            <label>Departamento:</label>
-            <select
-              name="departamento"
-              value={newClient.departamento || ""}
-              onChange={handleInputChange}
-            >
-              <option value="">Seleccionar</option>
-              <option value="Lima">Lima</option>
-            </select>
-
-            <label>Provincia:</label>
-            <select
-              name="provincia"
-              value={newClient.provincia || ""}
-              onChange={handleInputChange}
-            >
-              <option value="">Seleccionar</option>
-              <option value="Lima">Lima</option>
-            </select>
-
-            <label>Distrito:</label>
-            <select
-              name="distrito"
-              value={newClient.distrito || ""}
-              onChange={handleInputChange}
-            >
-              <option value="">Seleccionar</option>
-              <option value="Miraflores">Miraflores</option>
-              <option value="San Isidro">San Isidro</option>
-              <option value="Barranco">Barranco</option>
-            </select>
-
-            <label>Dirección:</label>
-            <input
-              type="text"
-              name="direccion"
-              value={newClient.direccion || ""}
-              onChange={handleInputChange}
-            />
-
-            <label>Referencia:</label>
-            <input
-              type="text"
-              name="referencia"
-              value={newClient.referencia || ""}
-              onChange={handleInputChange}
-            />
-
-            <label>Producto:</label>
-            <input
-              type="text"
-              name="producto"
-              value={newClient.producto || ""}
-              onChange={handleInputChange}
-            />
-
-            <label>GPS: Latitud, Longitud</label>
-            <input
-              type="text"
-              name="gps"
-              value={newClient.gps || ""}
-              onChange={handleInputChange}
-            />
-
-            <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          contentLabel="Nueva Orden"
+          className="modal"
+          overlayClassName="overlay"
+        >
+          <div className="modal-header">
+            <div className="modal-close" onClick={closeModal}>
+              <img src={closeIcon} alt="Cerrar" />
+            </div>
+            <div className="modal-title">Agregar orden</div>
           </div>
-          <div className="modal-buttons">
-            <button type="submit">Guardar</button>
-            <button type="button" onClick={closeModal}>
-              Cancelar
+          <h2>Nueva orden</h2>
+          <form onSubmit={handleRegister}>
+            <div className="modal-content">
+              <label>Nota:</label>
+              <input
+                type="text"
+                name="notas"
+                value={newClient.notas || ""}
+                onChange={handleInputChange}
+              />
+
+              <label>Canal:</label>
+              <select
+                name="canal"
+                value={newClient.canal || ""}
+                onChange={handleInputChange}
+              >
+                <option value="Shopify">Shopify</option>
+              </select>
+
+              <h2>Cliente</h2>
+              <label>Nombres y Apellidos:</label>
+              <input
+                type="text"
+                name="nombre"
+                value={newClient.nombre || ""}
+                onChange={handleInputChange}
+              />
+
+              <label>Móvil:</label>
+              <input
+                type="text"
+                name="celular"
+                value={newClient.celular || ""}
+                onChange={handleInputChange}
+              />
+
+              <h2>Entrega</h2>
+              <label>Departamento:</label>
+              <select
+                name="departamento"
+                value={newClient.departamento || ""}
+                onChange={handleInputChange}
+              >
+                <option value="">Seleccionar</option>
+                <option value="Lima">Lima</option>
+              </select>
+
+              <label>Provincia:</label>
+              <select
+                name="provincia"
+                value={newClient.provincia || ""}
+                onChange={handleInputChange}
+              >
+                <option value="">Seleccionar</option>
+                <option value="Lima">Lima</option>
+              </select>
+
+              <label>Distrito:</label>
+              <select
+                name="distrito"
+                value={newClient.distrito || ""}
+                onChange={handleInputChange}
+              >
+                <option value="">Seleccionar</option>
+                <option value="Miraflores">Miraflores</option>
+                <option value="San Isidro">San Isidro</option>
+                <option value="Barranco">Barranco</option>
+              </select>
+
+              <label>Dirección:</label>
+              <input
+                type="text"
+                name="direccion"
+                value={newClient.direccion || ""}
+                onChange={handleInputChange}
+              />
+
+              <label>Referencia:</label>
+              <input
+                type="text"
+                name="referencia"
+                value={newClient.referencia || ""}
+                onChange={handleInputChange}
+              />
+
+              <label>Producto:</label>
+              <input
+                type="text"
+                name="producto"
+                value={newClient.producto || ""}
+                onChange={handleInputChange}
+              />
+
+              <label>GPS: Latitud, Longitud</label>
+              <input
+                type="text"
+                name="gps"
+                value={newClient.gps || ""}
+                onChange={handleInputChange}
+              />
+
+              <p>GPS: Solicítalo al cliente por WhatsApp o ver TUTORIAL</p>
+            </div>
+            <div className="modal-buttons">
+              <button type="submit">Guardar</button>
+              <button type="button" onClick={closeModal}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        <div
+          className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}
+        >
+          <MenuPorRol
+            rol={usuario?.rol}
+            expanded={expanded}
+            onExpandMenu={handleExpandMenu}
+            onMenuItemClick={handleMenuItemClick}
+            activeSection={activeSection}
+            gearImages={gearImages}
+            spanColors={spanColors}
+            arrowImages={arrowImages}
+          />
+          {/* <div className="bottom-section">
+            <div className="user-info">
+              <div className="user-avatar">
+                <img src="../images/avatarejemplo.png" alt="Avatar" />
+              </div>
+              <div className="user-details">
+                <span
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    color: "#eee", 
+                    textAlign: "left",
+                    marginLeft: "5px",
+                  }}
+                >
+                  {usuario ? usuario.name : "Cargando..."}
+                </span>
+                <span
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    color: "#eee",
+                    textAlign: "left",
+                    marginLeft: "5px",
+                  }}
+                >
+                  {usuario ? usuario.rol : ""}
+                </span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "#aaa",
+                    wordBreak: "break-all",
+                    lineHeight: "1.4",
+                    display: "block",
+                    textAlign: "left",
+                    marginLeft: "5px",
+                  }}
+                >
+                  {usuario ? usuario.email : ""}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleCerrarSesion}
+              className="cerrar-sesion-button"
+            >
+              Cerrar Sesión
             </button>
           </div>
-        </form>
-      </Modal>
-
-      <div
-        className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}
-      >
-        <div className="sidebar-header">
-          <div className="imagen-header">
-            <img
-              className="img-logo"
-              src="../images/img.png"
-              alt="Imagen de login"
-            />
-          </div>
+          <img
+            src="/images/idea.png"
+            alt="Idea"
+            className="floating-idea-icon"
+            style={{ borderRadius: "50px" }}
+          /> */}
         </div>
-        <MenuPorRol
-          rol={usuario?.rol}
-          expanded={expanded}
-          onExpandMenu={handleExpandMenu}
-          onMenuItemClick={handleMenuItemClick}
-          activeSection={activeSection}
-          gearImages={gearImages}
-          spanColors={spanColors}
-          arrowImages={arrowImages}
-        />
-        <div className="bottom-section">
-          <div className="user-info">
-            <div className="user-avatar">
-              <img
-                src="../images/avatarejemplo.png"
-                alt="Avatar"
-              />
-            </div>
-            <div className="user-details">
-              <span
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  color: "#eee", // Mantuve el color que tenías en tu código
-                  textAlign: "left",
-                  marginLeft: "5px",
-                }}
-              >
-                {/* Reemplaza 'Prueba Ejemplo' con el nombre del usuario */}
-                {usuario ? usuario.name : "Cargando..."}
-              </span>
-              <span
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  color: "#eee",
-                  textAlign: "left",
-                  marginLeft: "5px",
-                }}
-              >
-                {/* Mostramos el rol como si fuera el "nombre" si así lo prefieres */}
-                {usuario ? usuario.rol : ""}
-              </span>
-              <span
-                style={{
-                  fontSize: "10px",
-                  color: "#aaa",
-                  wordBreak: "break-all",
-                  lineHeight: "1.4",
-                  display: "block",
-                  textAlign: "left",
-                  marginLeft: "5px",
-                }}
-              >
-                {usuario ? usuario.email : ""}
-              </span>
-            </div>
-          </div>
-          <button onClick={handleCerrarSesion} className="cerrar-sesion-button">
-            Cerrar Sesión
-          </button>
-        </div>
-        <img
-          src="/images/idea.png"
-          alt="Idea"
-          className="floating-idea-icon"
-          style={{ borderRadius: "50px" }}
-        />
       </div>
-    </div>
+    </>
   );
 }
 
