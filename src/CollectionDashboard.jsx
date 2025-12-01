@@ -173,18 +173,35 @@ const Colecciones = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        backgroundColor: "#ffffff",
+        borderRadius: 2,
+      }}
+    >
       {/* Header filtros + búsqueda + botón */}
       <Box
         sx={{
-          mb: 2,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "column", md: "row" },
+          gap: { xs: 2, sm: 2, md: 0 },
+          fontSize: "12px",
+          padding: 1.2,
         }}
       >
         {/* Filtro simple */}
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            marginRight: "20px",
+            fontSize: "12px",
+          }}
+        >
           <Button
             variant={filtro === "todos" ? "contained" : "outlined"}
             onClick={() => setFiltro("todos")}
@@ -192,12 +209,15 @@ const Colecciones = () => {
               textTransform: "capitalize",
               borderRadius: 2,
               px: 2,
-              color: filtro === "todos" ? "#fff" : "#353535",
-              backgroundColor: filtro === "todos" ? "#353535" : "transparent",
-              borderColor: "#353535",
+              color: filtro === "todos" ? "#353535" : "#353535",
+              backgroundColor:
+                filtro === "todos" ? "rgba(0,0,0,0.03)" : "transparent",
+              border: "none",
+              boxShadow: "none",
               "&:hover": {
                 backgroundColor:
-                  filtro === "todos" ? "#1a1a1a" : "rgba(0,0,0,0.04)",
+                  filtro === "todos" ? "rgba(0,0,0,0.05)" : "rgba(0,0,0,0.03)",
+                boxShadow: "none",
               },
             }}
           >
@@ -225,15 +245,16 @@ const Colecciones = () => {
             variant="contained"
             onClick={() => setShowAddModal(true)}
             sx={{
-              color: "#fff",
-              backgroundColor: "#353535",
+              border: "none",
+              boxShadow: "none",
+              color: "#ffffffff",
+              backgroundColor: "#353535ff",
               borderRadius: 2,
-              "&:hover": {
-                backgroundColor: "#1a1a1a",
-              },
+              textTransform: "none",
+              "&:hover": { backgroundColor: "#1a1a1a", boxShadow: "none" },
             }}
           >
-            + Nueva Colección
+            Nuevo
           </Button>
         </Box>
       </Box>
@@ -253,8 +274,14 @@ const Colecciones = () => {
         />
       )}
       {/* Tabla */}
-      {loading && <Typography>Cargando colecciones...</Typography>}
-      {error && <Typography color="error">{error}</Typography>}
+      {loading && (
+        <Typography sx={{ padding: 2 }}>Cargando pedidos...</Typography>
+      )}
+      {error && (
+        <Typography sx={{ padding: 2 }} color="error">
+          {error}
+        </Typography>
+      )}
 
       {!loading && colecciones.length > 0 && (
         <TableContainer component={Paper}>
@@ -301,7 +328,14 @@ const Colecciones = () => {
                   <TableCell>{c.conditions}</TableCell>
 
                   <TableCell align="center">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "center" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        justifyContent: "center",
+                      }}
+                    >
                       <Button
                         variant="outlined"
                         size="small"

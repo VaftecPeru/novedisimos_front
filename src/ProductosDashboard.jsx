@@ -192,17 +192,33 @@ const Productos = () => {
   );
 
   return (
-    <Box sx={{ width: "100%", maxWidth: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        backgroundColor: "#ffffff",
+        borderRadius: 2,
+      }}
+    >
       <Box
         sx={{
-          mb: 2,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "column", md: "row" },
+          gap: { xs: 2, sm: 2, md: 0 },
+          fontSize: "12px",
+          padding: 1.2,
         }}
       >
-        {/* Filtros tipo Shifu */}
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            marginRight: "20px",
+            fontSize: "12px",
+          }}
+        >
           {["todos", "active", "draft", "archived"].map((estado) => (
             <Button
               key={estado}
@@ -211,14 +227,19 @@ const Productos = () => {
               sx={{
                 textTransform: "capitalize",
                 borderRadius: 2,
+                border: "none",
+                boxShadow: "none",
                 px: 2,
-                color: filtroEstado === estado ? "#fff" : "#353535",
+                color: filtroEstado === estado ? "#353535" : "#353535",
                 backgroundColor:
-                  filtroEstado === estado ? "#353535" : "transparent",
-                borderColor: "#353535",
+                  filtroEstado === estado ? "rgba(0,0,0,0.03)" : "transparent",
+
                 "&:hover": {
                   backgroundColor:
-                    filtroEstado === estado ? "#1a1a1a" : "rgba(0,0,0,0.04)",
+                    filtroEstado === estado
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(0,0,0,0.03)",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -248,34 +269,38 @@ const Productos = () => {
               width: "200px",
             }}
           />
-
-          <Button
-            variant="contained"
-            onClick={() => setOpenModal(true)}
-            sx={{
-              color: "#ffffffff",
-              backgroundColor: "#353535ff",
-              borderRadius: 2,
-              "&:hover": {
-                backgroundColor: "#1a1a1a",
-              },
-            }}
-          >
-            + Nuevo Producto
-          </Button>
           <Button
             variant="contained"
             onClick={() => setOpenImportExportModal(true)}
             sx={{
-              color: "#ffffffff",
-              backgroundColor: "#353535ff",
+              border: "none",
+              boxShadow: "none",
+              color: "#353535",
+              backgroundColor: "transparent",
               borderRadius: 2,
+              textTransform: "none",
               "&:hover": {
-                backgroundColor: "#1a1a1a",
+                backgroundColor: "rgba(0,0,0,0.03)",
+                boxShadow: "none",
               },
             }}
           >
             Exportar/Importar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => setOpenModal(true)}
+            sx={{
+              border: "none",
+              boxShadow: "none",
+              color: "#ffffffff",
+              backgroundColor: "#353535ff",
+              borderRadius: 2,
+              textTransform: "none",
+              "&:hover": { backgroundColor: "#1a1a1a", boxShadow: "none" },
+            }}
+          >
+            Nuevo
           </Button>
         </Box>
       </Box>
@@ -303,9 +328,14 @@ const Productos = () => {
       {openImportExportModal && (
         <ImportExportModal onClose={() => setOpenImportExportModal(false)} />
       )}
-      {loading && <Typography>Cargando productos...</Typography>}
-      {error && <Typography color="error">{error}</Typography>}
-
+      {loading && (
+        <Typography sx={{ padding: 2 }}>Cargando pedidos...</Typography>
+      )}
+      {error && (
+        <Typography sx={{ padding: 2 }} color="error">
+          {error}
+        </Typography>
+      )}
       {!loading && !error && productos.length > 0 && (
         <TableContainer
           component={Paper}

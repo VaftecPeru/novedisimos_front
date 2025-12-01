@@ -61,6 +61,7 @@ import { useNavigate } from "react-router-dom";
 import { useConfirmDialog } from "./components/Modals/useConfirmDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
+import AddPedido from "./AddPedido";
 
 function NotaIcono(props) {
   return (
@@ -363,7 +364,14 @@ function PedidosDashboard() {
           padding: 1.2,
         }}
       >
-        <Box sx={{ display: "flex", gap: 1, marginRight: "20px" , fontSize: "12px"}}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            marginRight: "20px",
+            fontSize: "12px",
+          }}
+        >
           {["todos", "paid", "pending", "refunded"].map((estado) => (
             <Button
               key={estado}
@@ -433,7 +441,7 @@ function PedidosDashboard() {
           </Button>
           <Button
             variant="contained"
-            // onClick={() => setOpenModal(true)}
+            onClick={() => setOpenModal(true)}
             sx={{
               border: "none",
               boxShadow: "none",
@@ -441,10 +449,7 @@ function PedidosDashboard() {
               backgroundColor: "#353535ff",
               borderRadius: 2,
               textTransform: "none",
-              "&:hover": {
-                backgroundColor: "#1a1a1a",
-                boxShadow: "none",
-              },
+              "&:hover": { backgroundColor: "#1a1a1a", boxShadow: "none" },
             }}
           >
             Nuevo
@@ -504,9 +509,10 @@ function PedidosDashboard() {
       </Dialog>
 
       {openModal && (
-        <AddPedido // Asumiendo un componente AddPedido similar a AddProduct
+        <AddPedido
+          open={openModal}
           onClose={() => setOpenModal(false)}
-          onPedidoCreated={recargarPedidos}
+          onPedidoCreated={recargarPedidos} // Esto recarga tu lista de pedidos
         />
       )}
 
@@ -525,8 +531,14 @@ function PedidosDashboard() {
         <ImportExportModal onClose={() => setOpenImportExportModal(false)} />
       )}
 
-      {loading && <Typography sx={{padding: 2,}}>Cargando pedidos...</Typography>}
-      {error && <Typography sx={{padding: 2,}} color="error">{error}</Typography>}
+      {loading && (
+        <Typography sx={{ padding: 2 }}>Cargando pedidos...</Typography>
+      )}
+      {error && (
+        <Typography sx={{ padding: 2 }} color="error">
+          {error}
+        </Typography>
+      )}
 
       {!loading && !error && pedidos.length > 0 && (
         <TableContainer
@@ -536,7 +548,7 @@ function PedidosDashboard() {
             overflowX: "auto",
           }}
         >
-          <Table size="small" sx={{"& *": { fontSize: "12px" }}}>
+          <Table size="small" sx={{ "& *": { fontSize: "12px" } }}>
             <TableHead sx={{ backgroundColor: "#f7f7f7" }}>
               <TableRow>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Orden</TableCell>
@@ -571,9 +583,7 @@ function PedidosDashboard() {
               {pedidosPaginados.map((p) => {
                 // **Simplificamos la visualización del Vendedor y Almacén**
                 const vendedorDisplay =
-                  p.vendedor_usuario !== "N/A"
-                    ? `${p.vendedor_usuario}`
-                    : "-";
+                  p.vendedor_usuario !== "N/A" ? `${p.vendedor_usuario}` : "-";
 
                 const almacenDisplay =
                   p.almacen !== "N/A" ? `Locación ID: ${p.almacen}` : "-";
@@ -732,8 +742,8 @@ function PedidosDashboard() {
           </Table>
         </TableContainer>
       )}
-          {!loading && !error && pedidos.length === 0 && (
-        <Typography sx={{padding: 2,}}>No hay pedidos registrados.</Typography>
+      {!loading && !error && pedidos.length === 0 && (
+        <Typography sx={{ padding: 2 }}>No hay pedidos registrados.</Typography>
       )}
       <TablePagination
         component="div"
@@ -745,7 +755,6 @@ function PedidosDashboard() {
         rowsPerPageOptions={[10, 20, 50]}
         labelRowsPerPage="Pedidos por página:"
       />
-  
     </Box>
   );
 }
