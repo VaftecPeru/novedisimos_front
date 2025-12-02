@@ -5,7 +5,7 @@ import "./Dashboard.css";
 import "./Modal.css";
 import closeIcon from "/images/close.png";
 import ControlUsuarios from "./ControlUsuarios";
-import PedidosDashboard from "./PedidosDashboard";
+import PedidosDashboard from "./OrdenDashboard";
 import FormularioInterno from "./FormularioInterno";
 import FormularioExterno from "./FormularioExterno";
 import ProductosDashboard from "./ProductosDashboard";
@@ -22,7 +22,6 @@ import Asesores from "./Asesores";
 import ComisionesDashboard from "./ComisionesDashboard";
 import DashboardPage from "./DashboardPage";
 import CollectionDashboard from "./CollectionDashboard";
-import OrdenDePedido2 from "./OrdenDashboard";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Avatar from "@mui/material/Avatar";
@@ -241,7 +240,6 @@ function Dashboard() {
 
       if (
         lastSegment === "ordenDePedido" ||
-        lastSegment === "ordenDePedido2" ||
         lastSegment === "busquedaInterna" ||
         lastSegment === "busquedaExterna" ||
         lastSegment === "seguimientoContraentrega" ||
@@ -587,7 +585,6 @@ function Dashboard() {
 
     setMantenimientoSeleccion("productos");
     setPedidosSeleccion("ordenDePedido");
-    setPedidosSeleccion2("ordenDePedido2");
     setIntegracionesSeleccion("shopify");
     setConfiguracionSeleccion("cobertura");
     setInformesSeleccion("vista");
@@ -640,7 +637,6 @@ function Dashboard() {
       } else if (
         [
           "ordenDePedido",
-          "ordenDePedido2",
           "busquedaInterna",
           "busquedaExterna",
           "seguimientoContraentrega",
@@ -817,7 +813,6 @@ function Dashboard() {
     if (
       [
         "ordenDePedido",
-        "ordenDePedido2",
         "busquedaInterna",
         "busquedaExterna",
         "seguimientoContraentrega",
@@ -854,7 +849,6 @@ function Dashboard() {
       movimiento: "Movimiento",
       almacenes: "Almacen",
       ordenDePedido: "Orden de Pedido",
-      ordenDePedido2: "Orden de Pedido",
       busquedaInterna: "Búsqueda Interna",
       busquedaExterna: "Búsqueda Externa",
       seguimientoContraentrega: "Seguimiento Contraentrega",
@@ -894,8 +888,6 @@ function Dashboard() {
     switch (activeSection) {
       case "ordenDePedido":
         return <PedidosDashboard />;
-      case "ordenDePedido2":
-        return <OrdenDePedido2 />;
       case "busquedaInterna":
         return <FormularioInterno />;
       case "busquedaExterna":

@@ -1,23 +1,19 @@
 .detalle-container {
  width: 100%;
-  padding: 16px 32px;
+  padding: 16px 128px;
   background-color: #f5f5f5;
   min-height: 100vh;
 }
 
 .header-card {
-  background-color: white;
-  padding: 16px;
-  margin-bottom: 16px;
+  margin: 0 4px 12px 4px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .header-content {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 16px;
 }
 
 .header-title {
@@ -71,18 +67,21 @@
 }
 
 .preparados-header {
-  background-color: #e8f5e8;
-  padding: 16px;
+  padding: 16px 16px 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #c8e6c9;
+
 }
 
 .preparados-title {
+    background-color: #e8f5e8;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 5px 10px;
+  border-radius: 5px;
+
 }
 
 .preparados-title h3 {
@@ -171,13 +170,15 @@
 }
 
 .pago-header {
+  padding: 16px 16px 0 16px;
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
 }
 
 .pago-header h3 {
   font-weight: 600;
+  
   color: #2e7d32;
   margin: 0;
   margin-left: 8px;
@@ -224,16 +225,15 @@
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #eee;
+  text-align:end;
 }
 
 .pagado-final h4 {
   font-weight: 600;
-  color: #2e7d32;
   margin: 0 0 4px 0;
 }
 
 .pagado-final p {
-  color: #666;
   font-size: 13px;
   margin: 0;
 }

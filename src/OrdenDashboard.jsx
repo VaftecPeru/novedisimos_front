@@ -62,6 +62,8 @@ import { useConfirmDialog } from "./components/Modals/useConfirmDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import AddPedido from "./AddPedido";
+import EditPedido from "./EditPedido";
+
 
 function NotaIcono(props) {
   return (
@@ -517,8 +519,9 @@ function PedidosDashboard() {
       )}
 
       {selectedPedido && (
-        <EditPedido // Asumiendo un componente EditPedido similar a EditProduct
+        <EditPedido
           pedido={selectedPedido}
+          open={Boolean(selectedPedido)}
           onClose={() => setSelectedPedido(null)}
           onUpdate={() => {
             setSelectedPedido(null);
@@ -575,7 +578,7 @@ function PedidosDashboard() {
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Dirección</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Nota</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Almacén</TableCell>
-                {/* <TableCell sx={{ whiteSpace: "nowrap" }}>Acciones</TableCell> */}
+                <TableCell sx={{ whiteSpace: "nowrap" }}>Acciones</TableCell>
               </TableRow>
             </TableHead>
 
@@ -693,7 +696,7 @@ function PedidosDashboard() {
                       </Box>
                     </TableCell>
 
-                    {/* <TableCell align="center">
+                    <TableCell align="center">
                       <Box
                         sx={{
                           display: "flex",
@@ -704,7 +707,7 @@ function PedidosDashboard() {
                         <Button
                           variant="outlined"
                           size="small"
-                          // onClick={() => setSelectedPedido(p)}
+                          onClick={() => setSelectedPedido(p)}
                           sx={{
                             mr: 1,
                             color: "#5c6ac4",
@@ -734,7 +737,7 @@ function PedidosDashboard() {
                           Eliminar
                         </Button>
                       </Box>
-                    </TableCell> */}
+                    </TableCell>
                   </TableRow>
                 );
               })}

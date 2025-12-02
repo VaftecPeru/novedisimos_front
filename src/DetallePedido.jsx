@@ -13,8 +13,9 @@ import {
   Stack,
   IconButton,
   Tooltip,
-  TextField,
-  Modal,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -33,37 +34,12 @@ function getNoteAttr(attrs, name) {
   return found ? found.value : "";
 }
 
-function setNoteAttr(attrs, name, value) {
-  const index = attrs.findIndex((a) => a.name === name);
-  if (index !== -1) {
-    attrs[index].value = value;
-  } else {
-    attrs.push({ name, value });
-  }
-  return attrs;
-}
-
 const DetallePedido = () => {
   const { orderId } = useParams();
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  const [openNoteModal, setOpenNoteModal] = useState(false);
-  const [editedNote, setEditedNote] = useState("");
-  const [openInfoModal, setOpenInfoModal] = useState(false);
-
-  const [editedFirstName, setEditedFirstName] = useState("");
-  const [editedLastName, setEditedLastName] = useState("");
-  const [editedCompany, setEditedCompany] = useState("");
-  const [editedAddress1, setEditedAddress1] = useState("");
-  const [editedAddress2, setEditedAddress2] = useState("");
-  const [editedCity, setEditedCity] = useState("");
-  const [editedProvince, setEditedProvince] = useState("");
-  const [editedCountry, setEditedCountry] = useState("");
-  const [editedZip, setEditedZip] = useState("");
-  const [editedPhone, setEditedPhone] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -78,49 +54,6 @@ const DetallePedido = () => {
       }
     })();
   }, [orderId]);
-
-  useEffect(() => {
-    if (pedido) {
-      setEditedNote(pedido.note || "");
-
-      const currentNombre = getNoteAttr(pedido.note_attributes, "Nombre y Apellidos") ||
-        (pedido.customer?.first_name + " " + pedido.customer?.last_name) || "";
-      const nameParts = currentNombre.trim().split(" ");
-      setEditedFirstName(nameParts[0] || "");
-      setEditedLastName(nameParts.slice(1).join(" ") || "");
-
-      const currentCompany = getNoteAttr(pedido.note_attributes, "company") ||
-        pedido.shipping_address?.company || "";
-      setEditedCompany(currentCompany);
-
-      const currentDireccion = getNoteAttr(pedido.note_attributes, "Dirección") ||
-        pedido.shipping_address?.address1 || "";
-      setEditedAddress1(currentDireccion);
-      setEditedAddress2(pedido.shipping_address?.address2 || "");
-
-      const currentProvinciaDistrito = getNoteAttr(
-        pedido.note_attributes,
-        "Provincia y Distrito:"
-      ) || (pedido.shipping_address?.province + " y " + pedido.shipping_address?.city) || "";
-      const pdParts = currentProvinciaDistrito.split(" y ");
-      setEditedProvince(pdParts[0] || "");
-      setEditedCity(pdParts[1] || "");
-
-      const currentCountry = getNoteAttr(pedido.note_attributes, "country") ||
-        pedido.shipping_address?.country || "";
-      setEditedCountry(currentCountry);
-
-      const currentZip = getNoteAttr(pedido.note_attributes, "zip") ||
-        pedido.shipping_address?.zip || "";
-      setEditedZip(currentZip);
-
-      const currentPhone = getNoteAttr(pedido.note_attributes, "Celular") ||
-        pedido.phone ||
-        pedido.customer?.phone ||
-        pedido.shipping_address?.phone || "";
-      setEditedPhone(currentPhone);
-    }
-  }, [pedido]);
 
   if (loading)
     return (
@@ -194,14 +127,6 @@ const DetallePedido = () => {
   const pais =
     getNoteAttr(pedido.note_attributes, "country") ||
     pedido.shipping_address?.country_code;
-  const company =
-    getNoteAttr(pedido.note_attributes, "company") ||
-    pedido.shipping_address?.company ||
-    "";
-  const zip =
-    getNoteAttr(pedido.note_attributes, "zip") ||
-    pedido.shipping_address?.zip ||
-    "";
   const estadoPago =
     pedido.financial_status === "paid" ? "Pagado" : "Pendiente";
   const estadoPreparado =
@@ -250,35 +175,6 @@ const DetallePedido = () => {
 
   const inicialesCliente = obtenerIniciales(nombreCliente);
 
-  const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-  };
-
-  const handleSaveNote = () => {
-    setPedido({ ...pedido, note: editedNote });
-    setOpenNoteModal(false);
-  };
-
-  const handleSaveInfo = () => {
-    const updatedAttrs = [...(pedido.note_attributes || [])];
-    setNoteAttr(updatedAttrs, "Nombre y Apellidos", `${editedFirstName} ${editedLastName}`.trim());
-    setNoteAttr(updatedAttrs, "company", editedCompany);
-    setNoteAttr(updatedAttrs, "Dirección", `${editedAddress1} ${editedAddress2}`.trim());
-    setNoteAttr(updatedAttrs, "Provincia y Distrito:", `${editedProvince} y ${editedCity}`.trim());
-    setNoteAttr(updatedAttrs, "country", editedCountry);
-    setNoteAttr(updatedAttrs, "zip", editedZip);
-    setNoteAttr(updatedAttrs, "Celular", editedPhone);
-    setPedido({ ...pedido, note_attributes: updatedAttrs });
-    setOpenInfoModal(false);
-  };
-
   return (
     <div>
       <div className="shop-header">
@@ -293,46 +189,50 @@ const DetallePedido = () => {
         </div>
 
         <div className="shop-header-actions">
-          <Avatar className="user-avatar green">{inicialesCliente}</Avatar>
+          <Avatar
+            className="user-avatar green"
+            src="../images/avatarejemplo.png"
+            sx={{ width: 30, height: 30 }}
+          >
+            {inicialesCliente}
+          </Avatar>
         </div>
       </div>
       <div className="detalle-container">
-        <div className="card header-card">
+        <div className="header-card">
           <div className="header-content">
             <IconButton onClick={() => navigate(-1)} size="small">
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h6" className="header-title">
-              #{orderNumber}
+            <Typography
+              variant="h6"
+              className="header-title"
+              sx={{ fontWeight: "600" }}
+            >
+              {orderNumber}
             </Typography>
 
-            <Chip label="Pagado" size="small" className="status-chip pagado" />
-            <Chip
-              label="Preparado"
+            <Button
+              variant="outlined"
               size="small"
-              className="status-chip pagado"
-            />
-            <Chip
-              label="Archivado"
-              size="small"
-              className="status-chip archivado"
-            />
-
-            <Button variant="outlined" size="small" className="action-button">
-              Reembolsar
-            </Button>
-            <Button variant="outlined" size="small" className="action-button">
-              Devolución
-            </Button>
-            <Button variant="outlined" size="small" className="action-button">
-              Editar
-            </Button>
-            <Button variant="outlined" size="small" className="action-button">
-              Más acciones
+              className="action-button"
+              sx={{
+                backgroundColor: "#E3E3E3",
+                border: "none",
+                color: "black",
+                fontSize: "12px",
+                fontWeight: "500",
+              }}
+            >
+              Imprimir
             </Button>
           </div>
 
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: "12px" }}
+          >
             {pedido.created_at &&
               new Date(pedido.created_at).toLocaleDateString("es-PE", {
                 year: "numeric",
@@ -345,7 +245,6 @@ const DetallePedido = () => {
                 hour: "2-digit",
                 minute: "2-digit",
               })}{" "}
-            de EasySell COD Form (a través de importación)
           </Typography>
         </div>
 
@@ -358,13 +257,7 @@ const DetallePedido = () => {
                   <Typography component="h3">
                     Preparados ({totalArticulos})
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    #{orderNumber}-F1
-                  </Typography>
                 </div>
-                <IconButton size="small">
-                  <MoreHorizIcon />
-                </IconButton>
               </div>
 
               <div className="preparados-content">
@@ -397,25 +290,17 @@ const DetallePedido = () => {
                     </div>
                   </div>
                 ))}
-
-                <Button
-                  startIcon={<AddIcon />}
-                  variant="contained"
-                  size="small"
-                  className="tracking-button"
-                >
-                  Agregar seguimiento
-                </Button>
               </div>
             </div>
 
             <div className="card">
-              <div className="pago-section">
-                <div className="pago-header">
+              <div className="pago-header">
+                <div className="preparados-title">
                   <PaidIcon sx={{ color: "#4CAF50", fontSize: 20 }} />
                   <Typography component="h3">Pagado</Typography>
                 </div>
-
+              </div>
+              <div className="pago-section">
                 <div className="pago-detalle">
                   <div className="pago-linea">
                     <span>Subtotal</span>
@@ -458,11 +343,6 @@ const DetallePedido = () => {
               <div className="notas-section">
                 <div className="section-header">
                   <Typography component="h3">Notas</Typography>
-                  <Tooltip title="Editar nota">
-                    <IconButton size="small" onClick={() => setOpenNoteModal(true)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
                 </div>
                 <div className="notas-content">{note}</div>
               </div>
@@ -472,11 +352,6 @@ const DetallePedido = () => {
               <div className="info-section">
                 <div className="section-header">
                   <Typography component="h3">Información adicional</Typography>
-                  <Tooltip title="Editar información">
-                    <IconButton size="small" onClick={() => setOpenInfoModal(true)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
                 </div>
 
                 <div className="info-item">
@@ -516,145 +391,11 @@ const DetallePedido = () => {
                   <div className="info-label">country</div>
                   <div className="info-value">{pais || "PE"}</div>
                 </div>
-
-                <div className="info-item">
-                  <div className="info-label">Company</div>
-                  <div className="info-value">{company || "-"}</div>
-                </div>
-
-                <div className="info-item">
-                  <div className="info-label">Zip</div>
-                  <div className="info-value">{zip || "-"}</div>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <Modal
-        open={openNoteModal}
-        onClose={() => setOpenNoteModal(false)}
-        aria-labelledby="modal-note-title"
-        aria-describedby="modal-note-description"
-      >
-        <Box sx={modalStyle}>
-          <Typography id="modal-note-title" variant="h6" component="h2">
-            Editar Nota
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            value={editedNote}
-            onChange={(e) => setEditedNote(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-            <Button onClick={() => setOpenNoteModal(false)}>Cancelar</Button>
-            <Button
-              onClick={handleSaveNote}
-              variant="contained"
-              sx={{ ml: 1 }}
-            >
-              Guardar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      <Modal
-        open={openInfoModal}
-        onClose={() => setOpenInfoModal(false)}
-        aria-labelledby="modal-info-title"
-        aria-describedby="modal-info-description"
-      >
-        <Box sx={{ ...modalStyle, width: 500 }}>
-          <Typography id="modal-info-title" variant="h6" component="h2">
-            Editar Información Adicional
-          </Typography>
-          <TextField
-            label="First Name"
-            fullWidth
-            value={editedFirstName}
-            onChange={(e) => setEditedFirstName(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Last Name"
-            fullWidth
-            value={editedLastName}
-            onChange={(e) => setEditedLastName(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Company"
-            fullWidth
-            value={editedCompany}
-            onChange={(e) => setEditedCompany(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Address 1"
-            fullWidth
-            value={editedAddress1}
-            onChange={(e) => setEditedAddress1(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Address 2"
-            fullWidth
-            value={editedAddress2}
-            onChange={(e) => setEditedAddress2(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="City"
-            fullWidth
-            value={editedCity}
-            onChange={(e) => setEditedCity(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Province"
-            fullWidth
-            value={editedProvince}
-            onChange={(e) => setEditedProvince(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Country"
-            fullWidth
-            value={editedCountry}
-            onChange={(e) => setEditedCountry(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Zip"
-            fullWidth
-            value={editedZip}
-            onChange={(e) => setEditedZip(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="Phone"
-            fullWidth
-            value={editedPhone}
-            onChange={(e) => setEditedPhone(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-            <Button onClick={() => setOpenInfoModal(false)}>Cancelar</Button>
-            <Button
-              onClick={handleSaveInfo}
-              variant="contained"
-              sx={{ ml: 1 }}
-            >
-              Guardar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
     </div>
   );
 };
