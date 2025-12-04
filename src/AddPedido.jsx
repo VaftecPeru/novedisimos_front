@@ -197,8 +197,8 @@ function AddPedido({ onClose, onPedidoCreated }) {
                       onChange={(e) => setMoneda(e.target.value)}
                       style={{ width: "100%", marginTop: 8 }}
                     >
-                      <option value="USD">USD</option>
                       <option value="PEN">PEN</option>
+                      <option value="USD">USD</option>
                     </select>
                   </div>
                 </div>
