@@ -12,42 +12,51 @@ import {
   Divider,
 } from "@mui/material";
 
-import { fetchProductsVariantsMedia } from "./components/services/shopifyService";
+import { fetchVariantesMedia } from "./components/services/shopifyService";
 
-const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
+const ProductPedidoSelectModal = ({
+  open,
+  onClose,
+  onAddProducts,
+  selectedVariants = [],
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [localSelected, setLocalSelected] = useState([]);
   const [availableProducts, setAvailableProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --------------------------------------------------------
-  // Cargar productos desde la API
-  // --------------------------------------------------------
+  useEffect(() => {
+    if (open) {
+      setLocalSelected([]);
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
     const loadProducts = async () => {
       setIsLoading(true);
       try {
-        const products = await fetchProductsVariantsMedia();
+        const products = await fetchVariantesMedia();
 
         const allVariants = products.flatMap((product) =>
-          product.variants.map((variant) => ({
+          product.variantes.map((variant) => ({
             id: variant.id,
+            // 🔥 CORRECCIÓN AQUÍ: Forzamos el precio a ser un número
+            price: Number(variant.price) || 0,
             title:
               variant.title === "Default Title"
                 ? product.title
                 : `${product.title} - ${variant.title}`,
             image: variant.image || "/images/default-image.png",
-            price: Number(variant.price) || 0,
-            stock: variant.quantityAvailable ?? 0,
+            stock: variant.stock ?? 0,
             productType: product.productType || "Sin categoría",
           }))
         );
 
         setAvailableProducts(allVariants);
       } catch (err) {
-        console.error("Error cargando productos", err);
+        console.error("Error cargando variantes:", err);
       } finally {
         setIsLoading(false);
       }
@@ -56,40 +65,30 @@ const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
     loadProducts();
   }, [open]);
 
-  // --------------------------------------------------------
-  // Selección de productos
-  // --------------------------------------------------------
-  const toggleProduct = (product) => {
-    if (product.stock <= 0) return;
+  const isLocalSelected = (id) => localSelected.some((v) => v.id === id);
+  const isAlreadyInPedido = (id) => selectedVariants.some((v) => v.id === id);
 
-    const exists = selectedProducts.find((p) => p.id === product.id);
+  const toggleVariant = (variant) => {
+    if (variant.stock <= 0) return;
+    if (isAlreadyInPedido(variant.id)) return;
 
-    if (exists) {
-      setSelectedProducts((prev) => prev.filter((p) => p.id !== product.id));
+    if (isLocalSelected(variant.id)) {
+      setLocalSelected((prev) => prev.filter((v) => v.id !== variant.id));
     } else {
-      setSelectedProducts((prev) => [...prev, product]);
+      setLocalSelected((prev) => [...prev, variant]);
     }
   };
 
-  const isSelected = (id) =>
-    selectedProducts.some((product) => product.id === id);
-
-  const handleAddSelectedProducts = () => {
-    onAddProducts(selectedProducts);
-    setSelectedProducts([]);
+  const handleAdd = () => {
+    onAddProducts(localSelected);
+    setLocalSelected([]);
     onClose();
   };
 
-  // --------------------------------------------------------
-  // Filtrar productos
-  // --------------------------------------------------------
-  const filteredProducts = availableProducts.filter((product) =>
-    product.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = availableProducts.filter((prod) =>
+    prod.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --------------------------------------------------------
-  // UI
-  // --------------------------------------------------------
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -99,7 +98,7 @@ const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "80%",
-          maxHeight: "80%",
+          maxHeight: "85%",
           overflow: "auto",
           bgcolor: "background.paper",
           p: 4,
@@ -108,12 +107,11 @@ const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Seleccionar Productos
+          Seleccionar Variantes
         </Typography>
 
-        {/* BUSCADOR */}
         <TextField
-          label="Buscar productos"
+          label="Buscar variantes"
           fullWidth
           margin="normal"
           value={searchQuery}
@@ -122,7 +120,6 @@ const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* LOADING */}
         {isLoading ? (
           <Box display="flex" justifyContent="center" py={4}>
             <CircularProgress />
@@ -133,80 +130,119 @@ const ProductPedidoSelectModal = ({ open, onClose, onAddProducts }) => {
               mt: 3,
               display: "grid",
               gap: 2,
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
             }}
           >
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <Card
-                  key={product.id}
-                  onClick={() => toggleProduct(product)}
-                  sx={{
-                    border: isSelected(product.id)
-                      ? "2px solid #1976d2"
-                      : "2px solid transparent",
-                    cursor: product.stock > 0 ? "pointer" : "not-allowed",
-                    opacity: product.stock > 0 ? 1 : 0.5,
-                    transition: "0.3s",
-                    "&:hover": {
-                      transform: product.stock > 0 ? "scale(1.03)" : "none",
-                    },
-                    position: "relative",
-                  }}
-                >
-                  {product.image && (
+            {filtered.length > 0 ? (
+              filtered.map((variant) => {
+                const alreadySelected = isAlreadyInPedido(variant.id);
+                const isSelected = isLocalSelected(variant.id);
+
+                return (
+                  <Card
+                    key={variant.id}
+                    onClick={() => toggleVariant(variant)}
+                    sx={{
+                      border: isSelected
+                        ? "2px solid #1976d2"
+                        : "2px solid transparent",
+                      cursor:
+                        variant.stock > 0 && !alreadySelected
+                          ? "pointer"
+                          : "not-allowed",
+                      bgcolor: alreadySelected
+                        ? "rgba(25, 118, 210, 0.15)"
+                        : "background.paper",
+                      opacity: variant.stock > 0 ? 1 : 0.5,
+                      transition: "0.3s",
+                      "&:hover": {
+                        transform:
+                          variant.stock > 0 && !alreadySelected
+                            ? "scale(1.03)"
+                            : "none",
+                      },
+                      position: "relative",
+                    }}
+                  >
+                    {alreadySelected && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          bgcolor: "grey.800",
+                          color: "white",
+                          px: 1,
+                          borderRadius: 1,
+                          fontSize: "0.7rem",
+                          zIndex: 2,
+                        }}
+                      >
+                        Ya agregado
+                      </Box>
+                    )}
+
                     <CardMedia
                       component="img"
                       height="160"
-                      image={product.image}
-                      alt={product.title}
+                      image={variant.image}
+                      alt={variant.title}
                       sx={{ objectFit: "contain", p: 1 }}
                     />
-                  )}
 
-                  <CardContent>
-                    <Typography variant="body1" fontWeight={600} sx={{ mb: 1 }}>
-                      {product.title}
-                    </Typography>
+                    <CardContent>
+                      <Typography
+                        variant="body1"
+                        fontWeight={600}
+                        sx={{ mb: 1 }}
+                      >
+                        {variant.title}
+                      </Typography>
 
-                    {/* Precio */}
-                    <Typography variant="body2" color="text.secondary">
-                      Precio: <strong>${product.price}</strong>
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        color={
+                          variant.stock > 0 ? "success.main" : "error.main"
+                        }
+                      >
+                        Stock: <strong>{variant.stock}</strong>
+                      </Typography>
 
-                    {/* Stock */}
-                    <Typography
-                      variant="body2"
-                      color={product.stock > 0 ? "success.main" : "error.main"}
-                    >
-                      Stock: <strong>{product.stock}</strong>
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 700, color: "primary.main", mt: 0.5 }}
+                      >
+                        Precio:{" "}
+                        {/* 🔥 SEGUNDA CORRECCIÓN: Validación defensiva antes de toFixed */}
+                        {typeof variant.price === "number" && variant.price > 0
+                          ? variant.price.toFixed(2)
+                          : "Consultar"}
+                      </Typography>
 
-                    {/* Tipo */}
-                    <Typography variant="caption" color="text.secondary">
-                      {product.productType}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
+                      <Typography variant="caption" color="text.secondary">
+                        {variant.productType}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                );
+              })
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No se encontraron productos.
+                No se encontraron variantes.
               </Typography>
             )}
           </Box>
         )}
 
-        {/* BOTÓN DE AÑADIR */}
         <Button
           variant="contained"
           color="primary"
           sx={{ mt: 3 }}
           fullWidth
-          disabled={selectedProducts.length === 0}
-          onClick={handleAddSelectedProducts}
+          disabled={localSelected.length === 0}
+          onClick={handleAdd}
         >
-          Añadir Seleccionados
+          Añadir Seleccionados ({localSelected.length})
         </Button>
       </Box>
     </Modal>

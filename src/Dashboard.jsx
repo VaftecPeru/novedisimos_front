@@ -149,13 +149,15 @@ function Dashboard() {
     // REDIRECCIÓN AUTOMÁTICA POR ROL
     if (location.pathname === "/dashboard") {
       const defaultRoutes = {
-        Administrador: "/dashboard/ordenDePedido",
-        Vendedor: "/dashboard/ordenDePedido",
+        Administrador: "/dashboard/dashboardPage",
+        Vendedor: "/dashboard/dashboardPage",
         Almacen: "/dashboard/almacenes",
         Delivery: "/dashboard/motorizados",
       };
+
       const defaultRoute =
-        defaultRoutes[usuario.rol] || "/dashboard/ordenDePedido";
+        defaultRoutes[usuario.rol] || "/dashboard/dashboardPage";
+
       navigate(defaultRoute);
       return;
     }

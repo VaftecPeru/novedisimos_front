@@ -1186,6 +1186,79 @@ export async function fetchProductsMedia() {
   }
 }
 
+export async function fetchVariantesMedia() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/shopify/variantes/media/first`);
+    if (!response.ok) throw new Error("Error al obtener los productos");
+
+    const data = await response.json();
+
+    // Si la API falla o no hay productos, devolvemos array vacío
+    if (!data.success || !data.productos) return [];
+
+    const getImageFromMedia = (mediaArray) => {
+      if (!Array.isArray(mediaArray) || mediaArray.length === 0) return "/images/default-image.png";
+
+      const m = mediaArray[0]; // Tomamos el primer elemento de media
+      if (!m) return "/images/default-image.png";
+
+      // Prioridad: Imagen de producto o Preview de Video/3D
+      return m.image?.url || m.preview?.image?.url || "/images/default-image.png";
+    };
+
+    return data.productos.map((product) => ({
+      id: product.id,
+      title: product.title,
+      productType: product.productType || "Sin categoría",
+      image: getImageFromMedia(product.media),
+      currency: product.currency, // Ya viene de la API (ej: "PEN")
+
+      variantes: (product.variantes || []).map((v) => ({
+        id: v.id,
+        title: v.title,
+        stock: v.stock,
+        price: v.price,                   // "134.00"
+        currency: v.currency,             // "PEN"
+        priceFormatted: v.price_formatted, // "PEN 134.00" (Usar este para la UI)
+        image: v.image?.url || "/images/default-image.png",
+      })),
+    }));
+
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+}
+
+export async function fetchVariantesMediaSelect(variantIds = []) {
+  if (!Array.isArray(variantIds) || variantIds.length === 0) return [];
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/shopify/variantes/media`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ variantIds }) // Mandamos el array de IDs
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Error al obtener las imágenes: ${text}`);
+    }
+
+    const data = await response.json();
+    if (!data.success || !data.images) return [];
+
+    return data.images.map((v) => ({
+      id: v.id,
+      image: v.image || "/images/default-image.png"
+    }));
+
+  } catch (error) {
+    console.error("Error fetching variant images:", error);
+    return [];
+  }
+}
+
 export const obtenerColeccionDetalles = async (id) => {
   if (!id) throw new Error("Se requiere el ID de la colección.");
 
@@ -1302,6 +1375,63 @@ export const eliminarColeccion = async (collectionId) => {
 
   return await response.json(); // { success: true, message: "Colección eliminada correctamente" }
 };
+
+export async function crearPedido(pedidoData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/shopify/crear-pedido`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pedidoData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Error creando pedido");
+    }
+
+    const data = await response.json();
+    console.log("Pedido creado:", data);
+
+    return data;
+  } catch (err) {
+    console.error("Error en crearPedido:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export const actualizarPedido = async (id, data) => {
+  const response = await fetch(`${API_BASE_URL}/shopify/actualizar/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error en la actualización: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
+export const cancelarPedido = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/shopify/cancelar/${id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error al cancelar el pedido: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
 export default {
   getShopInfo,
   fetchOrders,

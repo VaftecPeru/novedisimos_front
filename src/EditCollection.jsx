@@ -297,7 +297,7 @@ function EditCollection({
     }
   };
 
-  // 2. FUNCIÓN DE SUBMIT (MODIFICADA para console.log y simulación de datos principales)
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -305,7 +305,6 @@ function EditCollection({
       return Swal.fire("Error", "El título es obligatorio", "error");
     }
 
-    // 1. Confirmación antes de guardar
     const { isConfirmed } = await Swal.fire({
       title: "¿Guardar cambios?",
       text: "Se actualizará la colección.",
@@ -317,7 +316,6 @@ function EditCollection({
 
     if (!isConfirmed) return;
 
-    // 2. Mostrar Swal de carga
     Swal.fire({
       title: "Guardando cambios...",
       text: "Por favor espera",
@@ -343,10 +341,8 @@ function EditCollection({
     try {
       const res = await actualizarColeccion(collectionId, formData);
 
-      // 3. Cerrar el Swal de carga
       Swal.close();
 
-      // 4. Éxito
       await Swal.fire({
         title: "¡Guardado!",
         text: `La colección "${titulo}" fue actualizada correctamente.`,
@@ -368,7 +364,7 @@ function EditCollection({
       setSaving(false);
     }
   };
-  // El modal se cierra si está cargando y no se ha inicializado
+
   if (loading) {
     return (
       <div className="modal-overlay" onClick={onClose}>

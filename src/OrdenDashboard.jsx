@@ -52,6 +52,7 @@ import {
   fetchVentasPedidosAsignados,
   fetchAlmacenPedidosAsignados,
   fetchSeguimientoVentas,
+  cancelarPedido,
 } from "./components/services/shopifyService";
 import NoteIcon from "@mui/icons-material/Note";
 import SaveIcon from "@mui/icons-material/Save";
@@ -63,7 +64,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import AddPedido from "./AddPedido";
 import EditPedido from "./EditPedido";
-
 
 function NotaIcono(props) {
   return (
@@ -149,9 +149,6 @@ const formatDate = (dateString) => {
 
 const FechaItem = ({ label, fecha }) => (
   <Box sx={{ display: "flex", gap: 1 }}>
-    <Typography variant="caption" sx={{ color: "#6b7280" }}>
-      {label}:
-    </Typography>
     <Typography variant="caption">{fecha}</Typography>
   </Box>
 );
@@ -214,46 +211,58 @@ function PedidosDashboard() {
   };
 
   function mapPedido(p) {
-    // Función auxiliar para buscar la fecha de entrega en note_attributes
-    const getFechaEntrega = (noteAttributes) => {
-      if (!noteAttributes || noteAttributes.length === 0) {
-        return "N/A";
-      }
-
-      // Busca un atributo con un nombre que sugiera la fecha de entrega
-      const entregaAttribute = noteAttributes.find(
-        (attr) =>
-          /fecha.*entrega/i.test(attr.name) || /delivery.*date/i.test(attr.name)
-      );
-
-      return entregaAttribute ? entregaAttribute.value || "N/A" : "N/A";
-    };
-
     return {
       id: p.id,
       financial_status: p.financial_status,
       orden: p.order_number ?? "-",
       fecha: p.created_at ?? "-",
+
       cliente: p.customer
         ? `${p.customer.first_name} ${p.customer.last_name}`
         : p.billing_address?.name || "-",
+
       vendedor_usuario: p.user_id || "N/A",
+
       detalle: p.line_items
         ? p.line_items.map((item) => `${item.title} (${item.quantity})`)
         : [],
-      empresa_envio: p.shipping_lines?.[0]?.title || "N/A",
+
+      empresa_envio:
+        p.note_attributes?.find((a) => a.name === "empresa_envio")?.value ||
+        p.shipping_lines?.[0]?.title ||
+        "-",
+
+      costo_envio:
+        Number(
+          p.note_attributes?.find((a) => a.name === "costo_envio")?.value
+        ) ||
+        Number(p.total_shipping_price_set?.shop_money?.amount) ||
+        0,
+
       estado_pedido: p.fulfillment_status || "Pendiente",
+
       estado_confirmacion: p.confirmed ? "Confirmado" : "Pendiente",
+
       estado_pago:
         (p.financial_status || "-")
           .replace("paid", "Pagado")
           .replace("pending", "Pendiente") || "-",
-      costo_envio: p.total_shipping_price_set?.shop_money?.amount
-        ? Number(p.total_shipping_price_set.shop_money.amount)
-        : 0,
-      primer_abono: p.current_total_price || 0,
-      saldo: p.total_outstanding || 0,
-      total: p.total_price || 0,
+
+      primer_abono:
+        Number(
+          p.note_attributes?.find((a) => a.name === "primer_abono")?.value
+        ) || 0,
+
+      saldo:
+        Number(p.note_attributes?.find((a) => a.name === "saldo")?.value) ||0,
+
+      almacen:
+        p.note_attributes?.find((a) => a.name === "almacen")?.value ||
+        p.location_id ||
+        "N/A",
+
+      total: Number(p.total_price) || 0,
+
       direccion_resumen: p.shipping_address
         ? `${p.shipping_address.city}, ${p.shipping_address.province}`
         : p.billing_address
@@ -273,9 +282,8 @@ function PedidosDashboard() {
             p.billing_address.country
           }, ${p.billing_address.zip}`
         : "N/A",
+
       nota: p.note || "Sin nota",
-      almacen: p.location_id || "N/A",
-      fecha_entrega: getFechaEntrega(p.note_attributes), // Campo añadido
     };
   }
 
@@ -295,7 +303,7 @@ function PedidosDashboard() {
 
   const pedidosFiltrados = filtered.filter((p) => {
     const texto =
-      `${p.orden} ${p.cliente} ${p.estado_pago} ${p.estado_pedido} ${p.direccion}`.toLowerCase();
+      `${p.orden} ${p.cliente} ${p.estado_pago} ${p.estado_pedido} ${p.direccion_resumen}`.toLowerCase();
     return texto.includes(busqueda.toLowerCase());
   });
 
@@ -303,12 +311,6 @@ function PedidosDashboard() {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
-
-  // Botones
-
-  const handleDelete = async (id) => {
-    console.log(id);
-  };
 
   // Modal notas
 
@@ -345,6 +347,49 @@ function PedidosDashboard() {
 
   const [openDireccionModal, setOpenDireccionModal] = useState(false);
   const [direccionSeleccionada, setDireccionSeleccionada] = useState("");
+
+  const handleCancelarPedido = async (id) => {
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Cancelar pedido?",
+      text: "Esta acción cancelará el pedido en Shopify y no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "No",
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      Swal.fire({
+        title: "Cancelando pedido...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const data = await cancelarPedido(id);
+
+      Swal.close();
+
+      Swal.fire({
+        title: "Pedido cancelado",
+        text: "El pedido fue cancelado correctamente.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      recargarPedidos();
+    } catch (error) {
+      Swal.close();
+      Swal.fire(
+        "Error",
+        error.message || "No se pudo cancelar el pedido",
+        "error"
+      );
+    }
+  };
 
   return (
     <Box
@@ -423,24 +468,6 @@ function PedidosDashboard() {
               width: "200px",
             }}
           />
-          <Button
-            variant="contained"
-            // onClick={() => setOpenImportExportModal(true)}
-            sx={{
-              border: "none",
-              boxShadow: "none",
-              color: "#353535",
-              backgroundColor: "transparent",
-              borderRadius: 2,
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.03)",
-                boxShadow: "none",
-              },
-            }}
-          >
-            Exportar/Importar
-          </Button>
           <Button
             variant="contained"
             onClick={() => setOpenModal(true)}
@@ -598,19 +625,7 @@ function PedidosDashboard() {
                     <TableCell>{p.orden}</TableCell>
                     <TableCell>
                       <Box sx={{ "& *": { fontSize: "10px" } }}>
-                        <FechaItem
-                          label="Registro"
-                          fecha={formatDate(p.fecha) || "-"}
-                        />
-                        {/* Campo: Fecha de Entrega extraída del atributo de nota */}
-                        <FechaItem
-                          label="Entrega (Nota)"
-                          fecha={
-                            p.fecha_entrega !== "N/A"
-                              ? formatDate(p.fecha_entrega)
-                              : "-"
-                          }
-                        />
+                        <FechaItem fecha={formatDate(p.fecha) || "-"} />
                       </Box>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 150 }}>
@@ -724,7 +739,7 @@ function PedidosDashboard() {
                         <Button
                           variant="outlined"
                           size="small"
-                          onClick={() => handleDelete(p.id)}
+                          onClick={() => handleCancelarPedido(p.id)}
                           sx={{
                             color: "#d82c0d",
                             borderColor: "#d82c0d",
@@ -734,7 +749,7 @@ function PedidosDashboard() {
                             },
                           }}
                         >
-                          Eliminar
+                          Cancelar
                         </Button>
                       </Box>
                     </TableCell>

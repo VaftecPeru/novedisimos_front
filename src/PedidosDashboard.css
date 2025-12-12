@@ -22,3 +22,13 @@
   background-color: #8b5cf6;
   color: white;
 }
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: #f0f0f0 !important; /* gris claro */
+  color: #888 !important;               /* texto gris */
+  border: 1px solid #ccc !important;    /* borde apagado */
+  cursor: not-allowed !important;       /* cursor de bloqueado */
+  opacity: 1 !important;                /* evitar que se ponga transparente */
+}
