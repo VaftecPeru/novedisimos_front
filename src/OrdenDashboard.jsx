@@ -158,6 +158,7 @@ function PedidosDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
   const isVendedor = currentUser.rol === "Vendedor";
   const userId = Number(currentUser.id);
+  /// ---------------------------------------------- //
 
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -169,6 +170,139 @@ function PedidosDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
+
+  // Asignar vendedor:
+  const [openAsignarVendedor, setOpenAsignarVendedor] = useState(false);
+  const [vendedores, setVendedores] = useState([]);
+  const [vendedorSeleccionado, setVendedorSeleccionado] = useState("");
+  const [pedidoAsignar, setPedidoAsignar] = useState(null);
+  const [ventasAsignadas, setVentasAsignadas] = useState([]);
+
+  // Pedidos ya asignados
+  useEffect(() => {
+    const cargarVentasAsignadas = async () => {
+      try {
+        const data = await fetchVentasPedidosAsignados();
+        setVentasAsignadas(data);
+      } catch (error) {
+        console.error("Error cargando ventas asignadas", error);
+      }
+    };
+
+    cargarVentasAsignadas();
+  }, []);
+
+  const getVendedorPorPedido = (pedidoId) => {
+    return ventasAsignadas.find(
+      (v) => Number(v.shopify_order_id) === Number(pedidoId)
+    );
+  };
+
+  // Asignar
+
+  const abrirAsignarVendedor = async (pedido) => {
+    setPedidoAsignar(pedido);
+    setOpenAsignarVendedor(true);
+
+    try {
+      const data = await fetchVendedores();
+      setVendedores(data);
+    } catch (error) {
+      console.error("Error cargando vendedores", error);
+    }
+  };
+
+  const asignarVendedor = async () => {
+    if (!pedidoAsignar || !vendedorSeleccionado) return;
+
+    try {
+      await createSeguimiento({
+        shopify_order_id: pedidoAsignar.id,
+        area: "Ventas",
+        estado: "pendiente",
+        responsable_id: vendedorSeleccionado,
+      });
+
+      // 🔄 Recargar seguimientos
+      const data = await fetchVentasPedidosAsignados();
+      setVentasAsignadas(data);
+
+      Swal.fire("Correcto", "Vendedor asignado", "success");
+      cerrarAsignarVendedor();
+    } catch (error) {
+      Swal.fire("Error", "No se pudo asignar el vendedor", "error");
+    }
+  };
+
+  const cerrarAsignarVendedor = () => {
+    setOpenAsignarVendedor(false);
+    setVendedorSeleccionado("");
+    setPedidoAsignar(null);
+  };
+
+  // Asignar almacén
+  const [openAsignarAlmacen, setOpenAsignarAlmacen] = useState(false);
+  const [almacenes, setAlmacenes] = useState([]);
+  const [almacenSeleccionado, setAlmacenSeleccionado] = useState("");
+  const [pedidoAsignarAlmacen, setPedidoAsignarAlmacen] = useState(null);
+  const [almacenAsignados, setAlmacenAsignados] = useState([]);
+
+  useEffect(() => {
+    const cargarAlmacenAsignados = async () => {
+      try {
+        const data = await fetchAlmacenPedidosAsignados();
+        setAlmacenAsignados(data);
+      } catch (error) {
+        console.error("Error cargando almacén asignados", error);
+      }
+    };
+
+    cargarAlmacenAsignados();
+  }, []);
+
+  const cerrarAsignarAlmacen = () => {
+    setOpenAsignarAlmacen(false);
+    setAlmacenSeleccionado("");
+    setPedidoAsignarAlmacen(null);
+  };
+
+  const getAlmacenPorPedido = (pedidoId) => {
+    return almacenAsignados.find(
+      (a) => Number(a.shopify_order_id) === Number(pedidoId)
+    );
+  };
+
+  const abrirAsignarAlmacen = async (pedido) => {
+    setPedidoAsignarAlmacen(pedido);
+    setOpenAsignarAlmacen(true);
+
+    try {
+      const data = await fetchAlmacen();
+      setAlmacenes(data);
+    } catch (error) {
+      console.error("Error cargando almacenes", error);
+    }
+  };
+  const asignarAlmacen = async () => {
+    if (!pedidoAsignarAlmacen || !almacenSeleccionado) return;
+
+    try {
+      await createSeguimiento({
+        shopify_order_id: pedidoAsignarAlmacen.id,
+        area: "Almacen",
+        estado: "pendiente",
+        responsable_id: almacenSeleccionado,
+      });
+
+      const data = await fetchAlmacenPedidosAsignados();
+      setAlmacenAsignados(data);
+
+      Swal.fire("Correcto", "Almacén asignado", "success");
+      cerrarAsignarAlmacen();
+    } catch (error) {
+      Swal.fire("Error", "No se pudo asignar el almacén", "error");
+    }
+  };
 
   // Carga de ordenes
   useEffect(() => {
@@ -254,8 +388,7 @@ function PedidosDashboard() {
         ) || 0,
 
       saldo:
-        Number(p.note_attributes?.find((a) => a.name === "saldo")?.value) ||0,
-
+        Number(p.note_attributes?.find((a) => a.name === "saldo")?.value) || 0,
       almacen:
         p.note_attributes?.find((a) => a.name === "almacen")?.value ||
         p.location_id ||
@@ -302,8 +435,15 @@ function PedidosDashboard() {
   }
 
   const pedidosFiltrados = filtered.filter((p) => {
+    if (isVendedor) {
+      const seguimiento = getVendedorPorPedido(p.id);
+      if (!seguimiento) return false;
+      if (Number(seguimiento.responsable_id) !== userId) return false;
+    }
+
     const texto =
       `${p.orden} ${p.cliente} ${p.estado_pago} ${p.estado_pedido} ${p.direccion_resumen}`.toLowerCase();
+
     return texto.includes(busqueda.toLowerCase());
   });
 
@@ -584,7 +724,9 @@ function PedidosDashboard() {
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Orden</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Fecha</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Cliente</TableCell>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Vendedor</TableCell>
+                {!isVendedor && (
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Vendedor</TableCell>
+                )}
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Detalle</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>
                   Empresa Envío
@@ -611,13 +753,6 @@ function PedidosDashboard() {
 
             <TableBody>
               {pedidosPaginados.map((p) => {
-                // **Simplificamos la visualización del Vendedor y Almacén**
-                const vendedorDisplay =
-                  p.vendedor_usuario !== "N/A" ? `${p.vendedor_usuario}` : "-";
-
-                const almacenDisplay =
-                  p.almacen !== "N/A" ? `Locación ID: ${p.almacen}` : "-";
-
                 const estado = p.financial_status ?? "—"; // Se usa para la lógica de color del Chip
 
                 return (
@@ -632,15 +767,33 @@ function PedidosDashboard() {
                       <Typography noWrap>{p.cliente}</Typography>
                     </TableCell>
 
-                    <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Typography variant="body2">
-                          {vendedorDisplay}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                    {!isVendedor && (
+                      <TableCell>
+                        {(() => {
+                          const seguimiento = getVendedorPorPedido(p.id);
+
+                          if (seguimiento) {
+                            return (
+                              <Chip
+                                label={seguimiento.responsable?.nombre_completo}
+                                size="small"
+                                color="success"
+                              />
+                            );
+                          }
+
+                          return (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => abrirAsignarVendedor(p)}
+                            >
+                              Asignar
+                            </Button>
+                          );
+                        })()}
+                      </TableCell>
+                    )}
 
                     <TableCell>
                       <Button
@@ -702,13 +855,29 @@ function PedidosDashboard() {
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Typography variant="body2">
-                          {almacenDisplay}
-                        </Typography>
-                      </Box>
+                      {(() => {
+                        const seguimiento = getAlmacenPorPedido(p.id);
+
+                        if (seguimiento) {
+                          return (
+                            <Chip
+                              label={seguimiento.responsable?.nombre_completo}
+                              size="small"
+                              color="info"
+                            />
+                          );
+                        }
+
+                        return (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => abrirAsignarAlmacen(p)}
+                          >
+                            Asignar
+                          </Button>
+                        );
+                      })()}
                     </TableCell>
 
                     <TableCell align="center">
@@ -773,6 +942,80 @@ function PedidosDashboard() {
         rowsPerPageOptions={[10, 20, 50]}
         labelRowsPerPage="Pedidos por página:"
       />
+
+      <Dialog
+        open={openAsignarVendedor}
+        onClose={cerrarAsignarVendedor}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Asignar vendedor</DialogTitle>
+
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel>Vendedor</InputLabel>
+            <Select
+              value={vendedorSeleccionado}
+              label="Vendedor"
+              onChange={(e) => setVendedorSeleccionado(e.target.value)}
+            >
+              {vendedores.map((v) => (
+                <MenuItem key={v.id} value={v.id}>
+                  {v.nombre_completo}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={cerrarAsignarVendedor}>Cancelar</Button>
+          <Button
+            variant="contained"
+            onClick={asignarVendedor}
+            disabled={!vendedorSeleccionado}
+          >
+            Asignar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openAsignarAlmacen}
+        onClose={cerrarAsignarAlmacen}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Asignar almacén</DialogTitle>
+
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel>Usuario de almacén</InputLabel>
+            <Select
+              value={almacenSeleccionado}
+              label="Usuario de almacén"
+              onChange={(e) => setAlmacenSeleccionado(e.target.value)}
+            >
+              {almacenes.map((a) => (
+                <MenuItem key={a.id} value={a.id}>
+                  {a.nombre_completo}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={cerrarAsignarAlmacen}>Cancelar</Button>
+          <Button
+            variant="contained"
+            onClick={asignarAlmacen}
+            disabled={!almacenSeleccionado}
+          >
+            Asignar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

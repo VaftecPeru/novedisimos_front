@@ -950,12 +950,10 @@ function Dashboard() {
         <img
           className="shop-header-logo"
           src="../images/img2.png"
-          alt="Imagen de login"
+          alt="Logo"
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/dashboard/dashboardPage")}
         />
-
-        <div className="shop-header-search">
-          <input type="text" placeholder="Buscar en la tienda..." />
-        </div>
 
         <div className="header-perfil">
           <div

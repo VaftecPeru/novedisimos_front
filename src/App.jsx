@@ -90,7 +90,7 @@ function App() {
         alignItems: "center",
         width: { xs: "90%", sm: 500, md: 650 },
         maxWidth: 650,
-        padding: "20px",
+        padding: "50px 30px",
         backgroundColor: "#fff",
         borderRadius: "10px",
         position: "absolute",
@@ -102,7 +102,9 @@ function App() {
       <img
         src="../images/img.png"
         alt="Imagen de login"
-        style={{ marginBottom: "20px" }}
+        style={{ margin: "20px",
+          
+         }}
       />
       <Typography
         variant="h5"
@@ -234,18 +236,7 @@ function App() {
             {loginError}
           </Typography>
         )}
-        <Typography
-          variant="body2"
-          sx={{
-            fontFamily: "arial, sans-serif",
-            fontWeight: "normal",
-            textAlign: "center",
-            marginTop: "5px",
-            fontSize: "18px",
-          }}
-        >
-          ¿Olvidaste tu contraseña?
-        </Typography>
+      
         <Button
           type="submit"
           variant="contained"
@@ -262,25 +253,7 @@ function App() {
         >
           Acceder ➜
         </Button>
-        <Typography
-          variant="body2"
-          sx={{
-            fontFamily: "arial, sans-serif",
-            fontWeight: "normal",
-            textAlign: "center",
-            marginTop: "10px",
-            fontSize: "18px",
-          }}
-        >
-          ¿No tienes una cuenta?{" "}
-          <Link
-            to="/registro"
-            className="registro-link"
-            style={{ color: "#5c73db", textDecoration: "underline" }}
-          >
-            Crear cuenta
-          </Link>
-        </Typography>
+       
       </Box>
     </Box>
   );

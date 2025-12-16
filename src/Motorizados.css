@@ -1,7 +1,6 @@
 .motorizados-outer-container {
   width: 100%;
   min-height: 100vh;
-  background: #f9fafb;
   display: flex;
   flex-direction: column;
   padding: 0 20px;
@@ -13,7 +12,6 @@
   max-width: none;
   margin: 32px auto 0 auto;
   padding: 22px 18px 28px 18px;
-  background: #fff;
   border-radius: 18px;
   box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.08);
   min-height: 80vh;

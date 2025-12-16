@@ -531,40 +531,6 @@ const MotorizadosDashboard = () => {
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
               Gestión de Entrega <DeliveryDiningIcon sx={{ ml: 1, color: "#3b82f6" }} />
             </Typography>
-
-            {/* Link de Almacén Mejorado */}
-            <Link
-              href="/dashboard/almacenes"
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 8px rgba(16, 185, 129, 0.4)',
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  textDecoration: 'none'
-                }
-              }}
-            >
-              <InventoryIcon sx={{
-                mr: 1,
-                fontSize: '1.2rem',
-                transition: 'transform 0.3s ease'
-              }} />
-              <Typography variant="body1" sx={{
-                fontWeight: '600',
-                fontSize: '0.95rem'
-              }}>
-                Ir a Almacén
-              </Typography>
-            </Link>
             <Button
               variant="outlined"
               startIcon={<DescriptionIcon />}

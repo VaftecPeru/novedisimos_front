@@ -412,7 +412,7 @@ const FormularioInterno = () => {
       <h2 className="form-title">COD - YARA</h2>
 
       {/* BUSCAR */}
-      <div className="form-group search-row">
+      <div className="form-group search-row" style={{display: "flex", flexDirection: "row"}}>
         <div className="search-container">
           <input
             type="text"

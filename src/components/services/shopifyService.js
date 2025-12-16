@@ -471,6 +471,35 @@ export const guardarPedidoExternoEnvio = async (data) => {
 };
 
 
+export const createSeguimiento = async (seguimientoData) => {
+  console.log('🚀 ENTRANDO EN createSeguimiento'); // Log inicial
+
+  try {
+    console.log('📤 URL:', `${API_BASE_URL}/seguimiento-pedido`);
+    console.log('📦 Datos:', JSON.stringify(seguimientoData, null, 2));
+
+    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(seguimientoData),
+    });
+    console.log('📬 Fetch ejecutado');
+
+    const responseBody = await response.json().catch(() => ({}));
+    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
+    }
+
+    return responseBody;
+  } catch (error) {
+    console.error('❌ Error en createSeguimiento:', error.message);
+    throw error;
+  }
+};
 
 
 export const fetchVentasPedidosAsignados = async () => {
@@ -508,11 +537,7 @@ export const fetchAlmacenPedidosAsignados = async () => {
     }
 
     const data = await response.json();
-    console.log('📥 Respuesta de fetchAlmacenPedidosAsignados:', data);
-    return Array.isArray(data.data) ? data.data.map(item => ({
-      shopify_order_id: item.shopify_order_id,
-      responsable_almacen: item.responsable || null
-    })) : [];
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error('❌ Error en fetchAlmacenPedidosAsignados:', error);
     return [];
@@ -542,36 +567,6 @@ export const fetchDeliveryPedidosAsignados = async () => {
   } catch (error) {
     console.error('❌ Error en fetchDeliveryPedidosAsignados:', error.message, error);
     return [];
-  }
-};
-
-export const createSeguimiento = async (seguimientoData) => {
-  console.log('🚀 ENTRANDO EN createSeguimiento'); // Log inicial
-
-  try {
-    console.log('📤 URL:', `${API_BASE_URL}/seguimiento-pedido`);
-    console.log('📦 Datos:', JSON.stringify(seguimientoData, null, 2));
-
-    const response = await fetch(`${API_BASE_URL}/seguimiento-pedido`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(seguimientoData),
-    });
-    console.log('📬 Fetch ejecutado');
-
-    const responseBody = await response.json().catch(() => ({}));
-    console.log('📥 Respuesta:', { status: response.status, body: responseBody });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${responseBody.message || 'Desconocido'}`);
-    }
-
-    return responseBody;
-  } catch (error) {
-    console.error('❌ Error en createSeguimiento:', error.message);
-    throw error;
   }
 };
 
@@ -622,7 +617,7 @@ export const fetchVendedores = async () => {
     console.error('❌ Error en fetchVendedores:', error.response?.data || error.message);
     return [];
   }
-};
+}; //Usar
 
 // Obtener usuarios con rol "almacen"
 export const fetchAlmacen = async () => {
@@ -641,12 +636,13 @@ export const fetchAlmacen = async () => {
     });
 
     console.log("fetchAlmacen response:", response.data);
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
     console.error('❌ Error en fetchAlmacen:', error.response?.data || error.message);
     return null;
   }
-};
+}; //Usar
 
 // Obtener usuarios con rol "delivery"
 export const fetchDelivery = async () => {
